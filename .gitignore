@@ -1,0 +1,16 @@
+tmp/
+
+# Datafiles
+*.csv
+*.gz
+*.pkl
+
+# Compiled Python
+*.pyc
+
+# Local Preferences
+*.SUNet
+.idea/workspace.xml
+.ipynb_checkpoints
+logs
+.DS_Store
