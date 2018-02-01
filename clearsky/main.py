@@ -61,12 +61,13 @@ class StatisticalClearSky(object):
                 fits[ind, :] = fit
         self.DP_clearsky = fits[:, :365]
         if plot:
-            fig, axes = plt.subplots(nrows=n, figsize=(12,n*4), sharex=True)
+            fig, axes = plt.subplots(nrows=n, figsize=(8,n*3), sharex=True)
             try:
                 for ind in xrange(n):
                     axes[ind].plot(signals[ind], linewidth=1)
                     axes[ind].plot(fits[ind], linewidth=1)
-                    axes[ind].set_title('Daily scale factors for eigenvector {}'.format(ind+1))
+                    axes[ind].set_title('Daily scale factors for singular vector {}'.format(ind+1))
+                    axes[ind].scatter(np.nonzero(mask), signals[ind][mask], marker='.', color='yellow', alpha=0.7)
                 axes[ind].set_xlabel('Day Number')
                 plt.tight_layout()
                 return fig, axes
@@ -74,7 +75,8 @@ class StatisticalClearSky(object):
                 axes.plot(signals[0], linewidth=1)
                 axes.plot(fits[0], linewidth=1)
                 axes.set_xlabel('Day Number')
-                axes.set_title('Daily scale factors for eigenvector 1')
+                axes.set_title('Daily scale factors for singular vector 1')
+                axes.scatter(np.nonzero(mask), signals[ind][mask], marker='.', color='yellow', alpha=0.7)
                 return fig, axes
         if return_fits:
             return signals, fits
