@@ -22,7 +22,7 @@ class StatisticalClearSky(object):
         self.D = None
         self.P = None
         self.DP_clearsky = None
-
+        self.cleardays = None
     def get_eigenvectors(self):
         data_matrix = self.data.as_matrix().reshape(-1, 288).T
         U, D, P = svd(data_matrix)
@@ -60,6 +60,7 @@ class StatisticalClearSky(object):
                 signals[ind] = signal
                 fits[ind, :] = fit
         self.DP_clearsky = fits[:, :365]
+        self.cleardays = np.arange(self.P.shape[1])[mask]
         if plot:
             fig, axes = plt.subplots(nrows=n, figsize=(8,n*3), sharex=True)
             try:
