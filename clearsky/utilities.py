@@ -36,7 +36,9 @@ def envelope_fit(signal, mu, eta, kind='upper', period=None):
         constraints = [
             envelope[:n_samples - period] == envelope[period:]
         ]
-    problem = cvx.Problem(objective, constraints)
+        problem = cvx.Problem(objective, constraints)
+    else:
+        problem = cvx.Problem(objective)
     try:
         problem.solve(solver='MOSEK')
     except Exception as e:
