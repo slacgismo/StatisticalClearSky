@@ -68,7 +68,8 @@ class StatisticalClearSky(object):
                     axes[ind].plot(signals[ind], linewidth=1)
                     axes[ind].plot(fits[ind], linewidth=1, color='r')
                     axes[ind].set_title('Daily scale factors for singular vector {}'.format(ind+1))
-                    axes[ind].scatter(np.nonzero(mask), signals[ind][mask], marker='.', color='yellow', alpha=0.7)
+                    axes[ind].scatter(np.nonzero(mask), signals[ind][mask], marker='.', color='orange',
+                                      alpha=0.7, s=100)
                 axes[ind].set_xlabel('Day Number')
                 plt.tight_layout()
                 return fig, axes
@@ -77,7 +78,8 @@ class StatisticalClearSky(object):
                 axes.plot(fits[0], linewidth=1, color='r')
                 axes.set_xlabel('Day Number')
                 axes.set_title('Daily scale factors for singular vector 1')
-                axes.scatter(np.nonzero(mask), signals[ind][mask], marker='.', color='yellow', alpha=0.7)
+                axes.scatter(np.nonzero(mask), signals[ind][mask], marker='.', color='orange',
+                             alpha=0.7, s=100)
                 return fig, axes
         if return_fits:
             return signals, fits
