@@ -12,7 +12,7 @@ try:
 except NameError:
     xrange = range
 
-def envelope_fit(signal, mu, eta, kind='upper', period=None):
+def envelope_fit(signal, mu, eta, linear_term=False, kind='upper', period=None):
     '''
     Perform an envelope fit of a signal. See: https://en.wikipedia.org/wiki/Envelope_(waves)
     :param signal: The signal to be fit
@@ -25,6 +25,10 @@ def envelope_fit(signal, mu, eta, kind='upper', period=None):
     if kind == 'lower':
         signal *= -1
     n_samples = len(signal)
+    if linear_term:
+        beta = cvx.Variable()
+    else:
+        beta = 0.
     envelope = cvx.Variable(len(signal))
     mu = cvx.Parameter(sign='positive', value=mu)
     eta = cvx.Parameter(sign='positive', value=eta)
@@ -34,7 +38,7 @@ def envelope_fit(signal, mu, eta, kind='upper', period=None):
     objective = cvx.Minimize(cost)
     if period is not None:
         constraints = [
-            envelope[:n_samples - period] == envelope[period:]
+            envelope[:n_samples - period] == envelope[period:] + beta
         ]
         problem = cvx.Problem(objective, constraints)
     else:
@@ -45,20 +49,31 @@ def envelope_fit(signal, mu, eta, kind='upper', period=None):
         print(e)
         print('Trying ECOS solver')
         problem.solve(solver='ECOS')
-    if kind == 'upper':
-        return envelope.value.A1
-    elif kind == 'lower':
-        signal *= -1
-        return -envelope.value.A1
+    if not linear_term:
+        if kind == 'upper':
+            return envelope.value.A1
+        elif kind == 'lower':
+            signal *= -1
+            return -envelope.value.A1
+    else:
+        if kind == 'upper':
+            return envelope.value.A1, beta.value
+        elif kind == 'lower':
+            signal *= -1
+            return -envelope.value.A1, -beta.value
 
-def masked_smooth_fit_periodic(signal, mask, period, mu):
+def masked_smooth_fit_periodic(signal, mask, period, mu, linear_term=False):
     n_samples = len(signal)
+    if linear_term:
+        beta = cvx.Variable()
+    else:
+        beta = 0.
     fit = cvx.Variable(n_samples)
     mu = cvx.Parameter(sign='positive', value=mu)
     cost = (cvx.sum_entries(cvx.huber(fit[mask] - signal[mask]))
             + mu * cvx.norm2(fit[2:] - 2 * fit[1:-1] + fit[:-2]))
     objective = cvx.Minimize(cost)
-    constraints = [fit[:len(signal) - period] == fit[period:]]
+    constraints = [fit[:len(signal) - period] == fit[period:] + beta]
     problem = cvx.Problem(objective, constraints)
     try:
         problem.solve(solver='MOSEK')
@@ -66,7 +81,10 @@ def masked_smooth_fit_periodic(signal, mask, period, mu):
         print(e)
         print('Trying ECOS solver')
         problem.solve(solver='ECOS')
-    return fit.value.A1
+    if not linear_term:
+        return fit.value.A1
+    else:
+        return fit.value.A1, beta.value
 
 def make_time_series(df, return_keys=True, localize_time=-8, filter_length=200):
     '''
