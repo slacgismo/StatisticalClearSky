@@ -66,7 +66,7 @@ class StatisticalClearSky(object):
             try:
                 for ind in xrange(n):
                     axes[ind].plot(signals[ind], linewidth=1)
-                    axes[ind].plot(fits[ind], linewidth=1)
+                    axes[ind].plot(fits[ind], linewidth=1, color='r')
                     axes[ind].set_title('Daily scale factors for singular vector {}'.format(ind+1))
                     axes[ind].scatter(np.nonzero(mask), signals[ind][mask], marker='.', color='yellow', alpha=0.7)
                 axes[ind].set_xlabel('Day Number')
@@ -74,7 +74,7 @@ class StatisticalClearSky(object):
                 return fig, axes
             except TypeError:
                 axes.plot(signals[0], linewidth=1)
-                axes.plot(fits[0], linewidth=1)
+                axes.plot(fits[0], linewidth=1, color='r')
                 axes.set_xlabel('Day Number')
                 axes.set_title('Daily scale factors for singular vector 1')
                 axes.scatter(np.nonzero(mask), signals[ind][mask], marker='.', color='yellow', alpha=0.7)
@@ -82,7 +82,7 @@ class StatisticalClearSky(object):
         if return_fits:
             return signals, fits
 
-    def estimate_clearsky(self, day_slice):
+    def estimate_clearsky(self, day_slice, n=None):
         '''
         Make a clearsky estimate based on provided data for a given set of days
         :param day_slice: A numpy.slice object indicating the days to be used in the estimation (see: numpy.s_)
@@ -91,6 +91,7 @@ class StatisticalClearSky(object):
         '''
         if self.DP_clearsky is None:
             self.make_clearsky_model()
-        n = self.DP_clearsky.shape[0]
-        clearsky = self.U[:, :n].dot(self.DP_clearsky[:, day_slice])
+        if n is None:
+            n = self.DP_clearsky.shape[0]
+        clearsky = self.U[:, :n].dot(self.DP_clearsky[:n, day_slice])
         return clearsky.clip(min=0)
