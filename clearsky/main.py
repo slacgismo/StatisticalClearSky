@@ -23,6 +23,8 @@ class StatisticalClearSky(object):
         self.P = None
         self.DP_clearsky = None
         self.cleardays = None
+        self.betas = None
+
     def get_eigenvectors(self):
         data_matrix = self.data.as_matrix().reshape(-1, 288).T
         U, D, P = svd(data_matrix)
@@ -49,16 +51,23 @@ class StatisticalClearSky(object):
         ind = env_fit
         signal = daily_scale_factors[ind, :]
         fit = envelope_fit(signal, mu=10 ** mu1, eta=10 ** eta, kind='lower', period=365, linear_term=deg_terms)
+        if deg_terms:
+            fit, beta = fit
+            self.betas = [beta]
         mask = np.abs(signal - fit) < 1.5
         signals[ind] = signal
         fits[ind, :] = fit
+        mu_i = mu2
         for ind in xrange(n):
             if ind != env_fit:
                 signal = daily_scale_factors[ind, :]
-                mu_i = mu2
-                fit = masked_smooth_fit_periodic(signal, mask, 365, mu=10**mu_i, linear_term=deg_terms)
+                fit = masked_smooth_fit_periodic(signal, mask, 365, mu=10**mu_i, linear_term=False)
+                # if deg_terms:
+                #     fit, beta = fit
+                #     self.betas.append(beta)
                 signals[ind] = signal
                 fits[ind, :] = fit
+                mu_i *= .995
         self.DP_clearsky = fits
         self.cleardays = np.arange(self.P.shape[1])[mask]
         if plot:
