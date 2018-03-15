@@ -3,7 +3,7 @@
 This module contains the algorithm to statistically fit a clear sky signal.
 """
 
-from clearsky.utilities import envelope_fit, masked_smooth_fit_periodic
+from clearsky.utilities import envelope_fit, envelope_fit_with_deg, masked_smooth_fit_periodic
 import numpy as np
 from numpy.linalg import svd
 import matplotlib.pyplot as plt
@@ -23,11 +23,14 @@ class StatisticalClearSky(object):
         self.P = None
         self.DP_clearsky = None
         self.cleardays = None
-        self.betas = None
+        self.deg_rate = None
 
     def get_eigenvectors(self):
         data_matrix = self.data.as_matrix().reshape(-1, 288).T
         U, D, P = svd(data_matrix)
+        if np.sum(U[:, 0]) < 0:
+            U[:, 0] *= -1
+            P[0] *= -1
         self.U = U
         self.D = D
         self.P = P
@@ -42,7 +45,8 @@ class StatisticalClearSky(object):
         else:
             return self.data[:, day], self.U[:, :n].dot(np.diag(self.D[:n])).dot(self.P[:n, day])
 
-    def make_clearsky_model(self, n=5, mu1=3.5, eta=1.5, mu2=3, deg_terms=False, plot=False, return_fits=False, env_fit=0):
+    def make_clearsky_model(self, n=5, mu1=3.5, eta=1.5, mu2=3, deg=False, plot=False, return_fits=False):
+        env_fit = 0
         if self.U is None:
             self.get_eigenvectors()
         daily_scale_factors = ((np.diag(self.D).dot(self.P[:288])))
@@ -50,10 +54,11 @@ class StatisticalClearSky(object):
         fits = np.empty((n, self.P.shape[1]))
         ind = env_fit
         signal = daily_scale_factors[ind, :]
-        fit = envelope_fit(signal, mu=10 ** mu1, eta=10 ** eta, kind='lower', period=365, linear_term=deg_terms)
-        if deg_terms:
-            fit, beta = fit
-            self.betas = [beta]
+        if not deg:
+            fit = envelope_fit(signal, mu=10 ** mu1, eta=10 ** eta, period=365)
+        else:
+            fit, beta = envelope_fit_with_deg(signal, period=365, mu=10 ** mu1, eta=10 ** eta)
+            self.deg_rate = 1 - 1. / beta
         mask = np.abs(signal - fit) < 1.5
         signals[ind] = signal
         fits[ind, :] = fit
