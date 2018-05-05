@@ -19,7 +19,7 @@ except NameError:
 
 
 class IterativeClearSky(object):
-    def __init__(self, D, k=8, deg=True, adaptive_weighting=True):
+    def __init__(self, D, k=8, deg=True, adaptive_weighting=True, energy_reg=False):
         self.D = D
         self.k = k
         self.L_cs = cvx.Variable(D.shape[0], k)
@@ -37,6 +37,7 @@ class IterativeClearSky(object):
         self.mu_L = 1.
         self.mu_R = 20.
         self.mu_C = 0.05
+        self.mu_d = 1e-1
         self.tau = 0.8
         self.theta = 0.1
         self.weights = np.ones(D.shape[1])
@@ -47,6 +48,9 @@ class IterativeClearSky(object):
         self.daily_tc_weights = tc
         self.deg = deg
         self.adaptive_weighting = adaptive_weighting
+        if energy_reg:
+            print 'Caution: regularization of clear sky energy smoothness greatly increases processing time.'
+        self.energy_reg = energy_reg
 
     def calc_objective(self, sum_components=True):
         W1 = np.diag(self.weights)
@@ -61,15 +65,17 @@ class IterativeClearSky(object):
         f3 = self.mu_R * norm((self.R_cs[:, :-2]).value -
                               2 * (self.R_cs[:, 1:-1]).value +
                               (self.R_cs[:, 2:]).value, 'fro')
-        if self.D.shape[1] > 365:
-            f4 = self.mu_R * norm((self.R_cs[1:, :-365]).value - (self.R_cs[1:, 365:]).value, 'fro')
+        if self.energy_reg:
+            foo = cvx.sum_entries(self.L_cs.value * self.R_cs.value, axis=0).T  # daily clear sky energy
+            f4 = self.mu_d * cvx.norm(foo[:-2] - 2 * foo[1:-1] + foo[2:]).value
         else:
-            f4 =0
-        f5 = self.mu_C * (
+            f4 = 0
+        if self.D.shape[1] > 365:
+            f5 = self.mu_R * norm((self.R_cs[1:, :-365]).value - (self.R_cs[1:, 365:]).value, 'fro')
+        else:
+            f5 =0
+        f6 = self.mu_C * (
             cvx.sum_entries((0.5 * cvx.abs((self.C).value - 1) + (self.tau - 0.5) * ((self.C).value - 1)) * W1)).value
-        #f6 = self.mu_C * 10 * cvx.abs(cvx.sum_entries(cvx.sum_entries(self.C, axis=0).T[:-1]
-        #                                              - cvx.sum_entries(self.C, axis=0).T[1:])).value
-        f6 = 0 # (0.1 * self.mu_C * cvx.norm(self.C.value, 2)).value
         if self.D.shape[1] > 365:
             f7 = self.mu_C * 10 * cvx.abs(cvx.sum_entries(cvx.sum_entries(self.C, axis=0).T[:-365]
                                                           - cvx.sum_entries(self.C, axis=0).T[365:])).value
@@ -99,11 +105,8 @@ class IterativeClearSky(object):
             else:
                 self.weights = np.ones(self.D.shape[1])
             self.min_L()
-            print self.calc_objective(False)[0]
             self.min_R()
-            print self.calc_objective(False)[0]
             self.min_C()
-            print self.calc_objective(False)[0]
             if self.deg:
                 self.min_d()
             new_obj = self.calc_objective()
@@ -129,11 +132,14 @@ class IterativeClearSky(object):
         W2 = np.eye(self.k)
         W2[0, 0] = 10
         f2 = self.mu_L * cvx.norm((self.L_cs[:-2, :] - 2 * self.L_cs[1:-1, :] + self.L_cs[2:, :]) * W2, 'fro')
-        objective = cvx.Minimize(f1 + f2)
-        foo = cvx.sum_entries(self.L_cs * self.R_cs.value, axis=0).T
+        if self.energy_reg:
+            foo = cvx.sum_entries(self.L_cs * self.R_cs.value, axis=0).T # daily clear sky energy
+            f3 = self.mu_d * cvx.norm(foo[:-2] - 2 * foo[1:-1] + foo[2:])
+        else:
+            f3 = 0
+        objective = cvx.Minimize(f1 + f2 + f3)
         constraints = [
             self.L_cs * self.R_cs.value >= 0
-            #cvx.norm(foo[:-2] + 2 * foo[1:-1] - foo[2:]) <= 1e4
         ]
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
@@ -145,15 +151,18 @@ class IterativeClearSky(object):
                                          self.L_cs.value * self.R_cs)
                       * cvx.diag(self.d.value)) * W1, 'fro')
         f2 = self.mu_R * cvx.norm(self.R_cs[:, :-2] - 2 * self.R_cs[:, 1:-1] + self.R_cs[:, 2:], 'fro')
-        if self.D.shape[1] > 365:
-            f3 = self.mu_R * cvx.norm(self.R_cs[1:, :-365] - self.R_cs[1:, 365:], 'fro')
+        if self.energy_reg:
+            foo = cvx.sum_entries(self.L_cs.value * self.R_cs, axis=0).T  # daily clear sky energy
+            f3 = self.mu_d * cvx.norm(foo[:-2] - 2 * foo[1:-1] + foo[2:])
         else:
             f3 = 0
-        objective = cvx.Minimize(f1 + f2 + f3)
-        foo = cvx.sum_entries(self.L_cs.value * self.R_cs, axis=0).T
+        if self.D.shape[1] > 365:
+            f4 = self.mu_R * cvx.norm(self.R_cs[1:, :-365] - self.R_cs[1:, 365:], 'fro')
+        else:
+            f4 = 0
+        objective = cvx.Minimize(f1 + f2 + f3 + f4)
         constraints = [
             self.L_cs.value * self.R_cs >= 0
-            #cvx.norm(foo[:-2] + 2 * foo[1:-1] - foo[2:]) <= 1e4
         ]
         if self.D.shape[1] > 365:
             beta = cvx.Variable()
