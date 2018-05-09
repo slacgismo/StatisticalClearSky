@@ -19,7 +19,7 @@ except NameError:
 
 
 class IterativeClearSky(object):
-    def __init__(self, D, k=8, deg=True, adaptive_weighting=True, energy_reg=False):
+    def __init__(self, D, k=8, deg=True, adaptive_weighting=True, energy_reg=False, reserve_test_data=False):
         self.D = D
         self.k = k
         self.L_cs = cvx.Variable(D.shape[0], k)
@@ -45,12 +45,28 @@ class IterativeClearSky(object):
         tc = np.percentile(tc, 50) - tc
         tc /= np.max(tc)
         tc = np.clip(tc, 0, None)
-        self.daily_tc_weights = tc
+        de = np.sum(D, axis=0)
+        x = cvx.Variable(len(tc))
+        obj = cvx.Minimize(
+            cvx.sum_entries(0.5 * cvx.abs(de - x) + (.9 - 0.5) * (de - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
+        prob = cvx.Problem(obj)
+        prob.solve(solver='MOSEK')
+        de = np.clip(np.divide(de, x.value.A1), 0, 1)
+        th = .1
+        self.daily_static_weights = np.multiply(np.power(tc, th), np.power(de, 1.-th))
+        self.daily_static_weights[self.daily_static_weights < 0.6] = 0.
         self.deg = deg
         self.adaptive_weighting = adaptive_weighting
         if energy_reg:
             print 'Caution: regularization of clear sky energy smoothness greatly increases processing time.'
         self.energy_reg = energy_reg
+        if reserve_test_data:
+            m, n = D.shape
+            day_indices = np.arange(n)
+            num = int(n * reserve_test_data)
+            self.test_days = np.sort(np.random.choice(day_indices, num, replace=False))
+        else:
+            self.test_days = None
 
     def calc_objective(self, sum_components=True):
         W1 = np.diag(self.weights)
@@ -100,15 +116,17 @@ class IterativeClearSky(object):
                 wf = np.percentile(wf, 90) - wf
                 wf /= np.max(wf)
                 wf = np.clip(wf, 0, None)
-                tc = self.daily_tc_weights
+                tc = self.daily_static_weights
                 self.weights = np.multiply(np.power(wf, self.theta), np.power(tc, 1 - self.theta))
             else:
-                self.weights = np.ones(self.D.shape[1])
+                self.weights = self.daily_static_weights
+            if self.test_days is not None:
+                self.weights[self.test_days] = 0
             self.min_L()
             self.min_R()
             self.min_C()
-            if self.deg:
-                self.min_d()
+            #if self.deg:
+            #    self.min_d()
             new_obj = self.calc_objective()
             improvement = (old_obj - new_obj) * 1. / old_obj
             old_obj = new_obj
@@ -139,25 +157,32 @@ class IterativeClearSky(object):
             f3 = 0
         objective = cvx.Minimize(f1 + f2 + f3)
         constraints = [
-            self.L_cs * self.R_cs.value >= 0
+            self.L_cs * self.R_cs.value >= 0,
+            self.L_cs[np.average(self.D, axis=1) <= 1e-5, :] == 0,
+            cvx.sum_entries(self.L_cs[:, 1:], axis=0) == 0
         ]
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
 
     def min_R(self):
+        if self.R_cs.size[1] < 365 + 2:
+            n_tilde = 365 + 2 - self.R_cs.size[1]
+            R_tilde = cvx.hstack(self.R_cs, cvx.Variable(self.k, n_tilde))
+        else:
+            R_tilde = self.R_cs
         W1 = np.diag(self.weights)
         f1 = cvx.norm((self.D
                       - cvx.mul_elemwise(self.C.value,
                                          self.L_cs.value * self.R_cs)
                       * cvx.diag(self.d.value)) * W1, 'fro')
-        f2 = self.mu_R * cvx.norm(self.R_cs[:, :-2] - 2 * self.R_cs[:, 1:-1] + self.R_cs[:, 2:], 'fro')
+        f2 = self.mu_R * cvx.norm(R_tilde[:, :-2] - 2 * R_tilde[:, 1:-1] + R_tilde[:, 2:], 'fro')
         if self.energy_reg:
             foo = cvx.sum_entries(self.L_cs.value * self.R_cs, axis=0).T  # daily clear sky energy
             f3 = self.mu_d * cvx.norm(foo[:-2] - 2 * foo[1:-1] + foo[2:])
         else:
             f3 = 0
-        if self.D.shape[1] > 365:
-            f4 = self.mu_R * cvx.norm(self.R_cs[1:, :-365] - self.R_cs[1:, 365:], 'fro')
+        if R_tilde.size[1] > 365:
+            f4 = self.mu_R * cvx.norm(R_tilde[1:, :-365] - R_tilde[1:, 365:], 'fro')
         else:
             f4 = 0
         objective = cvx.Minimize(f1 + f2 + f3 + f4)
