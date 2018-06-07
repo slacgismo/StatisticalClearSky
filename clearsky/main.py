@@ -68,10 +68,10 @@ class IterativeClearSky(object):
 
     def calc_objective(self, sum_components=True):
         W1 = np.diag(self.weights)
-        f1 = norm(((self.D -
-                  cvx.mul_elemwise(cvx.pos(self.L_cs.value * self.R_cs.value), self.C.value)) * W1).value, 'fro')
+        f1 = (cvx.sum_entries((0.5 * cvx.abs(self.D - self.L_cs.value * self.R_cs.value)
+                              + (self.tau - 0.5) * (self.D - self.L_cs.value * self.R_cs.value)) * W1)).value
         W2 = np.eye(self.k)
-        W2[0, 0] = 10
+        #W2[0, 0] = 10
         f2 = self.mu_L * norm(((self.L_cs[:-2, :]).value -
                                2 * (self.L_cs[1:-1, :]).value +
                                (self.L_cs[2:, :]).value) * W2, 'fro')
@@ -83,18 +83,24 @@ class IterativeClearSky(object):
             f4 = self.mu_d * cvx.norm(foo[:-2] - 2 * foo[1:-1] + foo[2:]).value
         else:
             f4 = 0
-        if self.D.shape[1] > 365:
-            f5 = self.mu_R * norm((self.R_cs[1:, :-365]).value - (self.R_cs[1:, 365:]).value, 'fro')
+        if self.R_cs.size[1] < 365 + 2:
+            n_tilde = 365 + 2 - self.R_cs.size[1]
+            R_tilde = cvx.hstack(self.R_cs, cvx.Variable(self.k, n_tilde))
         else:
-            f5 =0
-        f6 = self.mu_C * (
-            cvx.sum_entries((0.5 * cvx.abs((self.C).value - 1) + (self.tau - 0.5) * ((self.C).value - 1)) * W1)).value
-        if self.D.shape[1] > 365:
-            f7 = self.mu_C * 10 * cvx.abs(cvx.sum_entries(cvx.sum_entries(self.C, axis=0).T[:-365]
-                                                          - cvx.sum_entries(self.C, axis=0).T[365:])).value
-        else:
-            f7 = 0
-        components = [f1, f2, f3, f4, f5, f6, f7]
+            R_tilde = self.R_cs
+        #if R_tilde.size[1] > 365:
+        #    f5 = (self.mu_R * cvx.norm(R_tilde[1:, :-365] - R_tilde[1:, 365:], 'fro')).value
+        #else:
+        #    f5 = 0
+        f5 = 0
+        #  f6 = self.mu_C * (
+        #     cvx.sum_entries((0.5 * cvx.abs((self.C).value - 1) + (self.tau - 0.5) * ((self.C).value - 1)) * W1)).value
+        # if self.D.shape[1] > 365:
+        #     f7 = self.mu_C * 10 * cvx.abs(cvx.sum_entries(cvx.sum_entries(self.C, axis=0).T[:-365]
+        #                                                   - cvx.sum_entries(self.C, axis=0).T[365:])).value
+        #else:
+        #    f7 = 0
+        components = [f1, f2, f3, f4, f5]
         objective = sum(components)
         if sum_components:
             return objective
@@ -121,7 +127,7 @@ class IterativeClearSky(object):
                 self.weights[self.test_days] = 0
             self.min_L()
             self.min_R()
-            self.min_C()
+            #self.min_C()
             #if self.deg:
             #    self.min_d()
             new_obj = self.calc_objective()
@@ -140,11 +146,10 @@ class IterativeClearSky(object):
 
     def min_L(self):
         W1 = np.diag(self.weights)
-        f1 = cvx.norm((self.D
-                      - cvx.mul_elemwise(self.C.value,
-                                         self.L_cs * self.R_cs.value)) * W1, 'fro')
+        f1 = cvx.sum_entries((0.5 * cvx.abs(self.D - self.L_cs * self.R_cs.value)
+                              + (self.tau - 0.5) * (self.D - self.L_cs * self.R_cs.value)) * W1)
         W2 = np.eye(self.k)
-        W2[0, 0] = 10
+        #W2[0, 0] = 10
         f2 = self.mu_L * cvx.norm((self.L_cs[:-2, :] - 2 * self.L_cs[1:-1, :] + self.L_cs[2:, :]) * W2, 'fro')
         if self.energy_reg:
             foo = cvx.sum_entries(self.L_cs * self.R_cs.value, axis=0).T # daily clear sky energy
@@ -167,9 +172,8 @@ class IterativeClearSky(object):
         else:
             R_tilde = self.R_cs
         W1 = np.diag(self.weights)
-        f1 = cvx.norm((self.D
-                      - cvx.mul_elemwise(self.C.value,
-                                         self.L_cs.value * self.R_cs)) * W1, 'fro')
+        f1 = cvx.sum_entries((0.5 * cvx.abs(self.D - self.L_cs.value * self.R_cs)
+                              + (self.tau - 0.5) * (self.D - self.L_cs.value * self.R_cs)) * W1)
         f2 = self.mu_R * cvx.norm(R_tilde[:, :-2] - 2 * R_tilde[:, 1:-1] + R_tilde[:, 2:], 'fro')
         if self.energy_reg:
             foo = cvx.sum_entries(self.L_cs.value * self.R_cs, axis=0).T  # daily clear sky energy
