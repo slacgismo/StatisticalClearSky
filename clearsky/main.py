@@ -31,6 +31,7 @@ class IterativeClearSky(object):
             V[0] *= -1
         self.L_cs.value = U[:, :k]
         self.R_cs.value = np.diag(Sigma[:k]).dot(V[:k, :])
+        self.beta.value = 0.99
         self.mu_L = 1.
         self.mu_R = 20.
         self.mu_C = 0.05
@@ -143,7 +144,33 @@ class IterativeClearSky(object):
             self.L_cs.value * self.R_cs >= 0
         ]
         if self.D.shape[1] > 365:
-            constraints.append(self.R_cs[0, :-365] - self.R_cs[0, 365:] == self.beta)
+            R_last = np.copy(self.R_cs[0, :].value.A1)
+            if np.min(R_last) == 0:
+                R_last += 1e-3
+            N = len(R_last[:-365])
+            g_bar = R_last[365:] / R_last[:-365] - self.beta.value
+            grad = np.array([
+                1. / R_last[:-365],
+                - R_last[365:] / R_last[:-365],
+                [-1] * N
+            ])
+            yk = np.array([
+                R_last[365:],
+                R_last[:-365],
+                [self.beta.value] * N
+            ])
+            y = cvx.bmat([
+                self.R_cs[0, 365:],
+                self.R_cs[0, :-365],
+                [self.beta] * N
+            ])
+            gamma = cvx.Variable()
+            objective = cvx.Minimize(f1 + f2 + f3 + cvx.norm1(g_bar + cvx.trace(grad.T * (y - yk))) + gamma)
+            constraints.extend([
+                cvx.abs(self.R_cs[0, 365:] - self.R_cs[0, :-365]) <= gamma,
+                self.beta >= 0,
+                self.beta <= 1
+            ])
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
 
