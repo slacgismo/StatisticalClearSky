@@ -141,49 +141,20 @@ class IterativeClearSky(object):
         f1 = cvx.sum_entries((0.5 * cvx.abs(self.D - self.L_cs.value * self.R_cs)
                               + (self.tau - 0.5) * (self.D - self.L_cs.value * self.R_cs)) * W1)
         f2 = self.mu_R * cvx.norm(R_tilde[:, :-2] - 2 * R_tilde[:, 1:-1] + R_tilde[:, 2:], 'fro')
-
-        if self.D.shape[1] > 365:
-            f3 = self.mu_R * cvx.norm(self.R_cs[1:, :-365] - self.R_cs[1:, 365:], 'fro')
-        else:
-            f3 = 0
-        objective = cvx.Minimize(f1 + f2 + f3)
         constraints = [
             self.L_cs.value * self.R_cs >= 0
         ]
         if self.D.shape[1] > 365:
-            # R_last = np.copy(self.R_cs[0, :].value.A1)
-            # if np.min(R_last) == 0:
-            #     R_last += 1e-3
-            # N = len(R_last[:-365])
-            # g_bar = R_last[365:] / R_last[:-365] - self.beta.value
-            # grad = np.array([
-            #     1. / R_last[:-365],
-            #     - R_last[365:] / np.power(R_last[:-365], 2),
-            #     [-1] * N
-            # ])
-            # yk = np.array([
-            #     R_last[365:],
-            #     R_last[:-365],
-            #     [self.beta.value] * N
-            # ])
-            # y = cvx.bmat([
-            #     self.R_cs[0, 365:],
-            #     self.R_cs[0, :-365],
-            #     [self.beta] * N
-            # ])
-            # gamma = cvx.Variable()
-            # objective = cvx.Minimize(f1 + f2 + f3 + gamma)
-            # constraints.extend([
-            #     cvx.abs(g_bar + cvx.trace(grad.T * (y - yk))) <= gamma,
-            #     self.beta >= 0,
-            #     self.beta <= 1
-            # ])
             r = self.R_cs[0, :].T
             constraints.extend([
                 cvx.mul_elemwise(1./ self.r0[:-365], r[:-365] - r[365:]) == self.beta,
                 self.beta >= 0,
                 self.beta <= .25
             ])
+            f3 = self.mu_R * cvx.norm(R_tilde[1:, :-365] - R_tilde[1:, 365:], 'fro')
+        else:
+            f3 = self.mu_R * cvx.norm(R_tilde[:, :-365] - R_tilde[:, 365:], 'fro')
+        objective = cvx.Minimize(f1 + f2 + f3)
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
         self.r0 = self.R_cs.value[0, :].A1
