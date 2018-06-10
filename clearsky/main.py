@@ -32,6 +32,13 @@ class IterativeClearSky(object):
         self.L_cs.value = U[:, :k]
         self.R_cs.value = np.diag(Sigma[:k]).dot(V[:k, :])
         self.beta.value = 0.99
+        r0 = self.R_cs.value[0].A1
+        x = cvx.Variable(D.shape[1])
+        obj = cvx.Minimize(
+            cvx.sum_entries(0.5 * cvx.abs(r0 - x) + (.9 - 0.5) * (r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
+        prob = cvx.Problem(obj)
+        prob.solve(solver='MOSEK')
+        self.r0 = x.value.A1
         self.mu_L = 1.
         self.mu_R = 20.
         self.mu_C = 0.05
@@ -144,35 +151,42 @@ class IterativeClearSky(object):
             self.L_cs.value * self.R_cs >= 0
         ]
         if self.D.shape[1] > 365:
-            R_last = np.copy(self.R_cs[0, :].value.A1)
-            if np.min(R_last) == 0:
-                R_last += 1e-3
-            N = len(R_last[:-365])
-            g_bar = R_last[365:] / R_last[:-365] - self.beta.value
-            grad = np.array([
-                1. / R_last[:-365],
-                - R_last[365:] / R_last[:-365],
-                [-1] * N
-            ])
-            yk = np.array([
-                R_last[365:],
-                R_last[:-365],
-                [self.beta.value] * N
-            ])
-            y = cvx.bmat([
-                self.R_cs[0, 365:],
-                self.R_cs[0, :-365],
-                [self.beta] * N
-            ])
-            gamma = cvx.Variable()
-            objective = cvx.Minimize(f1 + f2 + f3 + cvx.norm1(g_bar + cvx.trace(grad.T * (y - yk))) + gamma)
+            # R_last = np.copy(self.R_cs[0, :].value.A1)
+            # if np.min(R_last) == 0:
+            #     R_last += 1e-3
+            # N = len(R_last[:-365])
+            # g_bar = R_last[365:] / R_last[:-365] - self.beta.value
+            # grad = np.array([
+            #     1. / R_last[:-365],
+            #     - R_last[365:] / np.power(R_last[:-365], 2),
+            #     [-1] * N
+            # ])
+            # yk = np.array([
+            #     R_last[365:],
+            #     R_last[:-365],
+            #     [self.beta.value] * N
+            # ])
+            # y = cvx.bmat([
+            #     self.R_cs[0, 365:],
+            #     self.R_cs[0, :-365],
+            #     [self.beta] * N
+            # ])
+            # gamma = cvx.Variable()
+            # objective = cvx.Minimize(f1 + f2 + f3 + gamma)
+            # constraints.extend([
+            #     cvx.abs(g_bar + cvx.trace(grad.T * (y - yk))) <= gamma,
+            #     self.beta >= 0,
+            #     self.beta <= 1
+            # ])
+            r = self.R_cs[0, :].T
             constraints.extend([
-                cvx.abs(self.R_cs[0, 365:] - self.R_cs[0, :-365]) <= gamma,
+                cvx.mul_elemwise(1./ self.r0[:-365], r[:-365] - r[365:]) == self.beta,
                 self.beta >= 0,
-                self.beta <= 1
+                self.beta <= .25
             ])
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
+        self.r0 = self.R_cs.value[0, :].A1
 
 
 class StatisticalClearSky(object):
