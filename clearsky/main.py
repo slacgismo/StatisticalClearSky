@@ -79,12 +79,10 @@ class IterativeClearSky(object):
                               2 * (self.R_cs[:, 1:-1]).value +
                               (self.R_cs[:, 2:]).value, 'fro')
         if self.R_cs.size[1] < 365 + 2:
-            n_tilde = 365 + 2 - self.R_cs.size[1]
-            R_tilde = cvx.hstack(self.R_cs, cvx.Variable(self.k, n_tilde))
+            f4 = 0
         else:
-            R_tilde = self.R_cs
-        f5 = 0
-        components = [f1, f2, f3, f5]
+            f4 = (self.mu_R * cvx.norm(self.R_cs[1:, :-365] - self.R_cs[1:, 365:], 'fro')).value
+        components = [f1, f2, f3, f4]
         objective = sum(components)
         if sum_components:
             return objective
