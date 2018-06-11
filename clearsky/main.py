@@ -31,6 +31,14 @@ class IterativeClearSky(object):
             V[0] *= -1
         self.L_cs.value = U[:, :k]
         self.R_cs.value = np.diag(Sigma[:k]).dot(V[:k, :])
+        self.beta.value = 0.99
+        r0 = self.R_cs.value[0].A1
+        x = cvx.Variable(D.shape[1])
+        obj = cvx.Minimize(
+            cvx.sum_entries(0.5 * cvx.abs(r0 - x) + (.9 - 0.5) * (r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
+        prob = cvx.Problem(obj)
+        prob.solve(solver='MOSEK')
+        self.r0 = x.value.A1
         self.mu_L = 1.
         self.mu_R = 20.
         self.mu_C = 0.05
@@ -71,12 +79,10 @@ class IterativeClearSky(object):
                               2 * (self.R_cs[:, 1:-1]).value +
                               (self.R_cs[:, 2:]).value, 'fro')
         if self.R_cs.size[1] < 365 + 2:
-            n_tilde = 365 + 2 - self.R_cs.size[1]
-            R_tilde = cvx.hstack(self.R_cs, cvx.Variable(self.k, n_tilde))
+            f4 = 0
         else:
-            R_tilde = self.R_cs
-        f5 = 0
-        components = [f1, f2, f3, f5]
+            f4 = (self.mu_R * cvx.norm(self.R_cs[1:, :-365] - self.R_cs[1:, 365:], 'fro')).value
+        components = [f1, f2, f3, f4]
         objective = sum(components)
         if sum_components:
             return objective
@@ -133,19 +139,23 @@ class IterativeClearSky(object):
         f1 = cvx.sum_entries((0.5 * cvx.abs(self.D - self.L_cs.value * self.R_cs)
                               + (self.tau - 0.5) * (self.D - self.L_cs.value * self.R_cs)) * W1)
         f2 = self.mu_R * cvx.norm(R_tilde[:, :-2] - 2 * R_tilde[:, 1:-1] + R_tilde[:, 2:], 'fro')
-
-        if self.D.shape[1] > 365:
-            f3 = self.mu_R * cvx.norm(self.R_cs[1:, :-365] - self.R_cs[1:, 365:], 'fro')
-        else:
-            f3 = 0
-        objective = cvx.Minimize(f1 + f2 + f3)
         constraints = [
             self.L_cs.value * self.R_cs >= 0
         ]
         if self.D.shape[1] > 365:
-            constraints.append(self.R_cs[0, :-365] - self.R_cs[0, 365:] == self.beta)
+            r = self.R_cs[0, :].T
+            constraints.extend([
+                cvx.mul_elemwise(1./ self.r0[:-365], r[:-365] - r[365:]) == self.beta,
+                self.beta >= 0,
+                self.beta <= .25
+            ])
+            f3 = self.mu_R * cvx.norm(R_tilde[1:, :-365] - R_tilde[1:, 365:], 'fro')
+        else:
+            f3 = self.mu_R * cvx.norm(R_tilde[:, :-365] - R_tilde[:, 365:], 'fro')
+        objective = cvx.Minimize(f1 + f2 + f3)
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
+        self.r0 = self.R_cs.value[0, :].A1
 
 
 class StatisticalClearSky(object):
