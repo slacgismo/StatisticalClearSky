@@ -70,7 +70,7 @@ class IterativeClearSky(object):
     def calc_objective(self, sum_components=True):
         W1 = np.diag(self.weights)
         f1 = (cvx.sum((0.5 * cvx.abs(self.D - self.L_cs.value * self.R_cs.value)
-                              + (self.tau - 0.5) * (self.D - self.L_cs.value * self.R_cs.value)) * W1)).value
+                              + (self.tau - 0.5) * (self.D - self.L_cs.value.dot(self.R_cs.value))) * W1)).value
         W2 = np.eye(self.k)
         f2 = self.mu_L * norm(((self.L_cs[:-2, :]).value -
                                2 * (self.L_cs[1:-1, :]).value +
