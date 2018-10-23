@@ -77,7 +77,7 @@ def envelope_fit_with_deg(signal, period, mu, eta, kind='upper', eps=1e-4):
     if kind == 'lower':
         signal *= -1
     if np.min(signal) < 0:
-        print 'function only works for signals with all values >= 0'
+        print('function only works for signals with all values >= 0')
     elif np.min(signal) == 0:
         offset_eps = True
         signal += eps
