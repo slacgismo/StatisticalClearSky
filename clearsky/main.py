@@ -145,7 +145,7 @@ class IterativeClearSky(object):
         if self.D.shape[1] > 365:
             r = self.R_cs[0, :].T
             constraints.extend([
-                cvx.mul_elemwise(1./ self.r0[:-365], r[:-365] - r[365:]) == self.beta,
+                cvx.multiply(1./ self.r0[:-365], r[:-365] - r[365:]) == self.beta,
                 self.beta >= 0,
                 self.beta <= .25
             ])
