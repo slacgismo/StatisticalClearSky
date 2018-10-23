@@ -25,6 +25,8 @@ logs
 *.vcf
 *.xml
 *.npy
+*.pkl
+*.gz
 
 ### Database ###
 *.accdb
