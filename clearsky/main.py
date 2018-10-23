@@ -22,8 +22,8 @@ class IterativeClearSky(object):
     def __init__(self, D, k=8, reserve_test_data=False):
         self.D = D
         self.k = k
-        self.L_cs = cvx.Variable(D.shape[0], k)
-        self.R_cs = cvx.Variable(k, D.shape[1])
+        self.L_cs = cvx.Variable(shape=(D.shape[0], k))
+        self.R_cs = cvx.Variable(shape=(k, D.shape[1]))
         self.beta = cvx.Variable()
         U, Sigma, V = np.linalg.svd(D)
         if np.sum(U[:, 0]) < 0:
@@ -132,7 +132,7 @@ class IterativeClearSky(object):
     def min_R(self):
         if self.R_cs.size[1] < 365 + 2:
             n_tilde = 365 + 2 - self.R_cs.size[1]
-            R_tilde = cvx.hstack(self.R_cs, cvx.Variable(self.k, n_tilde))
+            R_tilde = cvx.hstack(self.R_cs, cvx.Variable(shape=(self.k, n_tilde)))
         else:
             R_tilde = self.R_cs
         W1 = np.diag(self.weights)
