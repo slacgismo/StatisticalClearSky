@@ -32,13 +32,13 @@ class IterativeClearSky(object):
         self.L_cs.value = U[:, :k]
         self.R_cs.value = np.diag(Sigma[:k]).dot(V[:k, :])
         self.beta.value = 0.99
-        r0 = self.R_cs.value[0].A1
+        r0 = self.R_cs.value[0]
         x = cvx.Variable(D.shape[1])
         obj = cvx.Minimize(
             cvx.sum_entries(0.5 * cvx.abs(r0 - x) + (.9 - 0.5) * (r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
         prob = cvx.Problem(obj)
         prob.solve(solver='MOSEK')
-        self.r0 = x.value.A1
+        self.r0 = x.value
         self.mu_L = 1.
         self.mu_R = 20.
         self.mu_C = 0.05
@@ -55,7 +55,7 @@ class IterativeClearSky(object):
             cvx.sum_entries(0.5 * cvx.abs(de - x) + (.9 - 0.5) * (de - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
         prob = cvx.Problem(obj)
         prob.solve(solver='MOSEK')
-        de = np.clip(np.divide(de, x.value.A1), 0, 1)
+        de = np.clip(np.divide(de, x.value), 0, 1)
         th = .1
         self.weights = np.multiply(np.power(tc, th), np.power(de, 1.-th))
         self.weights[self.weights < 0.6] = 0.
@@ -155,6 +155,6 @@ class IterativeClearSky(object):
         objective = cvx.Minimize(f1 + f2 + f3)
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
-        self.r0 = self.R_cs.value[0, :].A1
+        self.r0 = self.R_cs.value[0, :]
 
 
