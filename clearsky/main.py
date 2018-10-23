@@ -78,7 +78,7 @@ class IterativeClearSky(object):
         f3 = self.mu_R * norm((self.R_cs[:, :-2]).value -
                               2 * (self.R_cs[:, 1:-1]).value +
                               (self.R_cs[:, 2:]).value, 'fro')
-        if self.R_cs.size[1] < 365 + 2:
+        if self.R_cs.shape[1] < 365 + 2:
             f4 = 0
         else:
             f4 = (self.mu_R * cvx.norm(self.R_cs[1:, :-365] - self.R_cs[1:, 365:], 'fro')).value
@@ -130,8 +130,8 @@ class IterativeClearSky(object):
         problem.solve(solver='MOSEK')
 
     def min_R(self):
-        if self.R_cs.size[1] < 365 + 2:
-            n_tilde = 365 + 2 - self.R_cs.size[1]
+        if self.R_cs.shape[1] < 365 + 2:
+            n_tilde = 365 + 2 - self.R_cs.shape[1]
             R_tilde = cvx.hstack(self.R_cs, cvx.Variable(shape=(self.k, n_tilde)))
         else:
             R_tilde = self.R_cs
