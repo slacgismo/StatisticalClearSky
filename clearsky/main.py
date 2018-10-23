@@ -35,7 +35,7 @@ class IterativeClearSky(object):
         r0 = self.R_cs.value[0]
         x = cvx.Variable(D.shape[1])
         obj = cvx.Minimize(
-            cvx.sum_entries(0.5 * cvx.abs(r0 - x) + (.9 - 0.5) * (r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
+            cvx.sum(0.5 * cvx.abs(r0 - x) + (.9 - 0.5) * (r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
         prob = cvx.Problem(obj)
         prob.solve(solver='MOSEK')
         self.r0 = x.value
@@ -52,7 +52,7 @@ class IterativeClearSky(object):
         de = np.sum(D, axis=0)
         x = cvx.Variable(len(tc))
         obj = cvx.Minimize(
-            cvx.sum_entries(0.5 * cvx.abs(de - x) + (.9 - 0.5) * (de - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
+            cvx.sum(0.5 * cvx.abs(de - x) + (.9 - 0.5) * (de - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
         prob = cvx.Problem(obj)
         prob.solve(solver='MOSEK')
         de = np.clip(np.divide(de, x.value), 0, 1)
@@ -69,7 +69,7 @@ class IterativeClearSky(object):
 
     def calc_objective(self, sum_components=True):
         W1 = np.diag(self.weights)
-        f1 = (cvx.sum_entries((0.5 * cvx.abs(self.D - self.L_cs.value * self.R_cs.value)
+        f1 = (cvx.sum((0.5 * cvx.abs(self.D - self.L_cs.value * self.R_cs.value)
                               + (self.tau - 0.5) * (self.D - self.L_cs.value * self.R_cs.value)) * W1)).value
         W2 = np.eye(self.k)
         f2 = self.mu_L * norm(((self.L_cs[:-2, :]).value -
@@ -116,7 +116,7 @@ class IterativeClearSky(object):
 
     def min_L(self):
         W1 = np.diag(self.weights)
-        f1 = cvx.sum_entries((0.5 * cvx.abs(self.D - self.L_cs * self.R_cs.value)
+        f1 = cvx.sum((0.5 * cvx.abs(self.D - self.L_cs * self.R_cs.value)
                               + (self.tau - 0.5) * (self.D - self.L_cs * self.R_cs.value)) * W1)
         W2 = np.eye(self.k)
         f2 = self.mu_L * cvx.norm((self.L_cs[:-2, :] - 2 * self.L_cs[1:-1, :] + self.L_cs[2:, :]) * W2, 'fro')
@@ -124,7 +124,7 @@ class IterativeClearSky(object):
         constraints = [
             self.L_cs * self.R_cs.value >= 0,
             self.L_cs[np.average(self.D, axis=1) <= 1e-5, :] == 0,
-            cvx.sum_entries(self.L_cs[:, 1:], axis=0) == 0
+            cvx.sum(self.L_cs[:, 1:], axis=0) == 0
         ]
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
@@ -136,7 +136,7 @@ class IterativeClearSky(object):
         else:
             R_tilde = self.R_cs
         W1 = np.diag(self.weights)
-        f1 = cvx.sum_entries((0.5 * cvx.abs(self.D - self.L_cs.value * self.R_cs)
+        f1 = cvx.sum((0.5 * cvx.abs(self.D - self.L_cs.value * self.R_cs)
                               + (self.tau - 0.5) * (self.D - self.L_cs.value * self.R_cs)) * W1)
         f2 = self.mu_R * cvx.norm(R_tilde[:, :-2] - 2 * R_tilde[:, 1:-1] + R_tilde[:, 2:], 'fro')
         constraints = [
