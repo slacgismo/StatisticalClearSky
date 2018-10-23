@@ -31,7 +31,7 @@ class IterativeClearSky(object):
             V[0] *= -1
         self.L_cs.value = U[:, :k]
         self.R_cs.value = np.diag(Sigma[:k]).dot(V[:k, :])
-        self.beta.value = 0.99
+        self.beta.value = 0.0
         r0 = self.R_cs.value[0]
         x = cvx.Variable(D.shape[1])
         obj = cvx.Minimize(
@@ -145,9 +145,9 @@ class IterativeClearSky(object):
         if self.D.shape[1] > 365:
             r = self.R_cs[0, :].T
             constraints.extend([
-                cvx.multiply(1./ self.r0[:-365], r[:-365] - r[365:]) == self.beta,
-                self.beta >= 0,
-                self.beta <= .25
+                cvx.multiply(1./ self.r0[:-365], r[365:] - r[:-365]) == self.beta,
+                self.beta <= 0,
+                self.beta >= -.25
             ])
             f3 = self.mu_R * cvx.norm(R_tilde[1:, :-365] - R_tilde[1:, 365:], 'fro')
         else:
