@@ -74,7 +74,7 @@ class IterativeClearSky(object):
         W2 = np.eye(self.k)
         f2 = self.mu_L * norm(((self.L_cs[:-2, :]).value -
                                2 * (self.L_cs[1:-1, :]).value +
-                               (self.L_cs[2:, :]).value) * W2, 'fro')
+                               (self.L_cs[2:, :]).value).dot(W2), 'fro')
         f3 = self.mu_R * norm((self.R_cs[:, :-2]).value -
                               2 * (self.R_cs[:, 1:-1]).value +
                               (self.R_cs[:, 2:]).value, 'fro')
