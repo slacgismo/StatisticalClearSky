@@ -132,7 +132,7 @@ class IterativeClearSky(object):
     def min_R(self):
         if self.R_cs.shape[1] < 365 + 2:
             n_tilde = 365 + 2 - self.R_cs.shape[1]
-            R_tilde = cvx.hstack(self.R_cs, cvx.Variable(shape=(self.k, n_tilde)))
+            R_tilde = cvx.hstack([self.R_cs, cvx.Variable(shape=(self.k, n_tilde))])
         else:
             R_tilde = self.R_cs
         W1 = np.diag(self.weights)
