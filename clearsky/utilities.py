@@ -176,3 +176,25 @@ def make_time_series(df, return_keys=True, localize_time=-8, filter_length=200):
         return output, site_keys
     else:
         return output
+
+
+def lowpass_2d(D, r=25):
+    FS = np.fft.fft2(D)
+    fltr = np.zeros_like(D, dtype=np.float)
+    m, n = D.shape
+    c = (m // 2, n // 2)
+    r = 25
+    if m % 2 == 0:
+        di = 0
+    else:
+        di = 1
+    if n % 2 == 0:
+        dj = 0
+    else:
+        dj = 1
+    y, x = np.ogrid[-c[0]:c[0] + di, -c[1]:c[1] + dj]
+    mask = x ** 2 + y ** 2 <= r ** 2
+    fltr[mask] = 1
+    FS_filtered = np.fft.fftshift(np.multiply(np.fft.fftshift(FS), fltr))
+    D_filtered = np.abs(np.fft.ifft2(FS_filtered))
+    return D_filtered
