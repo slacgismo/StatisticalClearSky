@@ -89,7 +89,7 @@ class IterativeClearSky(object):
         else:
             return components
 
-    def minimize_objective(self, eps=1e-3, max_iter=100, calc_deg=True):
+    def minimize_objective(self, eps=1e-3, max_iter=100, calc_deg=True, max_deg=0., min_deg=-0.25):
         ti = time()
         print('starting at {:.3f}'.format(self.calc_objective()), self.calc_objective(False))
         improvement = np.inf
@@ -99,7 +99,7 @@ class IterativeClearSky(object):
             if self.test_days is not None:
                 self.weights[self.test_days] = 0
             self.min_L()
-            self.min_R(calc_deg=calc_deg)
+            self.min_R(calc_deg=calc_deg, max_deg=max_deg, min_deg=min_deg)
             new_obj = self.calc_objective()
             improvement = (old_obj - new_obj) * 1. / old_obj
             old_obj = new_obj
@@ -129,7 +129,7 @@ class IterativeClearSky(object):
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
 
-    def min_R(self, calc_deg=True):
+    def min_R(self, calc_deg=True, max_deg=0., min_deg=-0.25):
         if self.R_cs.shape[1] < 365 + 2:
             n_tilde = 365 + 2 - self.R_cs.shape[1]
             R_tilde = cvx.hstack([self.R_cs, cvx.Variable(shape=(self.k, n_tilde))])
@@ -147,9 +147,12 @@ class IterativeClearSky(object):
             if calc_deg:
                 constraints.extend([
                     cvx.multiply(1./ self.r0[:-365], r[365:] - r[:-365]) == self.beta,
-                    self.beta <= 0,
                     self.beta >= -.25
                 ])
+                if max_deg is not None:
+                    constraints.append(self.beta <= max_deg)
+                if min_deg is not None:
+                    constraints.append(self.beta >= min_deg)
             else:
                 constraints.append(cvx.multiply(1./ self.r0[:-365], r[365:] - r[:-365]) == 0)
             f3 = self.mu_R * cvx.norm(R_tilde[1:, :-365] - R_tilde[1:, 365:], 'fro')
