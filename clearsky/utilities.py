@@ -183,7 +183,6 @@ def lowpass_2d(D, r=25):
     fltr = np.zeros_like(D, dtype=np.float)
     m, n = D.shape
     c = (m // 2, n // 2)
-    r = 25
     if m % 2 == 0:
         di = 0
     else:
