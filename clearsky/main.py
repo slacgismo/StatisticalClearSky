@@ -25,6 +25,7 @@ class IterativeClearSky(object):
         self.L_cs = cvx.Variable(shape=(D.shape[0], k))
         self.R_cs = cvx.Variable(shape=(k, D.shape[1]))
         self.beta = cvx.Variable()
+        self.good_fit = False
         U, Sigma, V = np.linalg.svd(D)
         if np.sum(U[:, 0]) < 0:
             U[:, 0] *= -1
@@ -95,6 +96,7 @@ class IterativeClearSky(object):
         improvement = np.inf
         old_obj = self.calc_objective()
         it = 0
+        self.good_fit = True
         while improvement >= eps:
             if self.test_days is not None:
                 self.weights[self.test_days] = 0
@@ -107,6 +109,7 @@ class IterativeClearSky(object):
             print('iteration {}: {:.3f}'.format(it, new_obj), np.round(self.calc_objective(False), 3))
             if improvement < 0:
                 print('Objective increased.')
+                self.good_fit = False
                 improvement *= -1
             if it >= max_iter:
                 print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
