@@ -127,7 +127,8 @@ class IterativeClearSky(object):
         constraints = [
             self.L_cs * self.R_cs.value >= 0,
             self.L_cs[np.average(self.D, axis=1) <= 1e-5, :] == 0,
-            cvx.sum(self.L_cs[:, 1:], axis=0) == 0
+            cvx.sum(self.L_cs[:, 1:], axis=0) == 0,
+            self.L_cs[:, 0] >= 0
         ]
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
