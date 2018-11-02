@@ -166,4 +166,15 @@ class IterativeClearSky(object):
         problem.solve(solver='MOSEK')
         self.r0 = self.R_cs.value[0, :]
 
+    def plot_LR(self, figsize=(14, 10)):
+        fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(14, 10))
+        ax[0, 1].plot(self.R_cs.value[0])
+        ax[1, 1].plot(self.R_cs.value[1:].T)
+        ax[0, 0].plot(self.L_cs.value[:, 0])
+        ax[1, 0].plot(self.L_cs.value[:, 1:])
+        ax[0, 0].legend(['$\\ell_1$'])
+        ax[1, 0].legend(['$\\ell_{}$'.format(ix) for ix in range(2, self.R_cs.value.shape[0] + 1)])
+        ax[0, 1].legend(['$r_{1}$'])
+        ax[1, 1].legend(['$r_{}$'.format(ix) for ix in range(2, self.R_cs.value.shape[0] + 1)])
+        plt.show()
 
