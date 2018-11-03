@@ -191,7 +191,7 @@ class IterativeClearSky(object):
         plt.tight_layout()
         return fig
 
-    def plot_energy(self, figsize=(14, 6), show_days=True):
+    def plot_energy(self, figsize=(12, 6), show_days=True):
         plt.figure(figsize=figsize)
         plt.plot(np.sum(self.D, axis=0), linewidth=1)
         plt.plot(self.R_cs.value[0] * np.sum(self.L_cs.value[:, 0]), linewidth=1)
@@ -202,7 +202,7 @@ class IterativeClearSky(object):
         fig = plt.gcf()
         return fig
 
-    def plot_singular_vectors(self, k=4, figsize=(14, 4), show_days=False):
+    def plot_singular_vectors(self, k=4, figsize=(10, 4), show_days=False):
         fig, ax = plt.subplots(nrows=k, ncols=2, figsize=(figsize[0], 2*figsize[1]))
         for i in range(k):
             ax[i][0].plot(self.L0.T[i], linewidth=1)
@@ -221,7 +221,7 @@ class IterativeClearSky(object):
         plt.tight_layout()
         return fig
 
-    def plot_D(self, figsize=(14, 6), show_days=False):
+    def plot_D(self, figsize=(12, 6), show_days=False):
         with sns.axes_style("white"):
             fig, ax = plt.subplots(nrows=1, figsize=figsize, sharex=True)
             foo = ax.imshow(self.D, cmap='hot', interpolation='none', aspect='auto')
