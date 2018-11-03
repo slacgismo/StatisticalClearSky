@@ -132,7 +132,7 @@ class IterativeClearSky(object):
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
         if problem.status != 'optimal':
-            raise ProblemStatusError('Minimize L status:', problem.status)
+            raise ProblemStatusError('Minimize R status: ' + problem.status)
 
 
     def min_R(self, calc_deg=True, max_deg=0., min_deg=-0.25):
@@ -168,7 +168,7 @@ class IterativeClearSky(object):
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
         if problem.status != 'optimal':
-            raise ProblemStatusError('Minimize R status:', problem.status)
+            raise ProblemStatusError('Minimize R status: ' + problem.status)
         self.r0 = self.R_cs.value[0, :]
 
     def plot_LR(self, figsize=(14, 10)):
