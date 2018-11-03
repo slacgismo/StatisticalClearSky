@@ -131,6 +131,7 @@ class IterativeClearSky(object):
         ]
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
+        print(problem.status)
 
     def min_R(self, calc_deg=True, max_deg=0., min_deg=-0.25):
         if self.R_cs.shape[1] < 365 + 2:
@@ -164,6 +165,7 @@ class IterativeClearSky(object):
         objective = cvx.Minimize(f1 + f2 + f3)
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
+        print(problem.status)
         self.r0 = self.R_cs.value[0, :]
 
     def plot_LR(self, figsize=(14, 10)):
