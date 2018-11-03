@@ -263,8 +263,8 @@ class IterativeClearSky(object):
                 use_day = self.weights > 1e-1
                 days = np.arange(self.D.shape[1])
                 y1 = np.ones_like(days[use_day]) * self.D.shape[0] * .99
-                ax.scatter(days[use_day], y1, marker='|', color='yellow', s=2)
-                ax.scatter(days[use_day], .995 * y1, marker='|', color='yellow', s=2)
+                ax[0].scatter(days[use_day], y1, marker='|', color='yellow', s=2)
+                ax[0].scatter(days[use_day], .995 * y1, marker='|', color='yellow', s=2)
                 ax[0].set_xlim(*xlim)
                 ax[0].set_ylim(*ylim)
             plt.tight_layout()
