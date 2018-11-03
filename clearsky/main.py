@@ -3,9 +3,9 @@
 This module contains the algorithm to statistically fit a clear sky signal.
 """
 
-from clearsky.utilities import envelope_fit, envelope_fit_with_deg, masked_smooth_fit_periodic
+from clearsky.utilities import ProblemStatusError
 import numpy as np
-from numpy.linalg import svd, matrix_rank, eigh, inv, norm
+from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from datetime import date, datetime
 from time import time
@@ -131,7 +131,9 @@ class IterativeClearSky(object):
         ]
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
-        print(problem.status)
+        if problem.status != 'optimal':
+            raise ProblemStatusError('Minimize L status:', problem.status)
+
 
     def min_R(self, calc_deg=True, max_deg=0., min_deg=-0.25):
         if self.R_cs.shape[1] < 365 + 2:
@@ -165,11 +167,12 @@ class IterativeClearSky(object):
         objective = cvx.Minimize(f1 + f2 + f3)
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver='MOSEK')
-        print(problem.status)
+        if problem.status != 'optimal':
+            raise ProblemStatusError('Minimize R status:', problem.status)
         self.r0 = self.R_cs.value[0, :]
 
     def plot_LR(self, figsize=(14, 10)):
-        fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(14, 10))
+        fig, ax = plt.subplots(nrows=2, ncols=2, figsize=figsize)
         ax[0, 1].plot(self.R_cs.value[0])
         ax[1, 1].plot(self.R_cs.value[1:].T)
         ax[0, 0].plot(self.L_cs.value[:, 0])
