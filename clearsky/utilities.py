@@ -13,6 +13,12 @@ try:
 except NameError:
     xrange = range
 
+class ProblemStatusError(Exception):
+    """Error thrown when SCSF algorithm experiences something other than an 'optimal' problem status during one of
+    the solve steps."""
+    pass
+
+
 def envelope_fit(signal, mu, eta, linear_term=False, kind='upper', period=None):
     '''
     Perform an envelope fit of a signal. See: https://en.wikipedia.org/wiki/Envelope_(waves)
