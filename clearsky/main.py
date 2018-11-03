@@ -7,6 +7,7 @@ from clearsky.utilities import ProblemStatusError
 import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
+import seaborn as sns
 from datetime import date, datetime
 from time import time
 import cvxpy as cvx
@@ -30,6 +31,8 @@ class IterativeClearSky(object):
         if np.sum(U[:, 0]) < 0:
             U[:, 0] *= -1
             V[0] *= -1
+        self.L0 = U[:, :k]
+        self.R0 = np.diag(Sigma[:k]).dot(V[:k, :])
         self.L_cs.value = U[:, :k]
         self.R_cs.value = np.diag(Sigma[:k]).dot(V[:k, :])
         self.beta.value = 0.0
@@ -171,7 +174,7 @@ class IterativeClearSky(object):
             raise ProblemStatusError('Minimize R status: ' + problem.status)
         self.r0 = self.R_cs.value[0, :]
 
-    def plot_LR(self, figsize=(14, 10)):
+    def plot_LR(self, figsize=(14, 10), show_days=False):
         fig, ax = plt.subplots(nrows=2, ncols=2, figsize=figsize)
         ax[0, 1].plot(self.R_cs.value[0])
         ax[1, 1].plot(self.R_cs.value[1:].T)
@@ -181,5 +184,88 @@ class IterativeClearSky(object):
         ax[1, 0].legend(['$\\ell_{}$'.format(ix) for ix in range(2, self.R_cs.value.shape[0] + 1)])
         ax[0, 1].legend(['$r_{1}$'])
         ax[1, 1].legend(['$r_{}$'.format(ix) for ix in range(2, self.R_cs.value.shape[0] + 1)])
-        plt.show()
+        if show_days:
+            use_day = self.weights > 1e-1
+            days = np.arange(self.D.shape[1])
+            ax[0, 1].scatter(days[use_day], self.R_cs.value[0][use_day], color='orange', alpha=0.7)
+        plt.tight_layout()
+        return fig
 
+    def plot_energy(self, figsize=(14, 6), show_days=True):
+        plt.figure(figsize=figsize)
+        plt.plot(np.sum(self.D, axis=0), linewidth=1)
+        plt.plot(self.R_cs.value[0] * np.sum(self.L_cs.value[:, 0]), linewidth=1)
+        if show_days:
+            use_day = self.weights > 1e-1
+            days = np.arange(self.D.shape[1])
+            plt.scatter(days[use_day], np.sum(self.D, axis=0)[use_day], color='orange', alpha=0.7)
+        fig = plt.gcf()
+        return fig
+
+    def plot_singular_vectors(self, k=4, figsize=(14, 4), show_days=False):
+        fig, ax = plt.subplots(nrows=k, ncols=2, figsize=(figsize[0], 2*figsize[1]))
+        for i in range(k):
+            ax[i][0].plot(self.L0.T[i], linewidth=1)
+            ax[i][0].set_xlim(0, 287)
+            ax[i][0].set_ylabel('$\\ell_{}$'.format(i + 1))
+            ax[i][1].plot(self.R0[i], linewidth=1)
+            ax[i][1].set_xlim(0, self.D.shape[1])
+            ax[i][1].set_ylabel('$r_{}$'.format(i + 1))
+        ax[-1][0].set_xlabel('$i \\in 1, \\ldots, m$ (5-minute periods in one day)')
+        ax[-1][1].set_xlabel('$j \\in 1, \\ldots, n$ (days)')
+        if show_days:
+            use_day = self.weights > 1e-1
+            days = np.arange(self.D.shape[1])
+            for i in range(k):
+                ax[i, 1].scatter(days[use_day], self.R0[i][use_day], color='orange', alpha=0.7)
+        plt.tight_layout()
+        return fig
+
+    def plot_D(self, figsize=(14, 6), show_days=False):
+        with sns.axes_style("white"):
+            fig, ax = plt.subplots(nrows=1, figsize=figsize, sharex=True)
+            foo = ax.imshow(self.D, cmap='hot', interpolation='none', aspect='auto')
+            ax.set_title('Measured power')
+            plt.colorbar(foo, ax=ax, label='kW')
+            ax.set_xlabel('Day number')
+            ax.set_yticks([])
+            ax.set_ylabel('Time of day')
+            if show_days:
+                xlim = ax.get_xlim()
+                ylim = ax.get_ylim()
+                use_day = self.weights > 1e-1
+                days = np.arange(self.D.shape[1])
+                y1 = np.ones_like(days[use_day]) * self.D.shape[0] * .99
+                ax.scatter(days[use_day], y1, marker='|', color='yellow', s=2)
+                ax.scatter(days[use_day], .995*y1, marker='|', color='yellow', s=2)
+                ax.set_xlim(*xlim)
+                ax.set_ylim(*ylim)
+        return fig
+
+    def plot_measured_clear(self, figsize=(12, 10), show_days=False):
+        with sns.axes_style("white"):
+            fig, ax = plt.subplots(nrows=2, figsize=figsize, sharex=True)
+            foo = ax[0].imshow(self.D, cmap='hot', interpolation='none', aspect='auto')
+            ax[0].set_title('Measured power')
+            bar = ax[1].imshow(self.L_cs.value.dot(self.R_cs.value), cmap='hot',
+                               vmin=0, vmax=np.max(self.D), interpolation='none', aspect='auto')
+            ax[1].set_title('Estimated clear sky power')
+            plt.colorbar(foo, ax=ax[0], label='kW')
+            plt.colorbar(bar, ax=ax[1], label='kW')
+            ax[1].set_xlabel('Day number')
+            ax[0].set_yticks([])
+            ax[0].set_ylabel('Time of day')
+            ax[1].set_yticks([])
+            ax[1].set_ylabel('Time of day')
+            if show_days:
+                xlim = ax[0].get_xlim()
+                ylim = ax[0].get_ylim()
+                use_day = self.weights > 1e-1
+                days = np.arange(self.D.shape[1])
+                y1 = np.ones_like(days[use_day]) * self.D.shape[0] * .99
+                ax.scatter(days[use_day], y1, marker='|', color='yellow', s=2)
+                ax.scatter(days[use_day], .995 * y1, marker='|', color='yellow', s=2)
+                ax[0].set_xlim(*xlim)
+                ax[0].set_ylim(*ylim)
+            plt.tight_layout()
+        return fig
