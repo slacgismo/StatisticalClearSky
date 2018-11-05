@@ -149,7 +149,8 @@ class IterativeClearSky(object):
                               + (self.tau - 0.5) * (self.D - self.L_cs.value * self.R_cs)) * W1)
         f2 = self.mu_R * cvx.norm(R_tilde[:, :-2] - 2 * R_tilde[:, 1:-1] + R_tilde[:, 2:], 'fro')
         constraints = [
-            self.L_cs.value * self.R_cs >= 0
+            self.L_cs.value * self.R_cs >= 0,
+            self.R_cs[0] >= 0
         ]
         if self.D.shape[1] > 365:
             r = self.R_cs[0, :].T
