@@ -26,7 +26,6 @@ class IterativeClearSky(object):
         self.L_cs = cvx.Variable(shape=(D.shape[0], k))
         self.R_cs = cvx.Variable(shape=(k, D.shape[1]))
         self.beta = cvx.Variable()
-        self.good_fit = False
         U, Sigma, V = np.linalg.svd(D)
         if np.sum(U[:, 0]) < 0:
             U[:, 0] *= -1
@@ -48,6 +47,8 @@ class IterativeClearSky(object):
         self.tau = 0.8
         self.isSolverError = False
         self.isProblemStatusError = False
+        self.f1Increase = False
+        self.objIncrease = False
         ###############################################################################################################
         # Weight Setting Algorithm:
         # Two metrics are calculated and normalized to the interval [0, 1], and then the geometric mean is taken.
@@ -126,19 +127,24 @@ class IterativeClearSky(object):
             old_obj = self.calc_objective()
             it = 0
             self.good_fit = True
+            f1_last = np.inf
             while improvement >= eps:
                 if self.test_days is not None:
                     self.weights[self.test_days] = 0
                 self.min_L()
                 self.min_R(calc_deg=calc_deg, max_deg=max_deg, min_deg=min_deg)
-                new_obj = self.calc_objective()
+                obj_vals = self.calc_objective(sum_components=False)
+                new_obj = np.sum(obj_vals)
                 improvement = (old_obj - new_obj) * 1. / old_obj
                 old_obj = new_obj
                 it += 1
-                print('iteration {}: {:.3f}'.format(it, new_obj), np.round(self.calc_objective(False), 3))
+                print('iteration {}: {:.3f}'.format(it, new_obj), np.round(obj_vals, 3))
+                if obj_vals[0] > f1_last:
+                    self.f1Increase = True
+                    print('Caution: residuals increased')
                 if improvement < 0:
-                    print('Objective increased.')
-                    self.good_fit = False
+                    print('Caution: objective increased.')
+                    self.objIncrease = True
                     improvement *= -1
                 if it >= max_iter:
                     print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
