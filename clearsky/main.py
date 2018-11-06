@@ -93,7 +93,14 @@ class IterativeClearSky(object):
         else:
             return components
 
-    def minimize_objective(self, eps=1e-3, max_iter=100, calc_deg=True, max_deg=0., min_deg=-0.25):
+    def minimize_objective(self, eps=1e-3, max_iter=100, calc_deg=True, max_deg=0., min_deg=-0.25,
+                           mu_L=None, mu_R=None, tau=None):
+        if mu_L is not None:
+            self.mu_L = mu_L
+        if mu_R is not None:
+            self.mu_R = mu_R
+        if tau is not None:
+            self.tau = tau
         ti = time()
         print('starting at {:.3f}'.format(self.calc_objective()), self.calc_objective(False))
         improvement = np.inf
@@ -192,10 +199,11 @@ class IterativeClearSky(object):
         plt.tight_layout()
         return fig
 
-    def plot_energy(self, figsize=(12, 6), show_days=True):
+    def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=False):
         plt.figure(figsize=figsize)
         plt.plot(np.sum(self.D, axis=0), linewidth=1)
-        plt.plot(self.R_cs.value[0] * np.sum(self.L_cs.value[:, 0]), linewidth=1)
+        if show_clear:
+            plt.plot(self.R_cs.value[0] * np.sum(self.L_cs.value[:, 0]), linewidth=1)
         if show_days:
             use_day = self.weights > 1e-1
             days = np.arange(self.D.shape[1])
