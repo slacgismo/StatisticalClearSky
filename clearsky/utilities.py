@@ -13,6 +13,17 @@ try:
 except NameError:
     xrange = range
 
+
+CONFIG1 = {
+    'mu_L': 5e3,
+    'mu_R': 1e3,
+    'tau': 0.9,
+    'eps': 5e-3,
+    'max_iter': 10,
+    'min_deg': None,
+    'max_deg': None
+}
+
 class ProblemStatusError(Exception):
     """Error thrown when SCSF algorithm experiences something other than an 'optimal' problem status during one of
     the solve steps."""
