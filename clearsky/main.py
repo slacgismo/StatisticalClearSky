@@ -49,6 +49,9 @@ class IterativeClearSky(object):
         self.isProblemStatusError = False
         self.f1Increase = False
         self.objIncrease = False
+        self.residuals_median = None
+        self.residuals_variance = None
+        self.residual_l0_norm = None
         ###############################################################################################################
         # Weight Setting Algorithm:
         # Two metrics are calculated and normalized to the interval [0, 1], and then the geometric mean is taken.
@@ -158,6 +161,17 @@ class IterativeClearSky(object):
         else:
             tf = time()
             print('Minimization complete in {:.2f} minutes'.format((tf - ti) / 60.))
+            # Residual analysis
+            W1 = np.diag(self.weights)
+            wres = np.dot(self.L_cs.value.dot(self.R_cs.value) - self.D, W1)
+            use_days = np.logical_not(np.isclose(np.sum(wres, axis=0), 0))
+            scaled_wres = wres[:, use_days] / np.average(self.D[:, use_days])
+            final_metric = scaled_wres[self.D[:, use_days] > 1e-3]
+            self.residuals_median = np.median(final_metric)
+            self.residuals_variance = np.power(np.std(final_metric), 2)
+            self.residual_l0_norm = np.linalg.norm(
+                self.L0[:, 0] - self.L_cs.value[:, 0]
+            )
 
     def min_L(self):
         W1 = np.diag(self.weights)
