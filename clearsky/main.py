@@ -20,7 +20,7 @@ except NameError:
 
 
 class IterativeClearSky(object):
-    def __init__(self, D, k=8, reserve_test_data=False):
+    def __init__(self, D, k=4, reserve_test_data=False):
         self.D = D
         self.k = k
         self.L_cs = cvx.Variable(shape=(D.shape[0], k))
