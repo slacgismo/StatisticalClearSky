@@ -270,3 +270,39 @@ class IterativeClearSky(object):
                 ax[0].set_ylim(*ylim)
             plt.tight_layout()
         return fig
+
+    def ts_plot(self, start_day=0, num_days=2, figsize=(8, 4), loc=(.35, .7)):
+        D1 = start_day
+        D2 = D1 + num_days
+        actual = self.D[:, D1:D2].ravel(order='F')
+        clearsky = ((self.L_cs.value.dot(self.R_cs.value)))[:, D1:D2].ravel(order='F')
+        fig, ax = plt.subplots(nrows=1, figsize=figsize)
+        ax.plot(actual, linewidth=1, label='measured power')
+        ax.plot(clearsky, linewidth=1, color='red', label='clear sky signal')
+        plt.legend(loc=loc)
+        ax.set_xlim(0, 288 * (D2 - D1))
+        ax.set_ylabel('kW')
+        ax.set_xticks(np.arange(0, 288 * num_days, 4 * 12))
+        ax.set_xticklabels(np.tile(np.arange(0, 24, 4), num_days))
+        ax.set_xlabel('Hour of Day')
+        plt.show()
+
+    def ts_plot_with_weights(self, start_day=0, num_days=5, figsize=(16, 8)):
+        D1 = start_day
+        D2 = D1 + num_days
+        actual = self.D[:, D1:D2].ravel(order='F')
+        clearsky = ((self.L_cs.value.dot(self.R_cs.value)))[:, D1:D2].ravel(order='F')
+        fig, ax = plt.subplots(nrows=2, figsize=figsize, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
+        xs = np.linspace(D1, D2, len(actual))
+        ax[0].plot(xs, actual, alpha=0.4, label='measured power')
+        ax[0].plot(xs, clearsky, linewidth=1, label='clear sky estimate')
+        ax[1].plot(xs, np.repeat(self.weights[D1:D2], 288), linewidth=1, label='day weight')
+        ax[0].legend()
+        ax[1].legend()
+        ax[0].set_ylim(0, np.max(actual) * 1.3)
+        ax[1].set_xlim(D1, D2)
+        ax[1].set_ylim(0, 1)
+        ax[1].set_xlabel('day number')
+        ax[0].set_ylabel('power')
+        plt.tight_layout()
+        return fig
