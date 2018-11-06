@@ -125,12 +125,12 @@ class IterativeClearSky(object):
             self.tau = tau
         ti = time()
         try:
-            print('starting at {:.3f}'.format(self.calc_objective()), self.calc_objective(False))
+            obj_vals = self.calc_objective(False)
+            print('starting at {:.3f}'.format(np.sum(obj_vals)), obj_vals)
             improvement = np.inf
-            old_obj = self.calc_objective()
+            old_obj = np.sum(obj_vals)
             it = 0
-            self.good_fit = True
-            f1_last = np.inf
+            f1_last = obj_vals[0]
             while improvement >= eps:
                 if self.test_days is not None:
                     self.weights[self.test_days] = 0
@@ -247,13 +247,14 @@ class IterativeClearSky(object):
 
     def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=False):
         plt.figure(figsize=figsize)
-        plt.plot(np.sum(self.D, axis=0), linewidth=1)
+        plt.plot(np.sum(self.D, axis=0) * 24 / self.D.shape[0], linewidth=1)
         if show_clear:
-            plt.plot(self.R_cs.value[0] * np.sum(self.L_cs.value[:, 0]), linewidth=1)
+            plt.plot((self.R_cs.value[0] * np.sum(self.L_cs.value[:, 0])) * 24 / self.D.shape[0], linewidth=1)
         if show_days:
             use_day = self.weights > 1e-1
             days = np.arange(self.D.shape[1])
-            plt.scatter(days[use_day], np.sum(self.D, axis=0)[use_day], color='orange', alpha=0.7)
+            plt.scatter(days[use_day], np.sum(self.D, axis=0)[use_day] * 24 / self.D.shape[0],
+                        color='orange', alpha=0.7)
         fig = plt.gcf()
         return fig
 
