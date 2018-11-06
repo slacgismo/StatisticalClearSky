@@ -45,24 +45,42 @@ class IterativeClearSky(object):
         self.r0 = x.value
         self.mu_L = 1.
         self.mu_R = 20.
-        self.mu_C = 0.05
-        self.mu_d = 1e-1
         self.tau = 0.8
-        self.theta = 0.1
+        self.isSolverError = False
+        self.isProblemStatusError = False
+        ###############################################################################################################
+        # Weight Setting Algorithm:
+        # Two metrics are calculated and normalized to the interval [0, 1], and then the geometric mean is taken.
+        # Metric 1: daily smoothness
+        # Metric 2: seasonally weighted daily energy
+        # After calculating the geometric mean of these two values, weights below
+        ###############################################################################################################
+        # Take the norm of the second different of each day's signal. This gives a rough estimate of the smoothness of
+        # day in the data set
         tc = np.linalg.norm(D[:-2] - 2 * D[1:-1] + D[2:], ord=1, axis=0)
+        # Shift this metric so the median is at zero
         tc = np.percentile(tc, 50) - tc
+        # Normalize such that the maximum value is equal to one
         tc /= np.max(tc)
+        # Take the positive part function, i.e. set the negative values to zero. This is the first metric
         tc = np.clip(tc, 0, None)
+        # Calculate the daily energy
         de = np.sum(D, axis=0)
+        # Solve a convex minimization problem to roughly fit the local 90th percentile of the data (quantile regression)
         x = cvx.Variable(len(tc))
         obj = cvx.Minimize(
             cvx.sum(0.5 * cvx.abs(de - x) + (.9 - 0.5) * (de - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
         prob = cvx.Problem(obj)
         prob.solve(solver='MOSEK')
+        # x gives us the local top 90th percentile of daily energy, i.e. the very sunny days. This gives us our
+        # seasonal normalization.
         de = np.clip(np.divide(de, x.value), 0, 1)
-        th = .1
+        # theta sets the weighting on the geometric mean
+        th = 0.1
         self.weights = np.multiply(np.power(tc, th), np.power(de, 1.-th))
+        # Finally, set values less than 0.6 to be equal to zero
         self.weights[self.weights < 0.6] = 0.
+        ###############################################################################################################
         if reserve_test_data:
             m, n = D.shape
             day_indices = np.arange(n)
@@ -102,30 +120,38 @@ class IterativeClearSky(object):
         if tau is not None:
             self.tau = tau
         ti = time()
-        print('starting at {:.3f}'.format(self.calc_objective()), self.calc_objective(False))
-        improvement = np.inf
-        old_obj = self.calc_objective()
-        it = 0
-        self.good_fit = True
-        while improvement >= eps:
-            if self.test_days is not None:
-                self.weights[self.test_days] = 0
-            self.min_L()
-            self.min_R(calc_deg=calc_deg, max_deg=max_deg, min_deg=min_deg)
-            new_obj = self.calc_objective()
-            improvement = (old_obj - new_obj) * 1. / old_obj
-            old_obj = new_obj
-            it += 1
-            print('iteration {}: {:.3f}'.format(it, new_obj), np.round(self.calc_objective(False), 3))
-            if improvement < 0:
-                print('Objective increased.')
-                self.good_fit = False
-                improvement *= -1
-            if it >= max_iter:
-                print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
-                improvement = 0.
-        tf = time()
-        print('Minimization complete in {:.2f} minutes'.format((tf - ti) / 60.))
+        try:
+            print('starting at {:.3f}'.format(self.calc_objective()), self.calc_objective(False))
+            improvement = np.inf
+            old_obj = self.calc_objective()
+            it = 0
+            self.good_fit = True
+            while improvement >= eps:
+                if self.test_days is not None:
+                    self.weights[self.test_days] = 0
+                self.min_L()
+                self.min_R(calc_deg=calc_deg, max_deg=max_deg, min_deg=min_deg)
+                new_obj = self.calc_objective()
+                improvement = (old_obj - new_obj) * 1. / old_obj
+                old_obj = new_obj
+                it += 1
+                print('iteration {}: {:.3f}'.format(it, new_obj), np.round(self.calc_objective(False), 3))
+                if improvement < 0:
+                    print('Objective increased.')
+                    self.good_fit = False
+                    improvement *= -1
+                if it >= max_iter:
+                    print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
+                    improvement = 0.
+        except cvx.SolverError:
+            print('solver failed!')
+            self.isSolverError = True
+        except ProblemStatusError as e:
+            print(e)
+            self.isProblemStatusError = True
+        else:
+            tf = time()
+            print('Minimization complete in {:.2f} minutes'.format((tf - ti) / 60.))
 
     def min_L(self):
         W1 = np.diag(self.weights)
