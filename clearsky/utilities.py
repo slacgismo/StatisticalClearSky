@@ -220,8 +220,8 @@ def lowpass_2d(D, r=25):
 def fix_time_shifts(D, w=30, tol=5e-2, verbose=False):
     # For each day, weight each time step by the power produced in that period, and take the average. This gives us
     # the "center" time point for each day, in terms of hours between 0 and 23 inclusive
-    old_err_state = np.seterr(divide='ignore')
-    s1 = np.divide(np.dot(np.linspace(0, 24, D.shape[0]), D), np.sum(D, axis=0))
+    with np.errstate(divide='ignore'):
+        s1 = np.divide(np.dot(np.linspace(0, 24, D.shape[0]), D), np.sum(D, axis=0))
     # Apply a sliding-window average filter
     s2 = np.convolve(s1, np.ones(w), mode='valid') / w
     # Apply 1D edge finding algorithm
