@@ -3,7 +3,7 @@
 This module contains the algorithm to statistically fit a clear sky signal.
 """
 
-from clearsky.utilities import ProblemStatusError
+from clearsky.utilities import ProblemStatusError, fix_time_shifts
 import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
@@ -20,7 +20,15 @@ except NameError:
 
 
 class IterativeClearSky(object):
-    def __init__(self, D, k=4, reserve_test_data=False):
+    def __init__(self, D, k=4, reserve_test_data=False, auto_fix_time_shifts=True):
+        self.fixedTimeStamps = False
+        if auto_fix_time_shifts:
+            D_fix = fix_time_shifts(D)
+            if np.alltrue(np.isclose(D, D_fix)):
+                del D_fix
+            else:
+                D = D_fix
+                self.fixedTimeStamps = True
         self.D = D
         self.k = k
         self.L_cs = cvx.Variable(shape=(D.shape[0], k))
