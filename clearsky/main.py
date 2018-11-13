@@ -124,7 +124,7 @@ class IterativeClearSky(object):
             return components
 
     def minimize_objective(self, eps=1e-3, max_iter=100, calc_deg=True, max_deg=0., min_deg=-0.25,
-                           mu_L=None, mu_R=None, tau=None):
+                           mu_L=None, mu_R=None, tau=None, verbose=True):
         if mu_L is not None:
             self.mu_L = mu_L
         if mu_R is not None:
@@ -134,7 +134,8 @@ class IterativeClearSky(object):
         ti = time()
         try:
             obj_vals = self.calc_objective(False)
-            print('starting at {:.3f}'.format(np.sum(obj_vals)), obj_vals)
+            if verbose:
+                print('starting at {:.3f}'.format(np.sum(obj_vals)), obj_vals)
             improvement = np.inf
             old_obj = np.sum(obj_vals)
             it = 0
@@ -149,26 +150,33 @@ class IterativeClearSky(object):
                 improvement = (old_obj - new_obj) * 1. / old_obj
                 old_obj = new_obj
                 it += 1
-                print('iteration {}: {:.3f}'.format(it, new_obj), np.round(obj_vals, 3))
+                if verbose:
+                    print('iteration {}: {:.3f}'.format(it, new_obj), np.round(obj_vals, 3))
                 if obj_vals[0] > f1_last:
                     self.f1Increase = True
-                    print('Caution: residuals increased')
+                    if verbose:
+                        print('Caution: residuals increased')
                 if improvement < 0:
-                    print('Caution: objective increased.')
+                    if verbose:
+                        print('Caution: objective increased.')
                     self.objIncrease = True
                     improvement *= -1
                 if it >= max_iter:
-                    print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
+                    if verbose:
+                        print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
                     improvement = 0.
         except cvx.SolverError:
-            print('solver failed!')
+            if verbose:
+                print('solver failed!')
             self.isSolverError = True
         except ProblemStatusError as e:
-            print(e)
+            if verbose:
+                print(e)
             self.isProblemStatusError = True
         else:
             tf = time()
-            print('Minimization complete in {:.2f} minutes'.format((tf - ti) / 60.))
+            if verbose:
+                print('Minimization complete in {:.2f} minutes'.format((tf - ti) / 60.))
             # Residual analysis
             W1 = np.diag(self.weights)
             wres = np.dot(self.L_cs.value.dot(self.R_cs.value) - self.D, W1)
