@@ -21,6 +21,18 @@ except NameError:
 
 class IterativeClearSky(object):
     def __init__(self, D, k=4, reserve_test_data=False, auto_fix_time_shifts=True):
+        """
+        Initialization method for the IterativeClearSky class. This method does the following:
+        - Runs SVD on the data matrix, D, which sets the initial values for L, R, and r0 in the GLRM solving algorithm
+        - Runs the daily weight setting algorithm (see comment below)
+        - Reserves test data, if requested
+
+        :param D: numpy 2d array, the time-series data matrix, with daily signals in columns
+        :param k: int, the rank of the GLRM
+        :param reserve_test_data: if not False, this kwarg should be a float between 1 and 0 designating the fraction
+                                    of reserved test days
+        :param auto_fix_time_shifts: set to True to run the time shift fixing subroutine at initialization (recommended)
+        """
         self.fixedTimeStamps = False
         if auto_fix_time_shifts:
             D_fix = fix_time_shifts(D)
@@ -34,6 +46,7 @@ class IterativeClearSky(object):
         self.L_cs = cvx.Variable(shape=(D.shape[0], k))
         self.R_cs = cvx.Variable(shape=(k, D.shape[1]))
         self.beta = cvx.Variable()
+        # Set initial values
         U, Sigma, V = np.linalg.svd(D)
         if np.sum(U[:, 0]) < 0:
             U[:, 0] *= -1
@@ -358,19 +371,20 @@ class IterativeClearSky(object):
         ax.set_xlabel('Hour of Day')
         plt.show()
 
-    def ts_plot_with_weights(self, start_day=0, num_days=5, figsize=(16, 8)):
+    def ts_plot_with_weights(self, fig_title=None, start_day=0, num_days=5, figsize=(16, 8)):
         D1 = start_day
         D2 = D1 + num_days
         actual = self.D[:, D1:D2].ravel(order='F')
         clearsky = ((self.L_cs.value.dot(self.R_cs.value)))[:, D1:D2].ravel(order='F')
-        fig, ax = plt.subplots(nrows=2, figsize=figsize, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
+        fig, ax = plt.subplots(num=fig_title, nrows=2, figsize=figsize, sharex=True,
+                               gridspec_kw={'height_ratios': [3, 1]})
         xs = np.linspace(D1, D2, len(actual))
         ax[0].plot(xs, actual, alpha=0.4, label='measured power')
         ax[0].plot(xs, clearsky, linewidth=1, label='clear sky estimate')
         ax[1].plot(xs, np.repeat(self.weights[D1:D2], 288), linewidth=1, label='day weight')
         ax[0].legend()
         ax[1].legend()
-        ax[0].set_ylim(0, np.max(actual) * 1.3)
+        # ax[0].set_ylim(0, np.max(actual) * 1.3)
         ax[1].set_xlim(D1, D2)
         ax[1].set_ylim(0, 1)
         ax[1].set_xlabel('day number')
