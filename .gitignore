@@ -12,7 +12,7 @@ logs
 # Created by https://www.gitignore.io/api/data,macos,python,pycharm,database
 
 ### Data ###
-notebooks/cached_data
+notebooks/local_cache
 *.csv
 *.dat
 *.efx
