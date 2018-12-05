@@ -62,7 +62,7 @@ class PointBrowser(object):
         self.ax[2].set_title('Measured power')
         self.ax[2].set_xlabel('Day number')
         self.ax[2].set_yticks([])
-        self.ax[2].set_ylabel('Time of day')
+        self.ax[2].set_ylabel('(sunset)        Time of day        (sunrirse)')
 
         self.line, = self.ax[0].plot(self.xs, self.ys, '.', picker=5)  # 5 points tolerance
         m = np.logical_and(
@@ -133,7 +133,7 @@ class PointBrowser(object):
                         va='top', fontname='monospace')
         self.ax[3].set_xlabel('Day number')
         self.ax[3].set_yticks([])
-        self.ax[3].set_ylabel('Time of day')
+        self.ax[3].set_ylabel('(sunset)        Time of day        (sunrirse)')
         plt.tight_layout()
         self.fig.canvas.draw()
 
@@ -155,7 +155,7 @@ class PointBrowser(object):
                         va='top', fontname='monospace')
         self.ax[3].set_xlabel('Day number')
         self.ax[3].set_yticks([])
-        self.ax[3].set_ylabel('Time of day')
+        self.ax[3].set_ylabel('(sunset)        Time of day        (sunrirse)')
         plt.tight_layout()
         self.fig.canvas.draw()
         logging.info('starting algorithm')
@@ -174,7 +174,7 @@ class PointBrowser(object):
             self.ax[3].cla()
             self.ax[3].set_xlabel('Day number')
             self.ax[3].set_yticks([])
-            self.ax[3].set_ylabel('Time of day')
+            self.ax[3].set_ylabel('(sunset)        Time of day        (sunrirse)')
             s1 = 'Iteration {} complete: obj = {:.2f}, f1 = {:.2f}'.format(cntr + 1, new_obj, obj_vals[0])
             s2 = 'Improvement: {:.2f}%'.format(100 * improvement)
             tf = time.time()
@@ -206,7 +206,7 @@ class PointBrowser(object):
         self.ax[3].set_title('Estimated clear sky power')
         self.ax[3].set_xlabel('Day number')
         self.ax[3].set_yticks([])
-        self.ax[3].set_ylabel('Time of day')
+        self.ax[3].set_ylabel('(sunset)        Time of day        (sunrirse)')
         logging.info('second plot complete')
         plt.tight_layout()
         self.fig.canvas.draw()
@@ -292,7 +292,7 @@ class PointBrowser(object):
         self.ax[2].text(0.05, 0.95, 'data loading...', transform=self.ax[2].transAxes, va='top', fontname='monospace')
         self.ax[2].set_xlabel('Day number')
         self.ax[2].set_yticks([])
-        self.ax[2].set_ylabel('Time of day')
+        self.ax[2].set_ylabel('(sunset)        Time of day        (sunrirse)')
         self.ax[3].cla()
         self.ax[4].cla()
         self.ics = None
@@ -319,7 +319,7 @@ class PointBrowser(object):
 
         self.ax[2].set_xlabel('Day number')
         self.ax[2].set_yticks([])
-        self.ax[2].set_ylabel('Time of day')
+        self.ax[2].set_ylabel('(sunset)        Time of day        (sunrirse)')
         self.ax[2].set_title('Measured power')
 
         self.text_box.set_val('')
