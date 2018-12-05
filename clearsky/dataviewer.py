@@ -32,8 +32,8 @@ class PointBrowser(object):
     https://matplotlib.org/examples/event_handling/data_browser.html
 
     Click on a point to select and highlight it -- the data that
-    generated the point will be shown in the lower axes.  Use the 'z'
-    and 'x' keys to browse through the next and previous points along x-axis (ordered by RdTools estimate).
+    generated the point will be shown in the lower axes.  Use the 'a'
+    and 's' keys to browse through the next and previous points along x-axis (ordered by RdTools estimate).
     """
 
     def __init__(self, data, xlim=None, ylim=None, prcntl=95):
@@ -57,7 +57,7 @@ class PointBrowser(object):
         self.ax = ax
 
         self.ax[0].set_title('click on point to view record')
-        self.ax[0].set_xlabel('RdTool Estimate YoY deg (%)')
+        self.ax[0].set_xlabel('RdTools Estimate YoY deg (%)')
         self.ax[0].set_ylabel('SCSF Estimate YoY deg (%)')
         self.ax[2].set_title('Measured power')
         self.ax[2].set_xlabel('Day number')
@@ -217,11 +217,11 @@ class PointBrowser(object):
 
         logging.info('press event: ' + str(event.key))
 
-        if event.key == 'z':
+        if event.key == 'a':
             inc = -1
             self.lastind += inc
             self.lastind = np.clip(self.lastind, 0, len(self.xs) - 1)
-        elif event.key == 'x':
+        elif event.key == 's':
             inc = 1
             self.lastind += inc
             self.lastind = np.clip(self.lastind, 0, len(self.xs) - 1)
@@ -378,7 +378,7 @@ def view_ts(pb, clear_day_start=None, day_start=None):
     if pb.ics is not None:
         clear_days = np.arange(len(pb.ics.weights))[pb.ics.weights >= 1e-3]
         fig = pb.ics.ts_plot_with_weights(num_days=len(pb.ics.weights), figsize=(9, 6),
-                                          fig_title='System ID: {}'.format(pb.data.iloc[browser.lastind].name))
+                                          fig_title='System ID: {}'.format(pb.data.iloc[pb.lastind].name))
         if clear_day_start is not None:
             N = clear_day_start
             plt.xlim(clear_days[N] - 2, clear_days[N] - 2 + 5)
