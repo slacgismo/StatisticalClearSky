@@ -13,7 +13,7 @@ from matplotlib.gridspec import GridSpec
 import seaborn as sns
 sns.set(context='paper', style='darkgrid', palette='colorblind')
 import s3fs
-import logging, warnings, time
+import logging, warnings, time, os
 logging.basicConfig(filename='data_viewer.log', level=logging.INFO)
 
 TZ_LOOKUP = {
@@ -39,6 +39,10 @@ class PointBrowser(object):
     def __init__(self, data, xlim=None, ylim=None, prcntl=95):
         logging.info('NEW SESSION')
         warnings.filterwarnings("ignore")
+        self.scsf_cache_dir = './local_cache/'
+        if not os.path.exists(self.scsf_cache_dir):
+            os.makedirs(self.scsf_cache_dir)
+
         ordering = np.argsort(data['rd']).values
         self.data = data.iloc[ordering]
         self.xs = self.data['rd'].values
@@ -62,7 +66,7 @@ class PointBrowser(object):
         self.ax[2].set_title('Measured power')
         self.ax[2].set_xlabel('Day number')
         self.ax[2].set_yticks([])
-        self.ax[2].set_ylabel('(sunset)        Time of day        (sunrirse)')
+        self.ax[2].set_ylabel('(sunset)        Time of day        (sunrise)')
 
         self.line, = self.ax[0].plot(self.xs, self.ys, '.', picker=5)  # 5 points tolerance
         m = np.logical_and(
@@ -126,68 +130,93 @@ class PointBrowser(object):
         if self.lastind is None:
             logging.info('button click: nothing selected!')
             return
-        logging.info('button click: current ID: {}'.format(self.data.iloc[self.lastind].name))
+        sysid = self.data.iloc[self.lastind].name
+        logging.info('button click: current ID: {}'.format(sysid))
 
         self.ax[3].cla()
         self.ax[3].text(0.05, 0.95, 'initializing algorithm...', transform=self.ax[3].transAxes,
                         va='top', fontname='monospace')
         self.ax[3].set_xlabel('Day number')
         self.ax[3].set_yticks([])
-        self.ax[3].set_ylabel('(sunset)        Time of day        (sunrirse)')
+        self.ax[3].set_ylabel('(sunset)        Time of day        (sunrise)')
         plt.tight_layout()
         self.fig.canvas.draw()
 
         self.ax[4].cla()
 
         D = self.D
-        ics = IterativeClearSky(D)
-        self.ax[4].plot(np.sum(ics.D, axis=0) * 24 / ics.D.shape[0], linewidth=1, label='raw data')
-        use_day = ics.weights > 1e-1
-        days = np.arange(ics.D.shape[1])
-        self.ax[4].scatter(days[use_day], np.sum(ics.D, axis=0)[use_day] * 24 / ics.D.shape[0],
-                           color='orange', alpha=0.7, label='days selected')
-        self.ax[4].legend()
-        self.ax[4].set_title('Daily Energy')
-        self.ax[4].set_xlabel('Day Number')
-        self.ax[4].set_ylabel('kWh')
-        self.ax[3].cla()
-        self.ax[3].text(0.05, 0.95, 'running algorithm...', transform=self.ax[3].transAxes,
-                        va='top', fontname='monospace')
-        self.ax[3].set_xlabel('Day number')
-        self.ax[3].set_yticks([])
-        self.ax[3].set_ylabel('(sunset)        Time of day        (sunrirse)')
-        plt.tight_layout()
-        self.fig.canvas.draw()
-        logging.info('starting algorithm')
-        config_l = CONFIG1.copy()
-        config_l['max_iter'] = 1
-        obj_vals = ics.calc_objective(False)
-        old_obj = np.sum(obj_vals)
-        ti = time.time()
-        for cntr in range(CONFIG1['max_iter']):
-            ics.minimize_objective(**config_l)
-            logging.info('min iteration {} complete'.format(cntr + 1))
-            obj_vals = ics.calc_objective(False)
-            new_obj = np.sum(obj_vals)
-            improvement = (old_obj - new_obj) * 1. / old_obj
-
+        cached_files = os.listdir(self.scsf_cache_dir)
+        fn = 'pvo_' + str(sysid) + '.scsf'
+        if fn in cached_files:
+            ics = IterativeClearSky()
+            ics.load_instance(self.scsf_cache_dir + fn)
+            self.ax[4].plot(np.sum(ics.D, axis=0) * 24 / ics.D.shape[0], linewidth=1, label='raw data')
+            use_day = ics.weights > 1e-1
+            days = np.arange(ics.D.shape[1])
+            self.ax[4].scatter(days[use_day], np.sum(ics.D, axis=0)[use_day] * 24 / ics.D.shape[0],
+                               color='orange', alpha=0.7, label='days selected')
+            self.ax[4].legend()
+            self.ax[4].set_title('Daily Energy')
+            self.ax[4].set_xlabel('Day Number')
+            self.ax[4].set_ylabel('kWh')
             self.ax[3].cla()
+            self.ax[3].text(0.05, 0.95, 'loading cached results...', transform=self.ax[3].transAxes,
+                            va='top', fontname='monospace')
             self.ax[3].set_xlabel('Day number')
             self.ax[3].set_yticks([])
-            self.ax[3].set_ylabel('(sunset)        Time of day        (sunrirse)')
-            s1 = 'Iteration {} complete: obj = {:.2f}, f1 = {:.2f}'.format(cntr + 1, new_obj, obj_vals[0])
-            s2 = 'Improvement: {:.2f}%'.format(100 * improvement)
-            tf = time.time()
-            s3 = 'Time elapsed: {:.2f} minutes'.format((tf - ti) / 60.)
-            textout = '\n'.join([s1, s2, s3])
-            logging.info(textout)
-            self.ax[3].text(0.05, 0.95, textout, transform=self.ax[3].transAxes,
-                            va='top', fontname='monospace')
+            self.ax[3].set_ylabel('(sunset)        Time of day        (sunrise)')
             plt.tight_layout()
             self.fig.canvas.draw()
-            old_obj = new_obj
-            if improvement <= CONFIG1['eps']:
-                break
+        else:
+            ics = IterativeClearSky(D)
+            self.ax[4].plot(np.sum(ics.D, axis=0) * 24 / ics.D.shape[0], linewidth=1, label='raw data')
+            use_day = ics.weights > 1e-1
+            days = np.arange(ics.D.shape[1])
+            self.ax[4].scatter(days[use_day], np.sum(ics.D, axis=0)[use_day] * 24 / ics.D.shape[0],
+                               color='orange', alpha=0.7, label='days selected')
+            self.ax[4].legend()
+            self.ax[4].set_title('Daily Energy')
+            self.ax[4].set_xlabel('Day Number')
+            self.ax[4].set_ylabel('kWh')
+            self.ax[3].cla()
+            self.ax[3].text(0.05, 0.95, 'running algorithm...', transform=self.ax[3].transAxes,
+                            va='top', fontname='monospace')
+            self.ax[3].set_xlabel('Day number')
+            self.ax[3].set_yticks([])
+            self.ax[3].set_ylabel('(sunset)        Time of day        (sunrise)')
+            plt.tight_layout()
+            self.fig.canvas.draw()
+            logging.info('starting algorithm')
+            config_l = CONFIG1.copy()
+            config_l['max_iter'] = 1
+            obj_vals = ics.calc_objective(False)
+            old_obj = np.sum(obj_vals)
+            ti = time.time()
+            for cntr in range(CONFIG1['max_iter']):
+                ics.minimize_objective(**config_l)
+                logging.info('min iteration {} complete'.format(cntr + 1))
+                obj_vals = ics.calc_objective(False)
+                new_obj = np.sum(obj_vals)
+                improvement = (old_obj - new_obj) * 1. / old_obj
+    
+                self.ax[3].cla()
+                self.ax[3].set_xlabel('Day number')
+                self.ax[3].set_yticks([])
+                self.ax[3].set_ylabel('(sunset)        Time of day        (sunrise)')
+                s1 = 'Iteration {} complete: obj = {:.2f}, f1 = {:.2f}'.format(cntr + 1, new_obj, obj_vals[0])
+                s2 = 'Improvement: {:.2f}%'.format(100 * improvement)
+                tf = time.time()
+                s3 = 'Time elapsed: {:.2f} minutes'.format((tf - ti) / 60.)
+                textout = '\n'.join([s1, s2, s3])
+                logging.info(textout)
+                self.ax[3].text(0.05, 0.95, textout, transform=self.ax[3].transAxes,
+                                va='top', fontname='monospace')
+                plt.tight_layout()
+                self.fig.canvas.draw()
+                old_obj = new_obj
+                if improvement <= CONFIG1['eps']:
+                    break
+            ics.save_instance(self.scsf_cache_dir + fn)
 
         logging.info('algorithm complete')
         self.ics = ics
@@ -206,7 +235,7 @@ class PointBrowser(object):
         self.ax[3].set_title('Estimated clear sky power')
         self.ax[3].set_xlabel('Day number')
         self.ax[3].set_yticks([])
-        self.ax[3].set_ylabel('(sunset)        Time of day        (sunrirse)')
+        self.ax[3].set_ylabel('(sunset)        Time of day        (sunrise)')
         logging.info('second plot complete')
         plt.tight_layout()
         self.fig.canvas.draw()
@@ -292,7 +321,7 @@ class PointBrowser(object):
         self.ax[2].text(0.05, 0.95, 'data loading...', transform=self.ax[2].transAxes, va='top', fontname='monospace')
         self.ax[2].set_xlabel('Day number')
         self.ax[2].set_yticks([])
-        self.ax[2].set_ylabel('(sunset)        Time of day        (sunrirse)')
+        self.ax[2].set_ylabel('(sunset)        Time of day        (sunrise)')
         self.ax[3].cla()
         self.ax[4].cla()
         self.ics = None
@@ -319,7 +348,7 @@ class PointBrowser(object):
 
         self.ax[2].set_xlabel('Day number')
         self.ax[2].set_yticks([])
-        self.ax[2].set_ylabel('(sunset)        Time of day        (sunrirse)')
+        self.ax[2].set_ylabel('(sunset)        Time of day        (sunrise)')
         self.ax[2].set_title('Measured power')
 
         self.text_box.set_val('')
