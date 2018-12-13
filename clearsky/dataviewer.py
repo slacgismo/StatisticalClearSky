@@ -150,6 +150,7 @@ class PointBrowser(object):
         if fn in cached_files:
             ics = IterativeClearSky()
             ics.load_instance(self.scsf_cache_dir + fn)
+            self.ics = ics
             self.ax[4].plot(np.sum(ics.D, axis=0) * 24 / ics.D.shape[0], linewidth=1, label='raw data')
             use_day = ics.weights > 1e-1
             days = np.arange(ics.D.shape[1])
@@ -165,10 +166,12 @@ class PointBrowser(object):
             self.ax[3].set_xlabel('Day number')
             self.ax[3].set_yticks([])
             self.ax[3].set_ylabel('(sunset)        Time of day        (sunrise)')
+            self.show_ticks(self.ax[2])
             plt.tight_layout()
             self.fig.canvas.draw()
         else:
             ics = IterativeClearSky(D)
+            self.ics = ics
             self.ax[4].plot(np.sum(ics.D, axis=0) * 24 / ics.D.shape[0], linewidth=1, label='raw data')
             use_day = ics.weights > 1e-1
             days = np.arange(ics.D.shape[1])
@@ -184,6 +187,7 @@ class PointBrowser(object):
             self.ax[3].set_xlabel('Day number')
             self.ax[3].set_yticks([])
             self.ax[3].set_ylabel('(sunset)        Time of day        (sunrise)')
+            self.show_ticks(self.ax[2])
             plt.tight_layout()
             self.fig.canvas.draw()
             logging.info('starting algorithm')
@@ -219,7 +223,6 @@ class PointBrowser(object):
             ics.save_instance(self.scsf_cache_dir + fn)
 
         logging.info('algorithm complete')
-        self.ics = ics
         self.ax[4].plot((ics.R_cs.value[0] * np.sum(ics.L_cs.value[:, 0])) * 24 / ics.D.shape[0], linewidth=1,
                         label='clear sky estimate')
         self.ax[4].legend()
@@ -232,6 +235,7 @@ class PointBrowser(object):
             if self.cb2 is not None:
                 self.cb2.remove()
             self.cb2 = plt.colorbar(bar, ax=self.ax[3], label='kW')
+        self.show_ticks(self.ax[3])
         self.ax[3].set_title('Estimated clear sky power')
         self.ax[3].set_xlabel('Day number')
         self.ax[3].set_yticks([])
@@ -239,6 +243,19 @@ class PointBrowser(object):
         logging.info('second plot complete')
         plt.tight_layout()
         self.fig.canvas.draw()
+        return
+
+    def show_ticks(self, ax):
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        use_day = self.ics.weights > 1e-1
+        days = np.arange(self.ics.D.shape[1])
+        y1 = np.ones_like(days[use_day]) * self.D.shape[0] * .99
+        ax.scatter(days[use_day], y1, marker='|', color='yellow', s=2)
+        ax.scatter(days[use_day], .995 * y1, marker='|', color='yellow', s=2)
+        ax.set_xlim(*xlim)
+        ax.set_ylim(*ylim)
+        return
 
     def onpress(self, event):
         if self.lastind is None:
