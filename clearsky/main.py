@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import date, datetime
 from time import time
+import json
 import cvxpy as cvx
 
 # Python 2.x, 3.x compatibility
@@ -20,7 +21,7 @@ except NameError:
 
 
 class IterativeClearSky(object):
-    def __init__(self, D, k=4, reserve_test_data=False, auto_fix_time_shifts=True):
+    def __init__(self, D=None, k=4, reserve_test_data=False, auto_fix_time_shifts=True):
         """
         Initialization method for the IterativeClearSky class. This method does the following:
         - Runs SVD on the data matrix, D, which sets the initial values for L, R, and r0 in the GLRM solving algorithm
@@ -33,6 +34,8 @@ class IterativeClearSky(object):
                                     of reserved test days
         :param auto_fix_time_shifts: set to True to run the time shift fixing subroutine at initialization (recommended)
         """
+        if D is None:
+            return
         self.fixedTimeStamps = False
         if auto_fix_time_shifts:
             D_fix = fix_time_shifts(D)
@@ -114,6 +117,51 @@ class IterativeClearSky(object):
         else:
             self.test_days = None
 
+    def save_instance(self, fp):
+        save_dict = dict(
+            D = self.D.tolist(),
+            k = self.k,
+            L0 = self.L0.tolist(),
+            R0 = self.R0.tolist(),
+            L_value = self.L_cs.value.tolist(),
+            R_value = self.R_cs.value.tolist(),
+            beta_value = float(self.beta.value),
+            r0 = self.r0.tolist(),
+            mu_L = self.mu_L,
+            mu_R = self.mu_R,
+            tau = self.tau,
+            isSolverError = self.isSolverError,
+            isProblemStatusError = self.isProblemStatusError,
+            f1Increase = self.f1Increase,
+            objIncrease = self.objIncrease,
+            residuals_median = self.residuals_median,
+            residuals_variance = self.residuals_variance,
+            residual_l0_norm = self.residual_l0_norm,
+            weights = self.weights.tolist()
+        )
+        json.dump(save_dict, open(fp, 'w'))
+
+    def load_instance(self, fp):
+        load_dict = json.load(open(fp))
+        self.__init__(D=np.array(load_dict['D']), k=load_dict['k'])
+
+        self.L_cs.value = np.array(load_dict['L_value'])
+        self.R_cs.value = np.array(load_dict['R_value'])
+        self.beta.value = load_dict['beta_value']
+
+        self.mu_L = load_dict['mu_L']
+        self.mu_R = load_dict['mu_R']
+        self.tau = load_dict['tau']
+        self.isSolverError = load_dict['isSolverError']
+        self.isProblemStatusError = load_dict['isProblemStatusError']
+        self.f1Increase = load_dict['f1Increase']
+        self.objIncrease = load_dict['objIncrease']
+        self.residuals_median = load_dict['residuals_median']
+        self.residuals_variance = load_dict['residuals_variance']
+        self.residual_l0_norm = load_dict['residual_l0_norm']
+
+        return
+
     def calc_objective(self, sum_components=True):
         W1 = np.diag(self.weights)
         f1 = (cvx.sum((0.5 * cvx.abs(self.D - self.L_cs.value.dot(self.R_cs.value))
@@ -136,7 +184,7 @@ class IterativeClearSky(object):
         else:
             return components
 
-    def minimize_objective(self, eps=1e-3, max_iter=100, calc_deg=True, max_deg=0., min_deg=-0.25,
+    def minimize_objective(self, eps=1e-3, max_iter=100, calc_deg=True, max_deg=None, min_deg=None,
                            mu_L=None, mu_R=None, tau=None, verbose=True):
         if mu_L is not None:
             self.mu_L = mu_L
