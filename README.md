@@ -126,9 +126,9 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Authors
 
-* **Bennet Meyers** - *Initial work* - [Bennet Meyers GitHub](https://github.com/bmeyers)
+* **Bennet Meyers** - *Initial work and Main research work* - [Bennet Meyers GitHub](https://github.com/bmeyers)
 
-* **Tadatoshi Takahashi** - *Packaging work* - [Tadatoshi Takahashi GitHub](https://github.com/tadatoshi)
+* **Tadatoshi Takahashi** - *Refactoring and Packaging work and Research support work* - [Tadatoshi Takahashi GitHub](https://github.com/tadatoshi)
 
 See also the list of [contributors](https://github.com/bmeyers/StatisticalClearSky/contributors) who participated in this project.
 
