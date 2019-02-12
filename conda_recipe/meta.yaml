@@ -1,0 +1,12 @@
+package:
+  name: statistical_clear_sky
+  version: 0.1.0
+
+source:
+  path: ..
+
+requirements:
+  host:
+    - python
+  run:
+    - python
