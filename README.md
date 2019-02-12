@@ -11,9 +11,18 @@ Alternatively, you can clone this repository (GIT) and execute the example codes
 When you install this project as PIP package, dependencies are automatically installed.
 When you use this project in any other ways, the following instruction can be useful.
 
-Simplest way to install dependencies is by
+Simplest way to install dependencies if you are using pip is by
 
 ```sh
+$ pip install -r requirements.txt
+```
+
+As of February 11, 2019, it fails because scs package installed as a dependency of cxvpy expects numpy to be already installed.
+[scs issue 85](https://github.com/cvxgrp/scs/issues/85) says, it is fixed.
+However, it doesn't seem to be reflected in its pip package.
+As a work around, install numpy separatly first and install the other packages using requirements.txt. i.e.
+```sh
+$ pip install numpy
 $ pip install -r requirements.txt
 ```
 
