@@ -96,7 +96,7 @@ setup(
         'Development Status :: 3 - Alpha',
 
         # Indicate who your project is intended for
-        'Intended Audience :: Researchers',
+        'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering',
 
         # Pick your license as you wish
