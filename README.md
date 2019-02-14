@@ -72,29 +72,29 @@ In case, you run example codes under notebooks folder in Jupyter notebook, espec
 
 ### Installing
 
-[To be added]
-
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
+If you are using pip:
 
 ```
-Give the example
+$ pip install statistical-clear-sky
 ```
 
-And repeat
+If you are using Anaconda:
 
 ```
-until finished
+$ conda install statistical-clear-sky
 ```
-
-End with an example of getting some data out of the system or using it for a little demo
 
 ## Running the tests
 
-[To be added]
+1. GIT clone this project.
 
-Explain how to run the automated tests for this system
+2. In the project directory in terminal,
+
+    ```
+    $ python -m unittest
+    ```
+
+    This runs all the tests under tests folder.
 
 ### Break down into end to end tests
 
@@ -138,8 +138,8 @@ This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICE
 
 ## References
 
-[1] D. Sera, R. Teodorescu, and P. Rodriguez, "PV panel model based on datasheet values," IEEE Photovoltaic Specialists Conference, 2018.
+[1] B. Meyers, M. Tabone, and E. C. Kara, "Statistical Clear Sky Fitting Algorithm," IEEE Photovoltaic Specialists Conference, 2018.
 
 ## Acknowledgments
 
-* [To be added.]
+* The authors would like to thank Professor Stephen Boyd from Stanford University for his input and guidance.
