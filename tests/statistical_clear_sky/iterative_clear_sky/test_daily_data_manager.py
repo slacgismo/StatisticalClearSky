@@ -12,7 +12,7 @@ class TestDailyDataManager(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_run_svd(self):
+    def test_obtain_initial_r0(self):
 
         # input_daily_signals_file_path = os.path.abspath(
         #     os.path.join(os.path.dirname(__file__),
@@ -39,7 +39,8 @@ class TestDailyDataManager(unittest.TestCase):
             5.38817165])
 
         daily_data_manager = DailyDataManager(daily_signals, rank_k = rank_k)
-        actual_result = daily_data_manager.run_svd()
+        u, sigma, v = np.linalg.svd(daily_signals)
+        actual_result = daily_data_manager.obtain_initial_r0(u, sigma, v)
 
         # TODO: For debugging. Remove this:
         # print("actual_result: %s" % (actual_result))

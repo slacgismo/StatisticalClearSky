@@ -7,7 +7,7 @@ class DailyDataManager(object):
         self._daily_signals = daily_signals
         self._rank_k = rank_k
 
-    def run_svd(self):
+    def obtain_initial_r0(self, u, sigma, v):
 
         ########################################################
         # Beginning of extracted code from the constructor of
@@ -16,7 +16,6 @@ class DailyDataManager(object):
         # u: Left singular vectors
         # sigma: singular values
         # v: Right singular vectors
-        u, sigma, v = np.linalg.svd(self._daily_signals)
         if np.sum(u[:, 0]) < 0:
             u[:, 0] *= -1
             v[0] *= -1
