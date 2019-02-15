@@ -9,6 +9,31 @@ Alternatively, you can clone this repository (GIT) and execute the example codes
 ### Prerequisites
 
 When you install this project as PIP package, dependencies are automatically installed.
+
+As of February 11, 2019, it fails because scs package installed as a dependency of cxvpy expects numpy to be already installed.
+[scs issue 85](https://github.com/cvxgrp/scs/issues/85) says, it is fixed.
+However, it doesn't seem to be reflected in its pip package.
+As a work around, install numpy separatly first and then install this package. i.e.
+```sh
+$ pip install numpy
+```
+
+The following package is not installed automatically. Therefore, it must be installed separately.
+
+* [mosek](https://www.mosek.com/resources/getting-started/) - For using MOSEK solver.
+
+    This package is necessary only when running an example code.
+
+    If you are using pip:
+    ```sh
+    $ pip install -f https://download.mosek.com/stable/wheel/index.html Mosek
+    ```
+
+    If you are using Anaconda:
+    ```sh
+    $ conda install -c mosek mosek
+    ```
+
 When you use this project in any other ways, the following instruction can be useful.
 
 Simplest way to install dependencies if you are using pip is by
@@ -56,25 +81,21 @@ In case, you run example codes under notebooks folder in Jupyter notebook, espec
     $ conda install -c conda-forge cassandra-driver
     ```
 
-* [mosek](https://www.mosek.com/resources/getting-started/) - [Optional] - For using MOSEK solver.
-
-    This package is necessary only when running an example code.
-
-    If you are using pip:
-    ```sh
-    $ pip install -f https://download.mosek.com/stable/wheel/index.html Mosek
-    ```
-
-    If you are using Anaconda:
-    ```sh
-    $ conda install -c mosek mosek
-    ```
-
 ### Installing
 
 If you are using pip:
 
 ```
+$ pip install statistical-clear-sky
+```
+
+As of February 11, 2019, it fails because scs package installed as a dependency of cxvpy expects numpy to be already installed.
+[scs issue 85](https://github.com/cvxgrp/scs/issues/85) says, it is fixed.
+However, it doesn't seem to be reflected in its pip package.
+As a work around, install numpy separatly first and then install this package.
+i.e.
+```
+$ pip install numpy
 $ pip install statistical-clear-sky
 ```
 
