@@ -1,12 +1,45 @@
+{% set name = "statistical-clear-sky" %}
+{% set version = "0.1.1" %}
+
 package:
-  name: statistical-clear-sky
-  version: 0.1.1
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
 
 source:
-  url: https://files.pythonhosted.org/packages/a4/de/ababe0eb251d1e9913d6a91c371382202426dfd3d1516296b50263220b67/statistical-clear-sky-0.1.0.tar.gz
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: 6172678b5d2290a3e698d39d1012192959129e3188fb59ee553c7bbdb7c5aabb
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
 
 requirements:
   host:
+    - numpy
+    - pandas
+    - pip
     - python
+    - seaborn
   run:
+    - numpy
+    - pandas
     - python
+    - seaborn
+
+test:
+  imports:
+    - statistical_clear_sky
+    - statistical_clear_sky.iterative_clear_sky
+
+about:
+  home: https://github.com/bmeyers/StatisticalClearSky
+  license: BSD
+  license_family: BSD
+  license_file:
+  summary: Statistical estimation of a clear sky signal from PV system power data
+  doc_url:
+  dev_url:
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here
