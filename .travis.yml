@@ -6,6 +6,5 @@ python:
 install:
   - pip install numpy>=1.16
   - pip install -r requirements.txt
-  - pip install -f https://download.mosek.com/stable/wheel/index.html Mosek
 script:
   - python -m unittest
