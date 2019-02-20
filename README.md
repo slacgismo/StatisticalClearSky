@@ -87,7 +87,7 @@ In case, you run example codes under notebooks folder in Jupyter notebook, espec
 
 By default, ECOS solver is used, which is supported by cvxpy because it is Open Source.
 
-If you would like to use Mosek solver, you have to install it separately and obtain the license on your own.
+However, it is found that Mosek solver is more stable. Thus, we encourage you to install it separately as below and obtain the license on your own.
 
 * [mosek](https://www.mosek.com/resources/getting-started/) - For using MOSEK solver.
 
