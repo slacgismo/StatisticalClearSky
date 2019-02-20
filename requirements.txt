@@ -1,5 +1,5 @@
 cvxpy>=1.0
-numpy==1.14
+numpy>=1.16
 pandas
 matplotlib
 seaborn
