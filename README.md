@@ -18,11 +18,9 @@ As a work around, install numpy separatly first and then install this package. i
 $ pip install numpy
 ```
 
-The following package is not installed automatically. Therefore, it must be installed separately.
+The following package is not installed automatically due to its specific package location. Therefore, it must be installed separately.
 
 * [mosek](https://www.mosek.com/resources/getting-started/) - For using MOSEK solver.
-
-    This package is necessary only when running an example code.
 
     If you are using pip:
     ```sh
