@@ -46,7 +46,7 @@ class TestDailyDataManager(unittest.TestCase):
         # v: Right singular vectors
         left_vectors_u, sigma, right_vectors_v = np.linalg.svd(daily_signals)
         actual_result = daily_data_manager.obtain_component_r0(left_vectors_u,
-            sigma, right_vectors_v, solver_type = SolverType.default)
+            sigma, right_vectors_v, solver_type = SolverType.ecos)
 
         # TODO: For debugging. Remove this:
         # print("actual_result: %s" % (actual_result))

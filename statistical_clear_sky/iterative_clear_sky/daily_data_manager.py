@@ -9,7 +9,7 @@ class DailyDataManager(object):
         self._rank_k = rank_k
 
     def obtain_component_r0(self, left_vectors_u, sigma, right_vectors_v,
-                            solver_type = SolverType.mosek):
+                            solver_type = SolverType.ecos):
 
         ########################################################
         # Beginning of extracted code from the constructor of

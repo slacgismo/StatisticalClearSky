@@ -20,20 +20,6 @@ i.e.
 $ pip install numpy>=1.16
 ```
 
-The following package is not installed automatically due to its specific package location. Therefore, it must be installed separately.
-
-* [mosek](https://www.mosek.com/resources/getting-started/) - For using MOSEK solver.
-
-    If you are using pip:
-    ```sh
-    $ pip install -f https://download.mosek.com/stable/wheel/index.html Mosek
-    ```
-
-    If you are using Anaconda:
-    ```sh
-    $ conda install -c mosek mosek
-    ```
-
 When you use this project in any other ways, the following instruction can be useful.
 
 Simplest way to install dependencies if you are using pip is by
@@ -67,6 +53,21 @@ In case, you run example codes under notebooks folder in Jupyter notebook, espec
     $ conda install -c cvxgrp cvxpy
     ```
 
+* [mosek](https://www.mosek.com/resources/getting-started/) - For using MOSEK solver.
+
+    An example code in Jupyter notebook depends on it.
+    Thus, this package is necessary only when running the example code.
+
+    If you are using pip:
+    ```sh
+    $ pip install -f https://download.mosek.com/stable/wheel/index.html Mosek
+    ```
+
+    If you are using Anaconda:
+    ```sh
+    $ conda install -c mosek mosek
+    ```
+
 * [cassandra-driver](http://datastax.github.io/python-driver/index.html) - [Optional] - For accessing Cassandra database.
 
     An example code in Jupyter notebook depends on it.
@@ -80,6 +81,24 @@ In case, you run example codes under notebooks folder in Jupyter notebook, espec
     If you are using Anaconda:
     ```sh
     $ conda install -c conda-forge cassandra-driver
+    ```
+
+#### Solvers
+
+By default, ECOS solver is used, which is supported by cvxpy because it is Open Source.
+
+If you would like to use Mosek solver, you have to install it separately and obtain the license on your own.
+
+* [mosek](https://www.mosek.com/resources/getting-started/) - For using MOSEK solver.
+
+    If you are using pip:
+    ```sh
+    $ pip install -f https://download.mosek.com/stable/wheel/index.html Mosek
+    ```
+
+    If you are using Anaconda:
+    ```sh
+    $ conda install -c mosek mosek
     ```
 
 ### Installing
@@ -104,7 +123,7 @@ $ pip install statistical-clear-sky
 If you are using Anaconda:
 
 ```
-$ conda install statistical-clear-sky
+$ conda install -c tadatoshi statistical-clear-sky
 ```
 
 ## Running the tests
@@ -145,7 +164,7 @@ Please read [CONTRIBUTING.md](https://github.com/bmeyers/StatisticalClearSky/con
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/bmeyers/StatisticalClearSky/tags).
+We use [Semantic Versioning](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/bmeyers/StatisticalClearSky/tags).
 
 ## Authors
 
