@@ -13,9 +13,11 @@ When you install this project as PIP package, dependencies are automatically ins
 As of February 11, 2019, it fails because scs package installed as a dependency of cxvpy expects numpy to be already installed.
 [scs issue 85](https://github.com/cvxgrp/scs/issues/85) says, it is fixed.
 However, it doesn't seem to be reflected in its pip package.
-As a work around, install numpy separatly first and then install this package. i.e.
+Also, cvxpy doesn't work with numpy version less than 1.16.
+As a work around, install numpy separatly first and then install this package.
+i.e.
 ```sh
-$ pip install numpy
+$ pip install numpy>=1.16
 ```
 
 The following package is not installed automatically due to its specific package location. Therefore, it must be installed separately.
@@ -43,9 +45,10 @@ $ pip install -r requirements.txt
 As of February 11, 2019, it fails because scs package installed as a dependency of cxvpy expects numpy to be already installed.
 [scs issue 85](https://github.com/cvxgrp/scs/issues/85) says, it is fixed.
 However, it doesn't seem to be reflected in its pip package.
+Also, cvxpy doesn't work with numpy version less than 1.16.
 As a work around, install numpy separatly first and install the other packages using requirements.txt. i.e.
 ```sh
-$ pip install numpy
+$ pip install numpy>=1.16
 $ pip install -r requirements.txt
 ```
 
@@ -90,10 +93,11 @@ $ pip install statistical-clear-sky
 As of February 11, 2019, it fails because scs package installed as a dependency of cxvpy expects numpy to be already installed.
 [scs issue 85](https://github.com/cvxgrp/scs/issues/85) says, it is fixed.
 However, it doesn't seem to be reflected in its pip package.
+Also, cvxpy doesn't work with numpy version less than 1.16.
 As a work around, install numpy separatly first and then install this package.
 i.e.
 ```
-$ pip install numpy
+$ pip install numpy>=1.16
 $ pip install statistical-clear-sky
 ```
 

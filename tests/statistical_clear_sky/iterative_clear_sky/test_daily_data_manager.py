@@ -1,7 +1,9 @@
 import unittest
-from statistical_clear_sky.iterative_clear_sky.daily_data_manager import DailyDataManager
+from statistical_clear_sky.iterative_clear_sky.daily_data_manager\
+ import DailyDataManager
 import numpy as np
 import os
+from statistical_clear_sky.solver_type import SolverType
 
 class TestDailyDataManager(unittest.TestCase):
     '''
@@ -12,7 +14,7 @@ class TestDailyDataManager(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_obtain_initial_r0(self):
+    def test_obtain_component_r0(self):
 
         # input_daily_signals_file_path = os.path.abspath(
         #     os.path.join(os.path.dirname(__file__),
@@ -39,10 +41,15 @@ class TestDailyDataManager(unittest.TestCase):
             5.38817165])
 
         daily_data_manager = DailyDataManager(daily_signals, rank_k = rank_k)
-        u, sigma, v = np.linalg.svd(daily_signals)
-        actual_result = daily_data_manager.obtain_initial_r0(u, sigma, v)
+        # left_vectors_u: Left singular vectors
+        # sigma: singular values
+        # v: Right singular vectors
+        left_vectors_u, sigma, right_vectors_v = np.linalg.svd(daily_signals)
+        actual_result = daily_data_manager.obtain_component_r0(left_vectors_u,
+            sigma, right_vectors_v, solver_type = SolverType.default)
 
         # TODO: For debugging. Remove this:
         # print("actual_result: %s" % (actual_result))
 
-        np.testing.assert_almost_equal(actual_result, expected_result, 0.1)
+        np.testing.assert_almost_equal(actual_result, expected_result,
+            decimal = 2)
