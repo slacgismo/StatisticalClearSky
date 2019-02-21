@@ -8,9 +8,10 @@ import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 import seaborn as sns
-from datetime import date, datetime
+import os
 from time import time
 import json
+from collections import defaultdict
 import cvxpy as cvx
 
 # Python 2.x, 3.x compatibility
@@ -226,6 +227,7 @@ class IterativeClearSky(object):
                     if verbose:
                         print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
                     improvement = 0.
+                f1_last = obj_vals[0]
         except cvx.SolverError:
             if verbose:
                 print('solver failed!')
@@ -304,6 +306,42 @@ class IterativeClearSky(object):
         if problem.status != 'optimal':
             raise ProblemStatusError('Minimize R status: ' + problem.status)
         self.r0 = self.R_cs.value[0, :]
+
+    def runBoostrap(self, bootstrap_cache_dir=None, M=200, eps=1e-3, max_iter=100, calc_deg=True, max_deg=None,
+                    min_deg=None, mu_L=None, mu_R=None, tau=None, verbose=True):
+        if self.residuals_median is None:
+            self.minimize_objective(eps=eps, max_iter=max_iter, calc_deg=calc_deg, max_deg=max_deg, min_deg=min_deg,
+                                    mu_L=mu_L, mu_R=mu_R, tau=tau, verbose=verbose)
+        if bootstrap_cache_dir is None:
+            bootstrap_cache_dir = './local_cache/'
+        if not os.path.exists(bootstrap_cache_dir):
+            os.makedirs(bootstrap_cache_dir)
+        self.save_instance(bootstrap_cache_dir + '/original.scsf')
+        use_day = self.weights > 1e-1
+        days = np.arange(self.D.shape[1])
+        S = days[use_day]
+        for iter in range(M):
+            # Select days for bootstrap sample, allowing for repeat days
+            S_prime = np.random.choice(S, len(S), replace=True)
+            # Construct multiset (item counter) from list
+            dd = defaultdict(int)
+            for item in S_prime:
+                dd[item] += 1
+            # Re-weight days based on boonstrap
+            old_weights = self.weights.copy()
+            self.weights = np.zeros_like(old_weights)
+            for day in dd.keys():
+                self.weights[day] = dd[day] * old_weights[day]
+            # Rescale the weights so the largest weight is 1
+            self.weights /= np.max(self.weights)
+            # Refit model with new weights
+            self.minimize_objective(eps=eps, max_iter=max_iter, calc_deg=calc_deg, max_deg=max_deg, min_deg=min_deg,
+                                    mu_L=mu_L, mu_R=mu_R, tau=tau, verbose=verbose)
+            # Persist the newly fit model based on the boostrap sample
+            self.save_instance(bootstrap_cache_dir + '/run{:0>4}.scsf'.format(iter + 1))
+            # Revert the class state to the original fit
+            self.load_instance(bootstrap_cache_dir + '/original.scsf')
+
 
     def plot_LR(self, figsize=(14, 10), show_days=False):
         fig, ax = plt.subplots(nrows=2, ncols=2, figsize=figsize)
@@ -434,7 +472,7 @@ class IterativeClearSky(object):
         ax[1].legend()
         # ax[0].set_ylim(0, np.max(actual) * 1.3)
         ax[1].set_xlim(D1, D2)
-        ax[1].set_ylim(0, 1)
+        ax[1].set_ylim(0, 1.05)
         ax[1].set_xlabel('day number')
         ax[0].set_ylabel('power')
         plt.tight_layout()
