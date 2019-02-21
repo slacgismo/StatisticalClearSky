@@ -2,7 +2,7 @@ import numpy as np
 import cvxpy as cvx
 from statistical_clear_sky.solver_type import SolverType
 
-class DailyDataManager(object):
+class LinearizationHelper(object):
 
     def __init__(self, power_signals_d, rank_k = 4):
         self._power_signals_d = power_signals_d

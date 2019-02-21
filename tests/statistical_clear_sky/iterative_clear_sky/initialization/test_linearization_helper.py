@@ -1,14 +1,18 @@
 import unittest
-from statistical_clear_sky.iterative_clear_sky.daily_data_manager\
- import DailyDataManager
+from\
+ statistical_clear_sky.iterative_clear_sky.initialization.linearization_helper\
+ import LinearizationHelper
 import numpy as np
 import os
 from statistical_clear_sky.solver_type import SolverType
 
-class TestDailyDataManager(unittest.TestCase):
+class TestLinealizationHelper(unittest.TestCase):
     '''
-    Unit test for obtaining initial data.
-    It convers the content of the constructor of main.IterativeClearSky in the original code.
+    Unit test for obtaining initial data of Right Vectors component r0,
+    which is used as a denomoniator of non-linear equation in order to make
+    it linear.
+    It convers the first part of the constructor of main.IterativeClearSky
+    in the original code.
     '''
 
     def setUp(self):
@@ -40,12 +44,13 @@ class TestDailyDataManager(unittest.TestCase):
         expected_result = np.array([1.36527916, 2.70624333, 4.04720749,
             5.38817165])
 
-        daily_data_manager = DailyDataManager(power_signals_d, rank_k = rank_k)
+        linearization_helper = LinearizationHelper(power_signals_d,
+                                                   rank_k = rank_k)
         # left_vectors_u: Left singular vectors
         # sigma: singular values
         # v: Right singular vectors
         left_vectors_u, sigma, right_vectors_v = np.linalg.svd(power_signals_d)
-        actual_result = daily_data_manager.obtain_component_r0(left_vectors_u,
+        actual_result = linearization_helper.obtain_component_r0(left_vectors_u,
             sigma, right_vectors_v, solver_type = SolverType.ecos)
 
         # TODO: For debugging. Remove this:
