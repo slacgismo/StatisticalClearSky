@@ -1,4 +1,7 @@
 # StatisticalClearSky
+
+[![Build Status](https://travis-ci.com/tadatoshi/StatisticalClearSky.svg?branch=development)](https://travis-ci.com/tadatoshi/StatisticalClearSky)
+
 Statistical estimation of a clear sky signal from PV system power data
 
 ## Getting Started
