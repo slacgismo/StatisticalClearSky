@@ -392,12 +392,12 @@ class IterativeClearSky(object):
         plt.tight_layout()
         return fig
 
-    def plot_D(self, figsize=(12, 6), show_days=False):
+    def plot_D(self, figsize=(12, 6), show_days=False, units='kW'):
         with sns.axes_style("white"):
             fig, ax = plt.subplots(nrows=1, figsize=figsize, sharex=True)
             foo = ax.imshow(self.D, cmap='hot', interpolation='none', aspect='auto')
             ax.set_title('Measured power')
-            plt.colorbar(foo, ax=ax, label='kW')
+            plt.colorbar(foo, ax=ax, label=units)
             ax.set_xlabel('Day number')
             ax.set_yticks([])
             ax.set_ylabel('Time of day')
@@ -413,7 +413,7 @@ class IterativeClearSky(object):
                 ax.set_ylim(*ylim)
         return fig
 
-    def plot_measured_clear(self, figsize=(12, 10), show_days=False):
+    def plot_measured_clear(self, figsize=(12, 10), show_days=False, units='kW'):
         with sns.axes_style("white"):
             fig, ax = plt.subplots(nrows=2, figsize=figsize, sharex=True)
             foo = ax[0].imshow(self.D, cmap='hot', interpolation='none', aspect='auto')
@@ -421,8 +421,8 @@ class IterativeClearSky(object):
             bar = ax[1].imshow(self.L_cs.value.dot(self.R_cs.value), cmap='hot',
                                vmin=0, vmax=np.max(self.D), interpolation='none', aspect='auto')
             ax[1].set_title('Estimated clear sky power')
-            plt.colorbar(foo, ax=ax[0], label='kW')
-            plt.colorbar(bar, ax=ax[1], label='kW')
+            plt.colorbar(foo, ax=ax[0], label=units)
+            plt.colorbar(bar, ax=ax[1], label=units)
             ax[1].set_xlabel('Day number')
             ax[0].set_yticks([])
             ax[0].set_ylabel('Time of day')
