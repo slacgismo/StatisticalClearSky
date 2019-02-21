@@ -4,8 +4,8 @@ from statistical_clear_sky.solver_type import SolverType
 
 class DailyDataManager(object):
 
-    def __init__(self, daily_signals, rank_k = 4):
-        self._daily_signals = daily_signals
+    def __init__(self, power_signals_d, rank_k = 4):
+        self._power_signals_d = power_signals_d
         self._rank_k = rank_k
 
     def obtain_component_r0(self, left_vectors_u, sigma, right_vectors_v,
@@ -18,12 +18,13 @@ class DailyDataManager(object):
         if np.sum(left_vectors_u[:, 0]) < 0:
             left_vectors_u[:, 0] *= -1
             right_vectors_v[0] *= -1
-        right_vectors_r_cs = np.diag(sigma[:self._rank_k]).dot(right_vectors_v[:self._rank_k,
-                :])
+        right_vectors_r_cs = np.diag(sigma[:self._rank_k]).dot(
+            right_vectors_v[:self._rank_k, :])
         component_r0 = right_vectors_r_cs[0]
-        x = cvx.Variable(self._daily_signals.shape[1])
+        x = cvx.Variable(self._power_signals_d.shape[1])
         objective = cvx.Minimize(
-            cvx.sum(0.5 * cvx.abs(component_r0 - x) + (.9 - 0.5) * (component_r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k = 2)))
+            cvx.sum(0.5 * cvx.abs(component_r0 - x) + (.9 - 0.5) *
+                (component_r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k = 2)))
         problem = cvx.Problem(objective)
         problem.solve(solver = solver_type.value)
         result_component_r0 = x.value

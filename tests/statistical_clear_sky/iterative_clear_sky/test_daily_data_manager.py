@@ -7,7 +7,7 @@ from statistical_clear_sky.solver_type import SolverType
 
 class TestDailyDataManager(unittest.TestCase):
     '''
-    Unit test for obtaining daily data.
+    Unit test for obtaining initial data.
     It convers the content of the constructor of main.IterativeClearSky in the original code.
     '''
 
@@ -16,18 +16,18 @@ class TestDailyDataManager(unittest.TestCase):
 
     def test_obtain_component_r0(self):
 
-        # input_daily_signals_file_path = os.path.abspath(
+        # input_power_signals_file_path = os.path.abspath(
         #     os.path.join(os.path.dirname(__file__),
         #                  "../fixtures/daily_signals_1.txt"))
-        # daily_signals = np.loadtxt(input_daily_signals_file_path,
+        # power_signals_d = np.loadtxt(input_power_signals_file_path,
         #                            delimiter = ',')
         #
-        # print("daily_signals: %s" % (daily_signals))
+        # print("power_signals_d: %s" % (power_signals_d))
 
         # Data from Example_02 Jupyter notebook.
         # From 100th to 104th element of outer array,
         # first 8 elements of inner array.
-        daily_signals = np.array([[3.65099996e-01, 0.00000000e+00,
+        power_signals_d = np.array([[3.65099996e-01, 0.00000000e+00,
             0.00000000e+00, 2.59570003e+00],
             [6.21100008e-01, 0.00000000e+00, 0.00000000e+00, 2.67740011e+00],
             [8.12500000e-01, 0.00000000e+00, 0.00000000e+00, 2.72729993e+00],
@@ -40,11 +40,11 @@ class TestDailyDataManager(unittest.TestCase):
         expected_result = np.array([1.36527916, 2.70624333, 4.04720749,
             5.38817165])
 
-        daily_data_manager = DailyDataManager(daily_signals, rank_k = rank_k)
+        daily_data_manager = DailyDataManager(power_signals_d, rank_k = rank_k)
         # left_vectors_u: Left singular vectors
         # sigma: singular values
         # v: Right singular vectors
-        left_vectors_u, sigma, right_vectors_v = np.linalg.svd(daily_signals)
+        left_vectors_u, sigma, right_vectors_v = np.linalg.svd(power_signals_d)
         actual_result = daily_data_manager.obtain_component_r0(left_vectors_u,
             sigma, right_vectors_v, solver_type = SolverType.ecos)
 
