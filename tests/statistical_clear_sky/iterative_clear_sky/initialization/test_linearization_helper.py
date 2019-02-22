@@ -44,16 +44,48 @@ class TestLinealizationHelper(unittest.TestCase):
         expected_result = np.array([1.36527916, 2.70624333, 4.04720749,
             5.38817165])
 
-        linearization_helper = LinearizationHelper(power_signals_d,
-                                                   rank_k = rank_k)
+        linearization_helper = LinearizationHelper(
+                                      solver_type = SolverType.ecos)
         left_low_rank_matrix_u, singular_values_sigma, right_low_rank_matrix_v \
             = np.linalg.svd(power_signals_d)
         actual_result = linearization_helper.obtain_component_r0(
-            left_low_rank_matrix_u, singular_values_sigma,
-            right_low_rank_matrix_v, solver_type = SolverType.ecos)
-
-        # TODO: For debugging. Remove this:
-        # print("actual_result: %s" % (actual_result))
+            power_signals_d, left_low_rank_matrix_u, singular_values_sigma,
+            right_low_rank_matrix_v, rank_k = rank_k)
 
         np.testing.assert_almost_equal(actual_result, expected_result,
             decimal = 2)
+
+    def test_adjust_low_rank_matrices(self):
+
+        left_low_rank_matrix_u = np.array([[0.46881027, -0.77474963,
+            0.39354624, 0.1584339],
+            [0.49437073, -0.15174524, -0.6766346, -0.52415321],
+            [-0.51153077, 0.32155093, -0.27710787, 0.74709605],
+            [-0.5235941, 0.52282062, 0.55722365, -0.37684163]])
+        right_low_rank_matrix_v = np.array([[0.24562222, 0.0,
+            0.0, 0.96936563],
+            [0.96936563, 0.0, 0.0, -0.24562222],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0]])
+
+        expected_left_low_rank_matrix_u = np.array([[-0.46881027, -0.77474963,
+            0.39354624, 0.1584339],
+            [-0.49437073, -0.15174524, -0.6766346, -0.52415321],
+            [0.51153077, 0.32155093, -0.27710787, 0.74709605],
+            [0.5235941, 0.52282062, 0.55722365, -0.37684163]])
+        expected_right_low_rank_matrix_v = np.array([[-0.24562222, 0.0,
+            0.0, -0.96936563],
+            [0.96936563, 0.0, 0.0, -0.24562222],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0]])
+
+        linearization_helper = LinearizationHelper()
+
+        actual_left_low_rank_matrix_u, actual_right_low_rank_matrix_v = \
+            linearization_helper._adjust_low_rank_matrices(
+                        left_low_rank_matrix_u, right_low_rank_matrix_v)
+
+        np.testing.assert_array_equal(actual_left_low_rank_matrix_u,
+                         expected_left_low_rank_matrix_u)
+        np.testing.assert_array_equal(actual_right_low_rank_matrix_v,
+                         expected_right_low_rank_matrix_v)
