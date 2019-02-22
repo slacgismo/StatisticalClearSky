@@ -7,4 +7,8 @@ install:
   - pip install numpy>=1.16
   - pip install -r requirements.txt
 script:
-  - python -m unittest
+  - pip install coverage
+  - coverage run -m unittest
+after_success:
+  - pip install codecov
+  - codecov
