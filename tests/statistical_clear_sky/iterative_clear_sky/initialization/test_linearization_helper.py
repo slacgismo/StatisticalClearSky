@@ -46,12 +46,11 @@ class TestLinealizationHelper(unittest.TestCase):
 
         linearization_helper = LinearizationHelper(power_signals_d,
                                                    rank_k = rank_k)
-        # left_vectors_u: Left singular vectors
-        # sigma: singular values
-        # v: Right singular vectors
-        left_vectors_u, sigma, right_vectors_v = np.linalg.svd(power_signals_d)
-        actual_result = linearization_helper.obtain_component_r0(left_vectors_u,
-            sigma, right_vectors_v, solver_type = SolverType.ecos)
+        left_low_rank_matrix_u, singular_values_sigma, right_low_rank_matrix_v \
+            = np.linalg.svd(power_signals_d)
+        actual_result = linearization_helper.obtain_component_r0(
+            left_low_rank_matrix_u, singular_values_sigma,
+            right_low_rank_matrix_v, solver_type = SolverType.ecos)
 
         # TODO: For debugging. Remove this:
         # print("actual_result: %s" % (actual_result))

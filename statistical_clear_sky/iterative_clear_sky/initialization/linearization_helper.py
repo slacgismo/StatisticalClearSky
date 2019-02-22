@@ -8,18 +8,19 @@ class LinearizationHelper(object):
         self._power_signals_d = power_signals_d
         self._rank_k = rank_k
 
-    def obtain_component_r0(self, left_vectors_u, sigma, right_vectors_v,
+    def obtain_component_r0(self, left_low_rank_matrix_u,
+                            singular_values_sigma, right_low_rank_matrix_v,
                             solver_type = SolverType.ecos):
 
         ########################################################
         # Beginning of extracted code from the constructor of
         # main.IterativeClearSky
         ########################################################
-        if np.sum(left_vectors_u[:, 0]) < 0:
-            left_vectors_u[:, 0] *= -1
-            right_vectors_v[0] *= -1
-        right_vectors_r_cs = np.diag(sigma[:self._rank_k]).dot(
-            right_vectors_v[:self._rank_k, :])
+        if np.sum(left_low_rank_matrix_u[:, 0]) < 0:
+            left_low_rank_matrix_u[:, 0] *= -1
+            right_low_rank_matrix_v[0] *= -1
+        right_vectors_r_cs = np.diag(singular_values_sigma[:self._rank_k]).dot(
+            right_low_rank_matrix_v[:self._rank_k, :])
         component_r0 = right_vectors_r_cs[0]
         x = cvx.Variable(self._power_signals_d.shape[1])
         objective = cvx.Minimize(
