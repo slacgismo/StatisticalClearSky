@@ -2,14 +2,14 @@ import numpy as np
 import cvxpy as cvx
 from statistical_clear_sky.solver_type import SolverType
 
-class LinearizationHelper(object):
+class LinearizationHelper:
 
-    def __init__(self, solver_type = SolverType.ecos):
+    def __init__(self, solver_type=SolverType.ecos):
         self._solver_type = solver_type
 
     def obtain_component_r0(self, power_signals_d, left_low_rank_matrix_u,
                             singular_values_sigma, right_low_rank_matrix_v,
-                            rank_k = 4):
+                            rank_k=4):
 
         ########################################################
         # Beginning of extracted code from the constructor of
@@ -24,9 +24,9 @@ class LinearizationHelper(object):
         x = cvx.Variable(power_signals_d.shape[1])
         objective = cvx.Minimize(
             cvx.sum(0.5 * cvx.abs(component_r0 - x) + (.9 - 0.5) *
-                (component_r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k = 2)))
+                    (component_r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
         problem = cvx.Problem(objective)
-        problem.solve(solver = self._solver_type.value)
+        problem.solve(solver=self._solver_type.value)
         result_component_r0 = x.value
         ########################################################
         # End of extracted code from the constructor of

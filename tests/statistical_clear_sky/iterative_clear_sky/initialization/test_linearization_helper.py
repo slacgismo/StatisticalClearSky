@@ -1,9 +1,9 @@
 import unittest
+import numpy as np
+# import os
 from\
  statistical_clear_sky.iterative_clear_sky.initialization.linearization_helper\
  import LinearizationHelper
-import numpy as np
-import os
 from statistical_clear_sky.solver_type import SolverType
 
 class TestLinealizationHelper(unittest.TestCase):
@@ -32,60 +32,68 @@ class TestLinealizationHelper(unittest.TestCase):
         # From 100th to 104th element of outer array,
         # first 8 elements of inner array.
         power_signals_d = np.array([[3.65099996e-01, 0.00000000e+00,
-            0.00000000e+00, 2.59570003e+00],
-            [6.21100008e-01, 0.00000000e+00, 0.00000000e+00, 2.67740011e+00],
-            [8.12500000e-01, 0.00000000e+00, 0.00000000e+00, 2.72729993e+00],
-            [9.00399983e-01, 0.00000000e+00, 0.00000000e+00, 2.77419996e+00]])
+                                     0.00000000e+00, 2.59570003e+00],
+                                    [6.21100008e-01, 0.00000000e+00,
+                                     0.00000000e+00, 2.67740011e+00],
+                                    [8.12500000e-01, 0.00000000e+00,
+                                     0.00000000e+00, 2.72729993e+00],
+                                    [9.00399983e-01, 0.00000000e+00,
+                                     0.00000000e+00, 2.77419996e+00]])
         rank_k = 4
 
         # Result based on entire D in Example_02 Jupyter notebook.
         # expected_result = np.array([29.0347036, 29.0185262, 29.00233706,
             # 28.9861128])
         expected_result = np.array([1.36527916, 2.70624333, 4.04720749,
-            5.38817165])
+                                    5.38817165])
 
-        linearization_helper = LinearizationHelper(
-                                      solver_type = SolverType.ecos)
+        linearization_helper = LinearizationHelper(solver_type=SolverType.ecos)
         left_low_rank_matrix_u, singular_values_sigma, right_low_rank_matrix_v \
             = np.linalg.svd(power_signals_d)
         actual_result = linearization_helper.obtain_component_r0(
             power_signals_d, left_low_rank_matrix_u, singular_values_sigma,
-            right_low_rank_matrix_v, rank_k = rank_k)
+            right_low_rank_matrix_v, rank_k=rank_k)
 
         np.testing.assert_almost_equal(actual_result, expected_result,
-            decimal = 2)
+                                       decimal=2)
 
     def test_adjust_low_rank_matrices(self):
 
         left_low_rank_matrix_u = np.array([[0.46881027, -0.77474963,
-            0.39354624, 0.1584339],
-            [0.49437073, -0.15174524, -0.6766346, -0.52415321],
-            [-0.51153077, 0.32155093, -0.27710787, 0.74709605],
-            [-0.5235941, 0.52282062, 0.55722365, -0.37684163]])
-        right_low_rank_matrix_v = np.array([[0.24562222, 0.0,
-            0.0, 0.96936563],
-            [0.96936563, 0.0, 0.0, -0.24562222],
-            [0.0, 1.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0, 0.0]])
+                                            0.39354624, 0.1584339],
+                                           [0.49437073, -0.15174524,
+                                            -0.6766346, -0.52415321],
+                                           [-0.51153077, 0.32155093,
+                                            -0.27710787, 0.74709605],
+                                           [-0.5235941, 0.52282062,
+                                            0.55722365, -0.37684163]])
+        right_low_rank_matrix_v = np.array([[0.24562222, 0.0, 0.0, 0.96936563],
+                                            [0.96936563, 0.0, 0.0, -0.24562222],
+                                            [0.0, 1.0, 0.0, 0.0],
+                                            [0.0, 0.0, 1.0, 0.0]])
 
         expected_left_low_rank_matrix_u = np.array([[-0.46881027, -0.77474963,
-            0.39354624, 0.1584339],
-            [-0.49437073, -0.15174524, -0.6766346, -0.52415321],
-            [0.51153077, 0.32155093, -0.27710787, 0.74709605],
-            [0.5235941, 0.52282062, 0.55722365, -0.37684163]])
+                                                     0.39354624, 0.1584339],
+                                                    [-0.49437073, -0.15174524,
+                                                     -0.6766346, -0.52415321],
+                                                    [0.51153077, 0.32155093,
+                                                     -0.27710787, 0.74709605],
+                                                    [0.5235941, 0.52282062,
+                                                     0.55722365, -0.37684163]])
         expected_right_low_rank_matrix_v = np.array([[-0.24562222, 0.0,
-            0.0, -0.96936563],
-            [0.96936563, 0.0, 0.0, -0.24562222],
-            [0.0, 1.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0, 0.0]])
+                                                      0.0, -0.96936563],
+                                                     [0.96936563, 0.0,
+                                                      0.0, -0.24562222],
+                                                     [0.0, 1.0, 0.0, 0.0],
+                                                     [0.0, 0.0, 1.0, 0.0]])
 
         linearization_helper = LinearizationHelper()
 
         actual_left_low_rank_matrix_u, actual_right_low_rank_matrix_v = \
             linearization_helper._adjust_low_rank_matrices(
-                        left_low_rank_matrix_u, right_low_rank_matrix_v)
+                left_low_rank_matrix_u, right_low_rank_matrix_v)
 
         np.testing.assert_array_equal(actual_left_low_rank_matrix_u,
-                         expected_left_low_rank_matrix_u)
+                                      expected_left_low_rank_matrix_u)
         np.testing.assert_array_equal(actual_right_low_rank_matrix_v,
-                         expected_right_low_rank_matrix_v)
+                                      expected_right_low_rank_matrix_v)
