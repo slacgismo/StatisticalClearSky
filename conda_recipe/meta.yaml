@@ -1,5 +1,5 @@
 {% set name = "statistical-clear-sky" %}
-{% set version = "0.1.4" %}
+{% set version = "0.1.5" %}
 
 package:
   name: "{{ name|lower }}"
@@ -29,8 +29,9 @@ requirements:
 test:
   imports:
     - statistical_clear_sky
-    - statistical_clear_sky.iterative_clear_sky
-    - statistical_clear_sky.iterative_clear_sky.initialization
+    - statistical_clear_sky.algorithm
+    - statistical_clear_sky.algorithm.initialization
+    - statistical_clear_sky.algorithm.serialization
 
 about:
   home: https://github.com/bmeyers/StatisticalClearSky

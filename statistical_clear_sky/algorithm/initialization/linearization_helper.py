@@ -1,8 +1,18 @@
+"""
+Defines helper class for the purpose of linearization.
+(Named as a helper instead of util since it doesn't directly do liniearization.)
+"""
+
 import numpy as np
 import cvxpy as cvx
 from statistical_clear_sky.solver_type import SolverType
 
-class LinearizationHelper:
+class LinearizationHelper(object):
+    """
+    Delegate class to take care of obtaining a value used to make make a
+    constraint to be linear, in order to make the optimization problem to
+    be convex optimization problem.
+    """
 
     def __init__(self, solver_type=SolverType.ecos):
         self._solver_type = solver_type
@@ -15,9 +25,6 @@ class LinearizationHelper:
         # Beginning of extracted code from the constructor of
         # main.IterativeClearSky
         ########################################################
-        left_low_rank_matrix_u, right_low_rank_matrix_v = \
-            self._adjust_low_rank_matrices(left_low_rank_matrix_u,
-                                           right_low_rank_matrix_v)
         right_vectors_r_cs = np.diag(singular_values_sigma[:rank_k]).dot(
             right_low_rank_matrix_v[:rank_k, :])
         component_r0 = right_vectors_r_cs[0]
@@ -34,12 +41,3 @@ class LinearizationHelper:
         ########################################################
 
         return result_component_r0
-
-    def _adjust_low_rank_matrices(self, left_low_rank_matrix_u,
-                                  right_low_rank_matrix_v):
-
-        if np.sum(left_low_rank_matrix_u[:, 0]) < 0:
-            left_low_rank_matrix_u[:, 0] *= -1
-            right_low_rank_matrix_v[0] *= -1
-
-        return left_low_rank_matrix_u, right_low_rank_matrix_v

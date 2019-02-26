@@ -1,32 +1,12 @@
 import unittest
 import numpy as np
-# import os
-from\
- statistical_clear_sky.iterative_clear_sky.initialization.linearization_helper\
- import LinearizationHelper
+from statistical_clear_sky.algorithm.iterative_clear_sky\
+ import IterativeClearSky
 from statistical_clear_sky.solver_type import SolverType
 
-class TestLinealizationHelper(unittest.TestCase):
-    '''
-    Unit test for obtaining initial data of Right Vectors component r0,
-    which is used as a denomoniator of non-linear equation in order to make
-    it linear.
-    It convers the first part of the constructor of main.IterativeClearSky
-    in the original code.
-    '''
+class TestIterativeClearSky(unittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def test_obtain_component_r0(self):
-
-        # input_power_signals_file_path = os.path.abspath(
-        #     os.path.join(os.path.dirname(__file__),
-        #                  "../fixtures/daily_signals_1.txt"))
-        # power_signals_d = np.loadtxt(input_power_signals_file_path,
-        #                            delimiter = ',')
-        #
-        # print("power_signals_d: %s" % (power_signals_d))
+    def test_initialization(self):
 
         # Data from Example_02 Jupyter notebook.
         # From 100th to 104th element of outer array,
@@ -40,24 +20,24 @@ class TestLinealizationHelper(unittest.TestCase):
                                     [9.00399983e-01, 0.00000000e+00,
                                      0.00000000e+00, 2.77419996e+00]])
         rank_k = 4
+        solver_type=SolverType.ecos
 
-        # Result based on entire D in Example_02 Jupyter notebook.
-        # expected_result = np.array([29.0347036, 29.0185262, 29.00233706,
-            # 28.9861128])
-        expected_result = np.array([1.36527916, 2.70624333, 4.04720749,
-                                    5.38817165])
-
-        linearization_helper = LinearizationHelper(solver_type=SolverType.ecos)
-        left_low_rank_matrix_u, singular_values_sigma, right_low_rank_matrix_v \
-            = np.linalg.svd(power_signals_d)
-        actual_result = linearization_helper.obtain_component_r0(
-            power_signals_d, left_low_rank_matrix_u, singular_values_sigma,
-            right_low_rank_matrix_v, rank_k=rank_k)
-
-        np.testing.assert_almost_equal(actual_result, expected_result,
-                                       decimal=2)
+        iterative_clear_sky = IterativeClearSky(power_signals_d, rank_k=rank_k,
+                                                solver_type=SolverType.ecos)
 
     def test_adjust_low_rank_matrices(self):
+
+        # Data from Example_02 Jupyter notebook.
+        # From 100th to 104th element of outer array,
+        # first 8 elements of inner array.
+        power_signals_d = np.array([[3.65099996e-01, 0.00000000e+00,
+                                     0.00000000e+00, 2.59570003e+00],
+                                    [6.21100008e-01, 0.00000000e+00,
+                                     0.00000000e+00, 2.67740011e+00],
+                                    [8.12500000e-01, 0.00000000e+00,
+                                     0.00000000e+00, 2.72729993e+00],
+                                    [9.00399983e-01, 0.00000000e+00,
+                                     0.00000000e+00, 2.77419996e+00]])
 
         left_low_rank_matrix_u = np.array([[0.46881027, -0.77474963,
                                             0.39354624, 0.1584339],
@@ -87,10 +67,10 @@ class TestLinealizationHelper(unittest.TestCase):
                                                      [0.0, 1.0, 0.0, 0.0],
                                                      [0.0, 0.0, 1.0, 0.0]])
 
-        linearization_helper = LinearizationHelper()
+        iterative_clear_sky = IterativeClearSky(power_signals_d)
 
         actual_left_low_rank_matrix_u, actual_right_low_rank_matrix_v = \
-            linearization_helper._adjust_low_rank_matrices(
+            iterative_clear_sky._adjust_low_rank_matrices(
                 left_low_rank_matrix_u, right_low_rank_matrix_v)
 
         np.testing.assert_array_equal(actual_left_low_rank_matrix_u,
