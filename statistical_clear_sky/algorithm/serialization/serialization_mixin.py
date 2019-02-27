@@ -6,6 +6,9 @@ import numpy as np
 from statistical_clear_sky.algorithm.serialization.state_data import StateData
 
 class SerializationMixin(object):
+    """
+    Mixin for IterativeClearSky, taking care of serialization.
+    """
 
     def save_instance(self, filepath):
         save_dict = dict(
@@ -54,7 +57,7 @@ class SerializationMixin(object):
         instance._tau = load_dict['tau']
         instance._state_data.is_solver_error = load_dict['is_solver_error']
         instance._state_data.is_problem_status_error = load_dict[
-                                                'is_problem_status_error']
+            'is_problem_status_error']
         instance._state_data.f1_increase = load_dict['f1_increase']
         instance._state_data.obj_increase = load_dict['obj_increase']
         instance._residuals_median = load_dict['residuals_median']

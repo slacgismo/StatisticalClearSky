@@ -36,10 +36,10 @@ class IterativeClearSky(SerializationMixin):
                                            right_low_rank_matrix_v)
         self._matrix_l0 = left_low_rank_matrix_u[:, :rank_k]
         self._matrix_r0 = np.diag(singular_values_sigma[:rank_k]).dot(
-                            right_low_rank_matrix_v[:rank_k, :])
+            right_low_rank_matrix_v[:rank_k, :])
         self._l_cs.value = left_low_rank_matrix_u[:, :rank_k]
         self._r_cs.value = np.diag(singular_values_sigma[:rank_k]).dot(
-                                    right_low_rank_matrix_v[:rank_k, :])
+            right_low_rank_matrix_v[:rank_k, :])
 
         self._mu_l = 1.
         self._mu_r = 20.

@@ -20,7 +20,7 @@ class TestIterativeClearSky(unittest.TestCase):
                                     [9.00399983e-01, 0.00000000e+00,
                                      0.00000000e+00, 2.77419996e+00]])
         rank_k = 4
-        solver_type=SolverType.ecos
+        solver_type = SolverType.ecos
 
         iterative_clear_sky = IterativeClearSky(power_signals_d, rank_k=rank_k,
                                                 solver_type=SolverType.ecos)

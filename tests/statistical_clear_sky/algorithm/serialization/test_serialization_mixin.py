@@ -31,13 +31,14 @@ class TestSerializationMixin(unittest.TestCase):
         rank_k = 4
 
         original_iterative_clear_sky = IterativeClearSky(power_signals_d,
-                                                rank_k=rank_k)
+                                                         rank_k=rank_k)
 
         original_iterative_clear_sky.save_instance(self.filepath)
 
         deserialized_iterative_clear_sky = IterativeClearSky.load_instance(
-                                                self.filepath)
+            self.filepath)
 
         np.testing.assert_array_equal(deserialized_iterative_clear_sky.
-                         _power_signals_d,
-                         original_iterative_clear_sky._power_signals_d)
+                                      _power_signals_d,
+                                      original_iterative_clear_sky.
+                                      _power_signals_d)
