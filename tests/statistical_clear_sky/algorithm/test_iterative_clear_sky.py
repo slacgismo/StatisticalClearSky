@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from statistical_clear_sky.algorithm.iterative_clear_sky\
- import IterativeClearSky
+import IterativeClearSky
 from statistical_clear_sky.solver_type import SolverType
 
 class TestIterativeClearSky(unittest.TestCase):

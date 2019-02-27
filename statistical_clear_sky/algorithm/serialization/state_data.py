@@ -1,6 +1,7 @@
 """
 This module defines a class that holds the current state of algorithm object.
 """
+import numpy as np
 
 class StateData(object):
     """
@@ -8,8 +9,27 @@ class StateData(object):
     """
 
     def __init__(self):
+        self._power_signals_d = None
+        self._rank_k = None
+        self._matrix_l0 = None
+        self._matrix_r0 = None
+        self._l_value = None
+        self._r_value = None
+        self._beta_value = 0.0
+        self._component_r0 = np.array([])
+        self._mu_l = None
+        self._mu_r = None
+        self._tau = None
+
         self._is_solver_error = False
         self._is_problem_status_error = False
+        self._f1_increase = False
+        self._obj_increase = False
+
+        self._residuals_median = None
+        self._residuals_variance = None
+        self._residual_l0_norm = None
+        self._weights = np.array([])
 
     @property
     def power_signals_d(self):
@@ -148,12 +168,12 @@ class StateData(object):
         self._residuals_variance = value
 
     @property
-    def residuals_l0_norm(self):
-        return self._residuals_l0_norm
+    def residual_l0_norm(self):
+        return self._residual_l0_norm
 
-    @residuals_l0_norm.setter
-    def residuals_l0_norm(self, value):
-        self._residuals_l0_norm = value
+    @residual_l0_norm.setter
+    def residual_l0_norm(self, value):
+        self._residual_l0_norm = value
 
     @property
     def weights(self):

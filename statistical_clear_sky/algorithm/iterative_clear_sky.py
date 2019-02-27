@@ -9,6 +9,7 @@ from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
 from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.exception import ProblemStatusError
+from statistical_clear_sky.algorithm.serialization.state_data import StateData
 from statistical_clear_sky.algorithm.serialization.serialization_mixin\
  import SerializationMixin
 
@@ -36,15 +37,14 @@ class IterativeClearSky(SerializationMixin):
         self._matrix_l0 = left_low_rank_matrix_u[:, :rank_k]
         self._matrix_r0 = np.diag(singular_values_sigma[:rank_k]).dot(
                             right_low_rank_matrix_v[:rank_k, :])
+        self._l_cs.value = left_low_rank_matrix_u[:, :rank_k]
+        self._r_cs.value = np.diag(singular_values_sigma[:rank_k]).dot(
+                                    right_low_rank_matrix_v[:rank_k, :])
 
         self._mu_l = 1.
         self._mu_r = 20.
         self._tau = 0.8
 
-        self._is_solver_error = False
-        self._is_problem_status_error = False
-        self._f1_increase = False
-        self._obj_increase = False
         self._residuals_median = None
         self._residuals_variance = None
         self._residual_l0_norm = None
@@ -52,7 +52,9 @@ class IterativeClearSky(SerializationMixin):
         self._linearization_helper = LinearizationHelper(
             solver_type=SolverType.ecos)
 
-
+        # Stores the current state of the object:
+        self._state_data = StateData()
+        self._store_initial_state_data()
 
     def minimize_objective(self, eps=1e-3, max_iter=100, calc_deg=True,
                            max_deg=None, min_deg=None,
@@ -85,13 +87,13 @@ class IterativeClearSky(SerializationMixin):
                 if verbose:
                     print('iteration {}: {:.3f}'.format(it, new_obj), np.round(obj_vals, 3))
                 if obj_vals[0] > f1_last:
-                    self._f1_increase = True
+                    self._state_data.f1_increase = True
                     if verbose:
                         print('Caution: residuals increased')
                 if improvement < 0:
                     if verbose:
                         print('Caution: objective increased.')
-                    self._obj_increase = True
+                    self._state_data.obj_increase = True
                     improvement *= -1
                 if it >= max_iter:
                     if verbose:
@@ -100,11 +102,11 @@ class IterativeClearSky(SerializationMixin):
         except cvx.SolverError:
             if verbose:
                 print('solver failed!')
-            self._is_solver_error = True
+            self._state_data.is_solver_error = True
         except ProblemStatusError as e:
             if verbose:
                 print(e)
-            self._is_problem_status_error = True
+            self._state_data.is_problem_status_error = True
         else:
             tf = time()
             if verbose:
@@ -121,6 +123,8 @@ class IterativeClearSky(SerializationMixin):
                 self.L0[:, 0] - self._l_cs.value[:, 0]
             )
 
+        self._final_state_data()
+
     def _adjust_low_rank_matrices(self, left_low_rank_matrix_u,
                                   right_low_rank_matrix_v):
 
@@ -129,3 +133,15 @@ class IterativeClearSky(SerializationMixin):
             right_low_rank_matrix_v[0] *= -1
 
         return left_low_rank_matrix_u, right_low_rank_matrix_v
+
+    def _store_initial_state_data(self):
+        self._state_data.power_signals_d = self._power_signals_d
+        self._state_data.rank_k = self._rank_k
+        self._state_data.matrix_l0 = self._matrix_l0
+        self._state_data.matrix_r0 = self._matrix_r0
+        self._state_data.l_value = self._l_cs.value
+        self._state_data.r_value = self._r_cs.value
+
+    def _final_state_data(self):
+        self._state_data.l_value = self._l_cs.value
+        self._state_data.r_value = self._r_cs.value
