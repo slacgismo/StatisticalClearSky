@@ -7,6 +7,8 @@ import numpy as np
 import cvxpy as cvx
 from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
+from statistical_clear_sky.algorithm.initialization.weight_setting\
+ import WeightSetting
 from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.exception import ProblemStatusError
 from statistical_clear_sky.algorithm.serialization.state_data import StateData
@@ -34,12 +36,16 @@ class IterativeClearSky(SerializationMixin):
         left_low_rank_matrix_u, right_low_rank_matrix_v = \
             self._adjust_low_rank_matrices(left_low_rank_matrix_u,
                                            right_low_rank_matrix_v)
-        self._matrix_l0 = left_low_rank_matrix_u[:, :rank_k]
-        self._matrix_r0 = np.diag(singular_values_sigma[:rank_k]).dot(
+        self._left_low_rank_matrix_u = left_low_rank_matrix_u
+        self._singular_values_sigma = singular_values_sigma
+        self._right_low_rank_matrix_v = right_low_rank_matrix_v
+
+        self._matrix_l0 = self._left_low_rank_matrix_u[:, :rank_k]
+        self._matrix_r0 = np.diag(self._singular_values_sigma[:rank_k]).dot(
             right_low_rank_matrix_v[:rank_k, :])
-        self._l_cs.value = left_low_rank_matrix_u[:, :rank_k]
-        self._r_cs.value = np.diag(singular_values_sigma[:rank_k]).dot(
-            right_low_rank_matrix_v[:rank_k, :])
+        self._l_cs.value = self._left_low_rank_matrix_u[:, :rank_k]
+        self._r_cs.value = np.diag(self._singular_values_sigma[:rank_k]).dot(
+            self._right_low_rank_matrix_v[:rank_k, :])
 
         self._mu_l = 1.
         self._mu_r = 20.
@@ -52,6 +58,8 @@ class IterativeClearSky(SerializationMixin):
         self._linearization_helper = LinearizationHelper(
             solver_type=SolverType.ecos)
 
+        self._weight_setting = WeightSetting(solver_type=SolverType.ecos)
+
         # Stores the current state of the object:
         self._state_data = StateData()
         self._store_initial_state_data()
@@ -59,6 +67,10 @@ class IterativeClearSky(SerializationMixin):
     def minimize_objective(self, eps=1e-3, max_iter=100, calc_deg=True,
                            max_deg=None, min_deg=None,
                            mu_l=None, mu_r=None, tau=None, verbose=True):
+
+        self._obtain_component_r0()
+        self._obtain_weights()
+
         if mu_l is not None:
             self._mu_l = mu_l
         if mu_r is not None:
@@ -67,7 +79,7 @@ class IterativeClearSky(SerializationMixin):
             self._tau = tau
         ti = time()
         try:
-            obj_vals = self.calc_objective(False)
+            obj_vals = self._calculate_objective(False)
             if verbose:
                 print('starting at {:.3f}'.format(np.sum(obj_vals)), obj_vals)
             improvement = np.inf
@@ -79,7 +91,7 @@ class IterativeClearSky(SerializationMixin):
                     self._weights[self.test_days] = 0
                 self.min_L()
                 self.min_R(calc_deg=calc_deg, max_deg=max_deg, min_deg=min_deg)
-                obj_vals = self.calc_objective(sum_components=False)
+                obj_vals = self._calculate_objective(sum_components=False)
                 new_obj = np.sum(obj_vals)
                 improvement = (old_obj - new_obj) * 1. / old_obj
                 old_obj = new_obj
@@ -112,18 +124,42 @@ class IterativeClearSky(SerializationMixin):
             if verbose:
                 print('Minimization complete in {:.2f} minutes'.format((tf - ti) / 60.))
             # Residual analysis
-            W1 = np.diag(self._weights)
-            wres = np.dot(self._l_cs.value.dot(self._r_cs.value) - self.D, W1)
+            weights1 = np.diag(self._weights)
+            wres = np.dot(self._l_cs.value.dot(
+                self._r_cs.value) - self._power_signals_d, weights1)
             use_days = np.logical_not(np.isclose(np.sum(wres, axis=0), 0))
-            scaled_wres = wres[:, use_days] / np.average(self.D[:, use_days])
-            final_metric = scaled_wres[self.D[:, use_days] > 1e-3]
+            scaled_wres = wres[:, use_days] / np.average(self._power_signals_d[:, use_days])
+            final_metric = scaled_wres[self._power_signals_d[:, use_days] > 1e-3]
             self._residuals_median = np.median(final_metric)
             self._residuals_variance = np.power(np.std(final_metric), 2)
             self._residual_l0_norm = np.linalg.norm(
-                self.L0[:, 0] - self._l_cs.value[:, 0]
+                self._metrix_l0[:, 0] - self._l_cs.value[:, 0]
             )
 
         self._final_state_data()
+
+    def _calculate_objective(self, sum_components=True):
+        weights1 = np.diag(self._weights)
+        form1 = (cvx.sum((0.5 * cvx.abs(
+            self._power_signals_d - self._l_cs.value.dot(self._r_cs.value))
+                              + (self.tau - 0.5) * (self.D - self._l_cs.value.dot(self._r_cs.value))) * weights1)).value
+        weights2 = np.eye(self.k)
+        form2 = self._mu_l * norm(((self._l_cs[:-2, :]).value -
+                               2 * (self._l_cs[1:-1, :]).value +
+                               (self._l_cs[2:, :]).value).dot(weights2), 'fro')
+        form3 = self._mu_r * norm((self._r_cs[:, :-2]).value -
+                              2 * (self._r_cs[:, 1:-1]).value +
+                              (self._r_cs[:, 2:]).value, 'fro')
+        if self._r_cs.shape[1] < 365 + 2:
+            form4 = 0
+        else:
+            form4 = (self._mu_r * cvx.norm(self._r_cs[1:, :-365] - self._r_cs[1:, 365:], 'fro')).value
+        components = [form1, form2, form3, form4]
+        objective = sum(components)
+        if sum_components:
+            return objective
+        else:
+            return components
 
     def _adjust_low_rank_matrices(self, left_low_rank_matrix_u,
                                   right_low_rank_matrix_v):
@@ -133,6 +169,16 @@ class IterativeClearSky(SerializationMixin):
             right_low_rank_matrix_v[0] *= -1
 
         return left_low_rank_matrix_u, right_low_rank_matrix_v
+
+    def _obtain_component_r0(self):
+        self._component_r0 = self._linearization_helper.obtain_component_r0(
+            self._power_signals_d, self._left_low_rank_matrix_u,
+            self._singular_values_sigma, self._right_low_rank_matrix_v,
+            rank_k=self._rank_k)
+
+    def _obtain_weights(self):
+        self._weights = self._weight_setting.obtain_weights(
+            self._power_signals_d)
 
     def _store_initial_state_data(self):
         self._state_data.power_signals_d = self._power_signals_d

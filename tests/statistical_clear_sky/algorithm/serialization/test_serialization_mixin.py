@@ -18,8 +18,8 @@ class TestSerializationMixin(unittest.TestCase):
     def test_serialization(self):
 
         # Data from Example_02 Jupyter notebook.
-        # From 100th to 104th element of outer array,
-        # first 8 elements of inner array.
+        # From 100th to 103th element of outer array,
+        # first 4 elements of inner array.
         power_signals_d = np.array([[3.65099996e-01, 0.00000000e+00,
                                      0.00000000e+00, 2.59570003e+00],
                                     [6.21100008e-01, 0.00000000e+00,

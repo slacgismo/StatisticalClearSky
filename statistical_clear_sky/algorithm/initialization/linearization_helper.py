@@ -1,5 +1,5 @@
 """
-Defines helper class for the purpose of linearization.
+This module defines helper class for the purpose of linearization.
 (Named as a helper instead of util since it doesn't directly do liniearization.)
 """
 
