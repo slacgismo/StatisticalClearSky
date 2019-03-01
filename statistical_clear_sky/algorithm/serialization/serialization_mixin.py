@@ -12,6 +12,7 @@ class SerializationMixin(object):
 
     def save_instance(self, filepath):
         save_dict = dict(
+            auto_fix_time_shifts = self._state_data.auto_fix_time_shifts,
             power_signals_d = self._state_data.power_signals_d.tolist(),
             rank_k = self._state_data.rank_k,
             matrix_l0 = self._state_data.matrix_l0.tolist(),
@@ -41,7 +42,8 @@ class SerializationMixin(object):
             load_dict = json.load(file)
 
         instance = cls(np.array(load_dict['power_signals_d']),
-                       rank_k=load_dict['rank_k'])
+            rank_k=load_dict['rank_k'],
+            auto_fix_time_shifts=load_dict['auto_fix_time_shifts'])
 
         instance._matrix_l0 = np.array(load_dict['matrix_l0'])
         instance._matrix_r0 = np.array(load_dict['matrix_r0'])

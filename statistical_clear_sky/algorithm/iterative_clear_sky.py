@@ -6,17 +6,21 @@ from time import time
 import numpy as np
 from numpy.linalg import norm
 import cvxpy as cvx
+from statistical_clear_sky.algorithm.util.time_shifts import fix_time_shifts
 from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
 from statistical_clear_sky.algorithm.initialization.weight_setting\
  import WeightSetting
 from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.exception import ProblemStatusError
+from statistical_clear_sky.algorithm.minimization import LeftMatrixMinimization
+from statistical_clear_sky.algorithm.minimization import RightMatrixMinimization
 from statistical_clear_sky.algorithm.serialization.state_data import StateData
 from statistical_clear_sky.algorithm.serialization.serialization_mixin\
  import SerializationMixin
+from statistical_clear_sky.algorithm.plot.plot_mixin import PlotMixin
 
-class IterativeClearSky(SerializationMixin):
+class IterativeClearSky(SerializationMixin, PlotMixin):
     """
     Implementation of "Statistical Clear Sky Fitting" algorithm.
     """
@@ -26,8 +30,8 @@ class IterativeClearSky(SerializationMixin):
 
         self._solver_type = solver_type
 
-        self._fixed_time_stamps = False
-        self._power_signals_d = power_signals_d
+        self._power_signals_d = self._handle_time_shift(power_signals_d,
+                                                        auto_fix_time_shifts)
         self._rank_k = rank_k
 
         self._l_cs = cvx.Variable(shape=(power_signals_d.shape[0], rank_k))
@@ -63,17 +67,18 @@ class IterativeClearSky(SerializationMixin):
 
         # Stores the current state of the object:
         self._state_data = StateData()
-        self._store_initial_state_data()
+        self._store_initial_state_data(auto_fix_time_shifts)
 
     def minimize_objective(self, mu_l=1.0, mu_r=20.0, tau=0.8,
-                           eps=1e-3, max_iter=100, calc_deg=True,
-                           max_deg=None, min_deg=None,
+                           eps=1e-3, max_iter=100,
+                           is_degradation_calculated=True,
+                           max_degradation=None, min_degradation=None,
                            verbose=True):
 
         self._obtain_component_r0()
         self._obtain_weights()
 
-        self._minimization_state_data(mu_l, mu_r, tau)
+        self._store_minimization_state_data(mu_l, mu_r, tau)
 
         ti = time()
         try:
@@ -88,8 +93,28 @@ class IterativeClearSky(SerializationMixin):
             while improvement >= eps:
                 if self._test_days is not None:
                     self._weights[self.test_days] = 0
-                self.min_l()
-                self.min_r(calc_deg=calc_deg, max_deg=max_deg, min_deg=min_deg)
+
+                if verbose:
+                    print('Miminizing left L matrix')
+                left_matric_minimization = LeftMatrixMinimization(
+                    self._power_signals_d, self._rank_k, self._weights,
+                    self._l_cs, self._r_cs, self._beta, tau, mu_l)
+                self._l_cs, self._r_cs, self._beta\
+                    = left_matric_minimization.minimize()
+
+                if verbose:
+                    print('Miminizing right R matrix')
+                right_matric_minimization = RightMatrixMinimization(
+                    self._power_signals_d, self._rank_k, self._weights,
+                    self._l_cs, self._r_cs, self._beta, tau, mu_r,
+                    self._component_r0,
+                    is_degradation_calculated=is_degradation_calculated,
+                    max_degradation=max_deg, min_degradation=min_deg)
+                self._l_cs, self._r_cs, self._beta\
+                    = right_matric_minimization.minimize()
+
+                self._component_r0 = self._r_cs.value[0, :]
+
                 obj_vals = self._calculate_objective(mu_l, mu_r, tau,
                                                      sum_components=False)
                 new_obj = np.sum(obj_vals)
@@ -128,8 +153,10 @@ class IterativeClearSky(SerializationMixin):
             wres = np.dot(self._l_cs.value.dot(
                 self._r_cs.value) - self._power_signals_d, weights1)
             use_days = np.logical_not(np.isclose(np.sum(wres, axis=0), 0))
-            scaled_wres = wres[:, use_days] / np.average(self._power_signals_d[:, use_days])
-            final_metric = scaled_wres[self._power_signals_d[:, use_days] > 1e-3]
+            scaled_wres = wres[:, use_days] / np.average(
+                self._power_signals_d[:, use_days])
+            final_metric = scaled_wres[
+                self._power_signals_d[:, use_days] > 1e-3]
             self._residuals_median = np.median(final_metric)
             self._residuals_variance = np.power(np.std(final_metric), 2)
             self._residual_l0_norm = np.linalg.norm(
@@ -142,7 +169,9 @@ class IterativeClearSky(SerializationMixin):
         weights1 = np.diag(self._weights)
         form1 = (cvx.sum((0.5 * cvx.abs(
             self._power_signals_d - self._l_cs.value.dot(self._r_cs.value))
-                              + (tau - 0.5) * (self._power_signals_d - self._l_cs.value.dot(self._r_cs.value))) * weights1)).value
+                              + (tau - 0.5) * (self._power_signals_d
+                              - self._l_cs.value.dot(self._r_cs.value)))
+                              * weights1)).value
         weights2 = np.eye(self._rank_k)
         form2 = mu_l * norm(((self._l_cs[:-2, :]).value -
                                2 * (self._l_cs[1:-1, :]).value +
@@ -153,13 +182,25 @@ class IterativeClearSky(SerializationMixin):
         if self._r_cs.shape[1] < 365 + 2:
             form4 = 0
         else:
-            form4 = (mu_r * cvx.norm(self._r_cs[1:, :-365] - self._r_cs[1:, 365:], 'fro')).value
+            form4 = (mu_r * cvx.norm(self._r_cs[1:, :-365]
+                        - self._r_cs[1:, 365:], 'fro')).value
         components = [form1, form2, form3, form4]
         objective = sum(components)
         if sum_components:
             return objective
         else:
             return components
+
+    def _handle_time_shift(self, power_signals_d, auto_fix_time_shifts):
+        self._fixed_time_stamps = False
+        if auto_fix_time_shifts:
+            power_signals_d_fix = fix_time_shifts(power_signals_d)
+            if np.alltrue(np.isclose(power_signals_d, power_signals_d_fix)):
+                del power_signals_d_fix
+            else:
+                power_signals_d = power_signals_d_fix
+                self._fixed_time_stamps = True
+        return power_signals_d
 
     def _adjust_low_rank_matrices(self, left_low_rank_matrix_u,
                                   right_low_rank_matrix_v):
@@ -170,15 +211,21 @@ class IterativeClearSky(SerializationMixin):
 
         return left_low_rank_matrix_u, right_low_rank_matrix_v
 
-    def _obtain_component_r0(self):
-        self._component_r0 = self._linearization_helper.obtain_component_r0(
-            self._power_signals_d, self._left_low_rank_matrix_u,
-            self._singular_values_sigma, self._right_low_rank_matrix_v,
-            rank_k=self._rank_k)
+    def _obtain_component_r0(self, verbose=True):
+        if (not hasattr(self, '_component_r0')) or (self._component_r0 is None):
+            if verbose:
+                print('obtaining initial value of component r0')
+            self._component_r0 = self._linearization_helper.obtain_component_r0(
+                self._power_signals_d, self._left_low_rank_matrix_u,
+                self._singular_values_sigma, self._right_low_rank_matrix_v,
+                rank_k=self._rank_k)
 
-    def _obtain_weights(self):
-        self._weights = self._weight_setting.obtain_weights(
-            self._power_signals_d)
+    def _obtain_weights(self, verbose=True):
+        if (not hasattr(self, '_weights')) or (self._weights is None):
+            if verbose:
+                print('obtaining weights')
+            self._weights = self._weight_setting.obtain_weights(
+                self._power_signals_d)
 
     def _set_testdays(self, power_signals_d, reserve_test_data):
         if reserve_test_data:
@@ -190,7 +237,8 @@ class IterativeClearSky(SerializationMixin):
         else:
             self._test_days = None
 
-    def _store_initial_state_data(self):
+    def _store_initial_state_data(self, auto_fix_time_shifts):
+        self._state_data.auto_fix_time_shifts = auto_fix_time_shifts
         self._state_data.power_signals_d = self._power_signals_d
         self._state_data.rank_k = self._rank_k
         self._state_data.matrix_l0 = self._matrix_l0
@@ -198,7 +246,7 @@ class IterativeClearSky(SerializationMixin):
         self._state_data.l_value = self._l_cs.value
         self._state_data.r_value = self._r_cs.value
 
-    def _minimization_state_data(self, mu_l, mu_r, tau):
+    def _store_minimization_state_data(self, mu_l, mu_r, tau):
         self._state_data.mu_l = mu_l
         self._state_data.mu_r = mu_r
         self._state_data.tau = tau
@@ -206,3 +254,9 @@ class IterativeClearSky(SerializationMixin):
     def _store_final_state_data(self):
         self._state_data.l_value = self._l_cs.value
         self._state_data.r_value = self._r_cs.value
+        self._state_data.beta_value = self._beta
+        self._state_data.component_r0 = self._component_r0
+        self._state_data.residuals_median = self._residuals_median
+        self._state_data.residuals_variance = self._residuals_variance
+        self._state_data.residual_l0_norm = self._residual_l0_norm
+        self._state_data.weights = self._weights

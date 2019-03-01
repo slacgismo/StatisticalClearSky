@@ -32,6 +32,8 @@ test:
     - statistical_clear_sky.algorithm
     - statistical_clear_sky.algorithm.initialization
     - statistical_clear_sky.algorithm.serialization
+    - statistical_clear_sky.algorithm.plot
+    - statistical_clear_sky.algorithm.util
 
 about:
   home: https://github.com/bmeyers/StatisticalClearSky

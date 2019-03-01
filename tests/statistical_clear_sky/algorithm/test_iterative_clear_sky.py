@@ -23,7 +23,7 @@ class TestIterativeClearSky(unittest.TestCase):
         solver_type = SolverType.ecos
 
         iterative_clear_sky = IterativeClearSky(power_signals_d, rank_k=rank_k,
-                                                solver_type=SolverType.ecos)
+            solver_type=SolverType.ecos, auto_fix_time_shifts=False)
 
     def test_adjust_low_rank_matrices(self):
 
@@ -67,7 +67,8 @@ class TestIterativeClearSky(unittest.TestCase):
                                                      [0.0, 1.0, 0.0, 0.0],
                                                      [0.0, 0.0, 1.0, 0.0]])
 
-        iterative_clear_sky = IterativeClearSky(power_signals_d)
+        iterative_clear_sky = IterativeClearSky(power_signals_d,
+                                                auto_fix_time_shifts=False)
 
         actual_left_low_rank_matrix_u, actual_right_low_rank_matrix_v = \
             iterative_clear_sky._adjust_low_rank_matrices(

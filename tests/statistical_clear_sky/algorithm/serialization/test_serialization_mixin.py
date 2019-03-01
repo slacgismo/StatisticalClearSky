@@ -31,7 +31,7 @@ class TestSerializationMixin(unittest.TestCase):
         rank_k = 4
 
         original_iterative_clear_sky = IterativeClearSky(power_signals_d,
-                                                         rank_k=rank_k)
+                                   rank_k=rank_k, auto_fix_time_shifts=False)
 
         original_iterative_clear_sky.save_instance(self.filepath)
 

@@ -9,6 +9,8 @@ class StateData(object):
     """
 
     def __init__(self):
+        self._auto_fix_time_shifts = True
+
         self._power_signals_d = None
         self._rank_k = None
         self._matrix_l0 = None
@@ -30,6 +32,14 @@ class StateData(object):
         self._residuals_variance = None
         self._residual_l0_norm = None
         self._weights = np.array([])
+
+    @property
+    def auto_fix_time_shifts(self):
+        return self._auto_fix_time_shifts
+
+    @auto_fix_time_shifts.setter
+    def auto_fix_time_shifts(self, value):
+        self._auto_fix_time_shifts = value
 
     @property
     def power_signals_d(self):
