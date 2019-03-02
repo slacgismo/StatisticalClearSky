@@ -34,10 +34,6 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
                                                         auto_fix_time_shifts)
         self._rank_k = rank_k
 
-        self._l_cs = cvx.Variable(shape=(power_signals_d.shape[0], rank_k))
-        self._r_cs = cvx.Variable(shape=(rank_k, power_signals_d.shape[1]))
-        self._beta = cvx.Variable()
-
         left_low_rank_matrix_u, singular_values_sigma, right_low_rank_matrix_v \
             = np.linalg.svd(power_signals_d)
         left_low_rank_matrix_u, right_low_rank_matrix_v = \
@@ -50,13 +46,6 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
         self._matrix_l0 = self._left_low_rank_matrix_u[:, :rank_k]
         self._matrix_r0 = np.diag(self._singular_values_sigma[:rank_k]).dot(
             right_low_rank_matrix_v[:rank_k, :])
-        self._l_cs.value = self._left_low_rank_matrix_u[:, :rank_k]
-        self._r_cs.value = np.diag(self._singular_values_sigma[:rank_k]).dot(
-            self._right_low_rank_matrix_v[:rank_k, :])
-
-        self._residuals_median = None
-        self._residuals_variance = None
-        self._residual_l0_norm = None
 
         self._linearization_helper = LinearizationHelper(
             solver_type=self._solver_type)
@@ -69,61 +58,71 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
         self._state_data = StateData()
         self._store_initial_state_data(auto_fix_time_shifts)
 
+        self._set_residuals()
+
     def minimize_objective(self, mu_l=1.0, mu_r=20.0, tau=0.8,
                            eps=1e-3, max_iter=100,
                            is_degradation_calculated=True,
                            max_degradation=None, min_degradation=None,
                            verbose=True):
 
-        self._obtain_component_r0()
-        self._obtain_weights()
-
-        self._store_minimization_state_data(mu_l, mu_r, tau)
+        # mu_l, mu_r, tau = self._use_stored_date_if_any(mu_l, mu_r, tau)
+        l_cs_value, r_cs_value, beta_value = self._obtain_initial_values()
+        component_r0 = self._obtain_initial_component_r0()
+        weights = self._obtain_weights()
 
         ti = time()
         try:
-            obj_vals = self._calculate_objective(mu_l, mu_r, tau,
-                                                 sum_components=False)
+            objective_values = self._calculate_objective(mu_l, mu_r, tau,
+                l_cs_value, r_cs_value, beta_value, weights,
+                sum_components=False)
             if verbose:
-                print('starting at {:.3f}'.format(np.sum(obj_vals)), obj_vals)
+                print('starting at {:.3f}'.format(
+                        np.sum(objective_values)), objective_values)
             improvement = np.inf
-            old_obj = np.sum(obj_vals)
+            old_objective_value = np.sum(objective_values)
             it = 0
-            f1_last = obj_vals[0]
+            f1_last = objective_values[0]
+
+            left_matric_minimization = LeftMatrixMinimization(
+                self._power_signals_d, self._rank_k, weights, tau, mu_l)
+            right_matric_minimization = RightMatrixMinimization(
+                self._power_signals_d, self._rank_k, weights, tau, mu_r,
+                    component_r0,
+                    is_degradation_calculated=is_degradation_calculated,
+                    max_degradation=max_degradation,
+                    min_degradation=min_degradation)
+
             while improvement >= eps:
-                if self._test_days is not None:
-                    self._weights[self.test_days] = 0
+                self._store_minimization_state_data(mu_l, mu_r, tau,
+                    l_cs_value, r_cs_value, beta_value, component_r0)
 
                 if verbose:
                     print('Miminizing left L matrix')
-                left_matric_minimization = LeftMatrixMinimization(
-                    self._power_signals_d, self._rank_k, self._weights,
-                    self._l_cs, self._r_cs, self._beta, tau, mu_l)
-                self._l_cs, self._r_cs, self._beta\
-                    = left_matric_minimization.minimize()
+                l_cs_value, r_cs_value, beta_value\
+                    = left_matric_minimization.minimize(l_cs_value, r_cs_value,
+                                                        beta_value)
 
                 if verbose:
                     print('Miminizing right R matrix')
-                right_matric_minimization = RightMatrixMinimization(
-                    self._power_signals_d, self._rank_k, self._weights,
-                    self._l_cs, self._r_cs, self._beta, tau, mu_r,
-                    self._component_r0,
-                    is_degradation_calculated=is_degradation_calculated,
-                    max_degradation=max_deg, min_degradation=min_deg)
-                self._l_cs, self._r_cs, self._beta\
-                    = right_matric_minimization.minimize()
+                l_cs_value, r_cs_value, beta_value\
+                    = right_matric_minimization.minimize(l_cs_value,
+                                                         r_cs_value, beta_value)
 
-                self._component_r0 = self._r_cs.value[0, :]
+                component_r0 = r_cs_value[0, :]
 
-                obj_vals = self._calculate_objective(mu_l, mu_r, tau,
-                                                     sum_components=False)
-                new_obj = np.sum(obj_vals)
-                improvement = (old_obj - new_obj) * 1. / old_obj
-                old_obj = new_obj
+                objective_values = self._calculate_objective(mu_l, mu_r, tau,
+                    l_cs_value, r_cs_value, beta_value, weights,
+                    sum_components=False)
+                new_objective_value = np.sum(objective_values)
+                improvement = ((old_objective_value - new_objective_value)
+                    * 1. / old_objective_value)
+                old_objective_value = new_objective_value
                 it += 1
                 if verbose:
-                    print('iteration {}: {:.3f}'.format(it, new_obj), np.round(obj_vals, 3))
-                if obj_vals[0] > f1_last:
+                    print('iteration {}: {:.3f}'.format(
+                        it, new_obj), np.round(objective_values, 3))
+                if objective_values[0] > f1_last:
                     self._state_data.f1_increase = True
                     if verbose:
                         print('Caution: residuals increased')
@@ -136,6 +135,10 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
                     if verbose:
                         print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
                     improvement = 0.
+
+                self._store_minimization_state_data(mu_l, mu_r, tau,
+                    l_cs_value, r_cs_value, beta_value, component_r0)
+
         except cvx.SolverError:
             if verbose:
                 print('solver failed!')
@@ -147,44 +150,59 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
         else:
             tf = time()
             if verbose:
-                print('Minimization complete in {:.2f} minutes'.format((tf - ti) / 60.))
-            # Residual analysis
-            weights1 = np.diag(self._weights)
-            wres = np.dot(self._l_cs.value.dot(
-                self._r_cs.value) - self._power_signals_d, weights1)
-            use_days = np.logical_not(np.isclose(np.sum(wres, axis=0), 0))
-            scaled_wres = wres[:, use_days] / np.average(
-                self._power_signals_d[:, use_days])
-            final_metric = scaled_wres[
-                self._power_signals_d[:, use_days] > 1e-3]
-            self._residuals_median = np.median(final_metric)
-            self._residuals_variance = np.power(np.std(final_metric), 2)
-            self._residual_l0_norm = np.linalg.norm(
-                self._metrix_l0[:, 0] - self._l_cs.value[:, 0]
-            )
+                print('Minimization complete in {:.2f} minutes'.format(
+                      (tf - ti) / 60.))
+            self._analyze_residuals(l_cs_value, r_cs_value, weights)
+            self._make_result_variables_accessible(l_cs_value, r_cs_value,
+                                                   beta_value)
 
-        self._store_final_state_data()
+        self._store_final_state_data(weights)
 
-    def _calculate_objective(self, mu_l, mu_r, tau, sum_components=True):
-        weights1 = np.diag(self._weights)
-        form1 = (cvx.sum((0.5 * cvx.abs(
-            self._power_signals_d - self._l_cs.value.dot(self._r_cs.value))
-                              + (tau - 0.5) * (self._power_signals_d
-                              - self._l_cs.value.dot(self._r_cs.value)))
-                              * weights1)).value
-        weights2 = np.eye(self._rank_k)
-        form2 = mu_l * norm(((self._l_cs[:-2, :]).value -
-                               2 * (self._l_cs[1:-1, :]).value +
-                               (self._l_cs[2:, :]).value).dot(weights2), 'fro')
-        form3 = mu_r * norm((self._r_cs[:, :-2]).value -
-                              2 * (self._r_cs[:, 1:-1]).value +
-                              (self._r_cs[:, 2:]).value, 'fro')
-        if self._r_cs.shape[1] < 365 + 2:
-            form4 = 0
+    @property
+    def l_cs_value(self):
+        return self._l_cs_value
+
+    @property
+    def r_cs_value(self):
+        return self._r_cs_value
+
+    @property
+    def beta_value(self):
+        return self._beta_value
+
+    @property
+    def state_data(self):
+        return self._state_data
+
+    def _calculate_objective(self, mu_l, mu_r, tau, l_cs_value, r_cs_value,
+                             beta_value, weights, sum_components=True):
+        weights_w1 = np.diag(weights)
+        # Note: Not using cvx.sum and cvx.abs as in following caused
+        # an error at * weights_w1:
+        # ValueError: operands could not be broadcast together with shapes
+        # (288,1300) (1300,1300)
+        # term_f1 = sum((0.5 * abs(
+        #     self._power_signals_d - l_cs_value.dot(r_cs_value))
+        #     + (tau - 0.5)
+        #     * (self._power_signals_d - l_cs_value.dot(r_cs_value)))
+        #     * weights_w1)
+        term_f1 = (cvx.sum((0.5 * cvx.abs(
+                    self._power_signals_d - l_cs_value.dot(r_cs_value))
+                    + (tau - 0.5) * (self._power_signals_d - l_cs_value.dot(
+                        r_cs_value))) * weights_w1)).value
+        weights_w2 = np.eye(self._rank_k)
+        term_f2 = mu_l * norm((l_cs_value[:-2, :] - 2 * l_cs_value[1:-1, :] +
+                               l_cs_value[2:, :]).dot(weights_w2), 'fro')
+        term_f3 = mu_r * norm(r_cs_value[:, :-2] - 2 * r_cs_value[:, 1:-1] +
+                               r_cs_value[:, 2:], 'fro')
+        if r_cs_value.shape[1] < 365 + 2:
+            term_f4 = 0
         else:
-            form4 = (mu_r * cvx.norm(self._r_cs[1:, :-365]
-                        - self._r_cs[1:, 365:], 'fro')).value
-        components = [form1, form2, form3, form4]
+            # Note: it was cvx.norm. Check if this modification makes a
+            # difference:
+            term_f4 = (mu_r * norm(r_cs_value[1:, :-365] - r_cs_value[1:, 365:],
+                                 'fro'))
+        components = [term_f1, term_f2, term_f3, term_f4]
         objective = sum(components)
         if sum_components:
             return objective
@@ -211,21 +229,57 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
 
         return left_low_rank_matrix_u, right_low_rank_matrix_v
 
-    def _obtain_component_r0(self, verbose=True):
-        if (not hasattr(self, '_component_r0')) or (self._component_r0 is None):
-            if verbose:
-                print('obtaining initial value of component r0')
-            self._component_r0 = self._linearization_helper.obtain_component_r0(
+    # def _use_stored_date_if_any(self, mu_l, mu_r, tau):
+    #     if self._state_data.mu_l is not None:
+    #         mu_l = self._state_data.mu_l
+    #     if self._state_data.mu_r is not None:
+    #         mu_r = self._state_data.mu_r
+    #     if self._state_data.tau is not None:
+    #         tau = self._state_data.tau
+    #     return mu_l, mu_r, tau
+
+    def _obtain_initial_values(self):
+        if self._state_data.l_value.size > 0:
+            l_cs_value = self._state_data.l_value
+        else:
+            l_cs_value = self._left_low_rank_matrix_u[:, :self._rank_k]
+        if self._state_data.r_value.size > 0:
+            r_cs_value = self._state_data.r_value
+        else:
+            r_cs_value = np.diag(self._singular_values_sigma[
+                                 :self._rank_k]).dot(
+                                 self._right_low_rank_matrix_v[
+                                 :self._rank_k, :])
+        if self._state_data.beta_value != 0.0:
+            beta_value = self._state_data.beta_value
+        else:
+            beta_value = 0.0
+        self._make_result_variables_accessible(l_cs_value, r_cs_value,
+                                               beta_value)
+        return l_cs_value, r_cs_value, beta_value
+
+    def _obtain_initial_component_r0(self, verbose=True):
+        if verbose:
+            print('obtaining initial value of component r0')
+        if self._state_data.component_r0.size > 0:
+            component_r0 = self._state_data.component_r0
+        else:
+            component_r0 = self._linearization_helper.obtain_component_r0(
                 self._power_signals_d, self._left_low_rank_matrix_u,
                 self._singular_values_sigma, self._right_low_rank_matrix_v,
                 rank_k=self._rank_k)
+        return component_r0
 
     def _obtain_weights(self, verbose=True):
-        if (not hasattr(self, '_weights')) or (self._weights is None):
-            if verbose:
-                print('obtaining weights')
-            self._weights = self._weight_setting.obtain_weights(
-                self._power_signals_d)
+        if verbose:
+            print('obtaining weights')
+        if self._state_data.weights.size > 0:
+            weights = self._state_data.weights
+        else:
+            weights = self._weight_setting.obtain_weights(self._power_signals_d)
+            if self._test_days is not None:
+                weights[self._test_days] = 0
+        return weights
 
     def _set_testdays(self, power_signals_d, reserve_test_data):
         if reserve_test_data:
@@ -237,26 +291,60 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
         else:
             self._test_days = None
 
+    def _set_residuals(self):
+        if self._state_data.residuals_median is not None:
+            self._residuals_median = self._state_data.residuals_median
+        else:
+            self._residuals_median = None
+        if self._state_data.residuals_variance is not None:
+            self._residuals_variance = self._state_data.residuals_variance
+        else:
+            self._residuals_variance = None
+        if self._state_data.residual_l0_norm is not None:
+            self._residual_l0_norm = self._state_data.residual_l0_norm
+        else:
+            self._residual_l0_norm = None
+
+    def _analyze_residuals(self, l_cs_value, r_cs_value, weights):
+        # Residual analysis
+        weights_w1 = np.diag(weights)
+        wres = np.dot(l_cs_value.dot(
+                r_cs_value) - self._power_signals_d, weights_w1)
+        use_days = np.logical_not(np.isclose(np.sum(wres, axis=0), 0))
+        scaled_wres = wres[:, use_days] / np.average(
+                self._power_signals_d[:, use_days])
+        final_metric = scaled_wres[
+                self._power_signals_d[:, use_days] > 1e-3]
+        self._residuals_median = np.median(final_metric)
+        self._residuals_variance = np.power(np.std(final_metric), 2)
+        self._residual_l0_norm = np.linalg.norm(
+                self._metrix_l0[:, 0] - l_cs_value[:, 0])
+
+    def _make_result_variables_accessible(self, l_cs_value, r_cs_value,
+                                          beta_value):
+        self._l_cs_value = l_cs_value
+        self._r_cs_value = r_cs_value
+        self._beta_value = beta_value
+
     def _store_initial_state_data(self, auto_fix_time_shifts):
         self._state_data.auto_fix_time_shifts = auto_fix_time_shifts
         self._state_data.power_signals_d = self._power_signals_d
         self._state_data.rank_k = self._rank_k
         self._state_data.matrix_l0 = self._matrix_l0
         self._state_data.matrix_r0 = self._matrix_r0
-        self._state_data.l_value = self._l_cs.value
-        self._state_data.r_value = self._r_cs.value
 
-    def _store_minimization_state_data(self, mu_l, mu_r, tau):
+    def _store_minimization_state_data(self, mu_l, mu_r, tau,
+            l_cs_value, r_cs_value, beta_value, component_r0):
         self._state_data.mu_l = mu_l
         self._state_data.mu_r = mu_r
         self._state_data.tau = tau
+        self._state_data.l_value = l_cs_value
+        self._state_data.r_value = r_cs_value
+        self._state_data.beta_value = beta_value
+        self._state_data.component_r0 = component_r0
 
-    def _store_final_state_data(self):
-        self._state_data.l_value = self._l_cs.value
-        self._state_data.r_value = self._r_cs.value
-        self._state_data.beta_value = self._beta
-        self._state_data.component_r0 = self._component_r0
+    def _store_final_state_data(self, weights):
         self._state_data.residuals_median = self._residuals_median
         self._state_data.residuals_variance = self._residuals_variance
         self._state_data.residual_l0_norm = self._residual_l0_norm
-        self._state_data.weights = self._weights
+        self._state_data.weights = weights

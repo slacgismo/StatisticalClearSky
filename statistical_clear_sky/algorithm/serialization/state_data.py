@@ -15,8 +15,8 @@ class StateData(object):
         self._rank_k = None
         self._matrix_l0 = None
         self._matrix_r0 = None
-        self._l_value = None
-        self._r_value = None
+        self._l_value = np.array([])
+        self._r_value = np.array([])
         self._beta_value = 0.0
         self._component_r0 = np.array([])
         self._mu_l = None

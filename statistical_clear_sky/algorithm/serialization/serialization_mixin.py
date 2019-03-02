@@ -41,31 +41,39 @@ class SerializationMixin(object):
         with open(filepath, 'r') as file:
             load_dict = json.load(file)
 
-        instance = cls(np.array(load_dict['power_signals_d']),
-            rank_k=load_dict['rank_k'],
-            auto_fix_time_shifts=load_dict['auto_fix_time_shifts'])
+        power_signals_d = load_dict['power_signals_d']
+        rank_k = load_dict['rank_k']
+        auto_fix_time_shifts = load_dict['auto_fix_time_shifts']
 
-        instance._matrix_l0 = np.array(load_dict['matrix_l0'])
-        instance._matrix_r0 = np.array(load_dict['matrix_r0'])
+        instance = cls(np.array(power_signals_d), rank_k=rank_k,
+            auto_fix_time_shifts=auto_fix_time_shifts)
 
-        instance._l_cs.value = np.array(load_dict['l_value'])
-        instance._r_cs.value = np.array(load_dict['r_value'])
-        instance._beta.value = load_dict['beta_value']
+        instance.state_data.auto_fix_time_shifts = auto_fix_time_shifts
+        instance.state_data.power_signals_d = power_signals_d
+        instance.state_data.rank_k = rank_k
+        instance.state_data.matrix_l0 = np.array(load_dict['matrix_l0'])
+        instance.state_data.matrix_r0 = np.array(load_dict['matrix_r0'])
 
-        instance._component_r0 = np.array(load_dict['component_r0'])
+        instance.state_data.l_cs_value = np.array(load_dict['l_value'])
+        instance.state_data.r_cs_value = np.array(load_dict['r_value'])
+        instance.state_data.beta_value = load_dict['beta_value']
 
-        instance._mu_l = load_dict['mu_l']
-        instance._mu_r = load_dict['mu_r']
-        instance._tau = load_dict['tau']
-        instance._state_data.is_solver_error = load_dict['is_solver_error']
-        instance._state_data.is_problem_status_error = load_dict[
+        instance.state_data.component_r0 = np.array(load_dict['component_r0'])
+
+        instance.state_data.mu_l = load_dict['mu_l']
+        instance.state_data.mu_r = load_dict['mu_r']
+        instance.state_data.tau = load_dict['tau']
+
+        instance.state_data.is_solver_error = load_dict['is_solver_error']
+        instance.state_data.is_problem_status_error = load_dict[
             'is_problem_status_error']
-        instance._state_data.f1_increase = load_dict['f1_increase']
-        instance._state_data.obj_increase = load_dict['obj_increase']
-        instance._residuals_median = load_dict['residuals_median']
-        instance._residuals_variance = load_dict['residuals_variance']
-        instance._residual_l0_norm = load_dict['residual_l0_norm']
+        instance.state_data.f1_increase = load_dict['f1_increase']
+        instance.state_data.obj_increase = load_dict['obj_increase']
 
-        instance._weights = np.array(load_dict['weights'])
+        instance.state_data.residuals_median = load_dict['residuals_median']
+        instance.state_data.residuals_variance = load_dict['residuals_variance']
+        instance.state_data.residual_l0_norm = load_dict['residual_l0_norm']
+
+        instance.state_data.weights = np.array(load_dict['weights'])
 
         return instance

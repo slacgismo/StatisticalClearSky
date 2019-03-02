@@ -16,53 +16,62 @@ class AbstractMinimization(object):
     value.
     """
 
-    def __init__(self, power_signals_d, rank_k, weights, l_cs_variable,
-                 r_cs_variable, beta_variable, tau,
+    def __init__(self, power_signals_d, rank_k, weights, tau,
                  solver_type=SolverType.ecos):
         self._power_signals_d = power_signals_d
         self._rank_k = rank_k
         self._weights = weights
-        self._l_cs_variable = l_cs_variable
-        self._r_cs_variable = r_cs_variable
-        self._beta_variable = beta_variable
         self._tau = tau
         self._solver_type = solver_type
 
-    def minimize(self):
-        objective = cvx.Minimize(self._form1() + self._form2() + self._form3())
-        problem = cvx.Problem(objective, self._constraints())
-        problem.solve(self._solver_type.value)
+    def minimize(self, l_cs_value, r_cs_value, beta_value):
+        l_cs_param, r_cs_param, beta_param = self._define_parameters(l_cs_value,
+            r_cs_value, beta_value)
+        objective = cvx.Minimize(self._term_f1(l_cs_param, r_cs_param)
+                                 + self._term_f2(l_cs_param, r_cs_param)
+                                 + self._term_f3(l_cs_param, r_cs_param))
+        constraints = self._constraints(l_cs_param, r_cs_param, beta_param)
+        problem = cvx.Problem(objective, constraints)
+        problem.solve(solver=self._solver_type.value)
         self._handle_exception(problem)
-        return self._l_cs_variable, self._r_cs_variable, self._beta_variable
+        return self._result(l_cs_param, r_cs_param, beta_param)
 
-    def _form1(self):
+    @abstractmethod
+    def _define_parameters(self):
+        pass
+
+    def _term_f1(self, l_cs_param, r_cs_param):
         """
         This method defines the generic from of the first term of objective
         function.
         Subclass defines which of l_cs and r_cs value is fixed.
         """
 
-        weights1 = np.diag(self._weights)
+        weights_w1 = np.diag(self._weights)
         return cvx.sum((0.5 * cvx.abs(self._power_signals_d
-                        - self._l_cs_param * self._r_cs_param)
+                        - l_cs_param * r_cs_param)
                       + (self._tau - 0.5) * (self._power_signals_d
-                        - self._l_cs_param * self._r_cs_param))
-                     * weights1)
+                        - l_cs_param * r_cs_param))
+                     * weights_w1)
 
     @abstractmethod
-    def _form2(self):
+    def _term_f2(self, l_cs_param, r_cs_param):
         pass
 
     @abstractmethod
-    def _form3(self):
+    def _term_f3(self, l_cs_param, r_cs_param):
         pass
 
     @abstractmethod
-    def _constraints(self):
+    def _constraints(self, l_cs_param, r_cs_param, beta_param):
         pass
 
     @abstractmethod
     def _handle_exception(self, problem):
+        pass
+
+    @abstractmethod
+    def _result(self, l_cs_param, r_cs_param, beta_param):
         pass
 
 class LeftMatrixMinimization(AbstractMinimization):
@@ -71,36 +80,42 @@ class LeftMatrixMinimization(AbstractMinimization):
     keeping Left matrix as a variable.
     """
 
-    def __init__(self, power_signals_d, rank_k, weights, l_cs_variable,
-                 r_cs_variable, beta_variable, tau, mu_l):
+    def __init__(self, power_signals_d, rank_k, weights, tau, mu_l):
 
-        super().__init__(power_signals_d, rank_k, weights, l_cs_variable,
-                       r_cs_variable, beta_variable, tau)
-        self._l_cs_param = l_cs_variable
-        self._r_cs_param = r_cs_variable.value
+        super().__init__(power_signals_d, rank_k, weights, tau)
         self._mu_l = mu_l
 
-    def _form2(self):
-        weights2 = np.eye(self._rank_k)
-        form2 = self._mu_l * cvx.norm((self._l_cs_param[:-2, :] - 2
-                * self._l_cs_param[1:-1, :]
-                + self._l_cs_param[2:, :]) * weights2, 'fro')
-        return form2
+    def _define_parameters(self, l_cs_value, r_cs_value, beta_value):
+        l_cs_param = cvx.Variable(shape=(self._power_signals_d.shape[0],
+                                         self._rank_k))
+        l_cs_param.value = l_cs_value
+        r_cs_param = r_cs_value
+        beta_param = cvx.Variable()
+        return l_cs_param, r_cs_param, beta_param
 
-    def _form3(self):
+    def _term_f2(self, l_cs_param, r_cs_param):
+        weights_w2 = np.eye(self._rank_k)
+        term_f2 = self._mu_l * cvx.norm((l_cs_param[:-2, :] - 2
+                * l_cs_param[1:-1, :] + l_cs_param[2:, :]) * weights_w2, 'fro')
+        return term_f2
+
+    def _term_f3(self, l_cs_param, r_cs_param):
         return 0
 
-    def _constraints(self):
+    def _constraints(self, l_cs_param, r_cs_param, beta_param):
         return [
-            self._l_cs_param * self._r_cs_param >= 0,
-            self._l_cs_param[np.average(self._power_signals_d, axis=1)
+            l_cs_param * r_cs_param >= 0,
+            l_cs_param[np.average(self._power_signals_d, axis=1)
                 <= 1e-5, :] == 0,
-            cvx.sum(self._l_cs_param[:, 1:], axis=0) == 0
+            cvx.sum(l_cs_param[:, 1:], axis=0) == 0
         ]
 
     def _handle_exception(self, problem):
         if problem.status != 'optimal':
             raise ProblemStatusError('Minimize L status: ' + problem.status)
+
+    def _result(self, l_cs_param, r_cs_param, beta_param):
+        return l_cs_param.value, r_cs_param, beta_param.value
 
 class RightMatrixMinimization(AbstractMinimization):
     """
@@ -108,57 +123,61 @@ class RightMatrixMinimization(AbstractMinimization):
     keeping Right matrix as a variable.
     """
 
-    def __init__(self, power_signals_d, rank_k, weights, l_cs_variable,
-                 r_cs_variable, beta_variable, tau, mu_r, component_r0,
-                 is_degradation_calculated=True,
+    def __init__(self, power_signals_d, rank_k, weights, tau, mu_r,
+                 component_r0, is_degradation_calculated=True,
                  max_degradation=0., min_degradation=-0.25):
 
-        super().__init__(power_signals_d, rank_k, weights, l_cs_variable,
-                         r_cs_variable, tau)
-        self._l_cs_param = l_cs_variable.value
-        self._r_cs_param = r_cs_variable
+        super().__init__(power_signals_d, rank_k, weights, tau)
         self._mu_r = mu_r
         self._component_r0 = component_r0
-
-        self._r_tilde = self._get_r_tilde()
 
         self._is_degradation_calculated = is_degradation_calculated
         self._max_degradation = max_degradation
         self._min_degradation = min_degradation
 
-    def _form2(self):
-        form2 = self._mu_r * cvx.norm(self._r_tilde[:, :-2] - 2
-                * self._r_tilde[:, 1:-1]
-                + self._r_tilde[:, 2:], 'fro')
-        return form2
+    def _define_parameters(self, l_cs_value, r_cs_value, beta_value):
+        l_cs_param = l_cs_value
+        r_cs_param = cvx.Variable(shape=(self._rank_k,
+                                         self._power_signals_d.shape[1]))
+        r_cs_param.value = r_cs_value
+        beta_param = cvx.Variable()
+        return l_cs_param, r_cs_param, beta_param
 
-    def _form3(self):
+    def _term_f2(self, l_cs_param, r_cs_param):
+        r_tilde = self._obtain_r_tilde(r_cs_param)
+        term_f2 = self._mu_r * cvx.norm(r_tilde[:, :-2] - 2
+                   * r_tilde[:, 1:-1] + r_tilde[:, 2:], 'fro')
+        return term_f2
+
+    def _term_f3(self, l_cs_param, r_cs_param):
+        r_tilde = self._obtain_r_tilde(r_cs_param)
         if self._power_signals_d.shape[1] > 365:
-            f3 = self._mu_r * cvx.norm(self._r_tilde[1:, :-365]
-                                      - self._r_tilde[1:, 365:], 'fro')
+            term_f3 = self._mu_r * cvx.norm(r_tilde[1:, :-365]
+                                      - r_tilde[1:, 365:], 'fro')
         else:
-            f3 = self._mu_r * cvx.norm(self._r_tilde[:, :-365]
-                                      - self._r_tilde[:, 365:], 'fro')
+            term_f3 = self._mu_r * cvx.norm(r_tilde[:, :-365]
+                                      - r_tilde[:, 365:], 'fro')
+        return term_f3
 
-    def _constraints(self):
+    def _constraints(self, l_cs_param, r_cs_param, beta_param):
         constraints = [
-            self._l_cs_param * self._r_cs_param >= 0,
-            self._r_cs_param >= 0
+            l_cs_param * r_cs_param >= 0,
+            r_cs_param >= 0
         ]
         if self._power_signals_d > 365:
-            r = self._r_cs_param[0, :].T
+            r = r_cs_param[0, :].T
             if self._is_degradation_calculated:
                 constraints.extend([
                     cvx.multiply(1./ self._component_r0[:-365],
-                                 r[365:] - r[:-365]) == self._beta_variable,
-                    self._beta_variable >= -.25
+                                 r[365:] - r[:-365]) == beta_param,
+                    beta_param >= -.25
                 ])
                 if self._max_degradation is not None:
                     constraints.append(
-                        self._beta_variable <= self._max_degradation)
+                        beta_param <= self._max_degradation)
                 if self._min_degradation is not None:
                     constraints.append(
-                        self._beta_variable >= self._min_degradation)
+                        beta_param >= self._min_degradation)
             else:
                 constraints.append(cvx.multiply(1./ self._component_r0[:-365],
                                                 r[365:] - r[:-365]) == 0)
@@ -168,13 +187,15 @@ class RightMatrixMinimization(AbstractMinimization):
         if problem.status != 'optimal':
             raise ProblemStatusError('Minimize R status: ' + problem.status)
 
-    def _get_r_tilde(self):
-        if self._r_cs_param.shape[1] < 365 + 2:
-            n_tilde = 365 + 2 - self._r_cs_param.shape[1]
-            r_tilde = cvx.hstack([self._r_cs_param,
+    def _result(self, l_cs_param, r_cs_param, beta_param):
+        return l_cs_param, r_cs_param.value, beta_param.value
+
+    def _obtain_r_tilde(self, r_cs_param):
+        if (not hasattr(self, '_r_tilde')) or (self._r_tilde is None):
+            if r_cs_param.shape[1] < 365 + 2:
+                n_tilde = 365 + 2 - r_cs_param.shape[1]
+                self._r_tilde = cvx.hstack([r_cs_param,
                                   cvx.Variable(shape=(self._rank_k, n_tilde))])
-        else:
-            r_tilde = self._r_cs_param
-
-        return r_tilde
-
+            else:
+                self._r_tilde = r_cs_param
+        return self._r_tilde
