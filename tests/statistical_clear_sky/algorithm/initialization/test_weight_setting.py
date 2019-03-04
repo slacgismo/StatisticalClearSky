@@ -1,6 +1,7 @@
 import unittest
 import os
 import numpy as np
+import cvxpy as cvx
 from statistical_clear_sky.algorithm.initialization.weight_setting\
  import WeightSetting
 from statistical_clear_sky.solver_type import SolverType
