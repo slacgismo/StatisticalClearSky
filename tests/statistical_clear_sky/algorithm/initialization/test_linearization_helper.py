@@ -30,6 +30,10 @@ class TestLinealizationHelper(unittest.TestCase):
         # Data from Example_02 Jupyter notebook.
         # From 100th to 103th element of outer array,
         # first 4 elements of inner array.
+        # Since in power signals matrix, row is time of day
+        # and column is day number, 100 to 103 are time of day
+        # (5 minutes interval)
+        # and 4 elements are from day 1 to day 4
         power_signals_d = np.array([[3.65099996e-01, 0.00000000e+00,
                                      0.00000000e+00, 2.59570003e+00],
                                     [6.21100008e-01, 0.00000000e+00,

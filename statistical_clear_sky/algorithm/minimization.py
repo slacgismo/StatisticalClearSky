@@ -80,9 +80,11 @@ class LeftMatrixMinimization(AbstractMinimization):
     keeping Left matrix as a variable.
     """
 
-    def __init__(self, power_signals_d, rank_k, weights, tau, mu_l):
+    def __init__(self, power_signals_d, rank_k, weights, tau, mu_l,
+                 solver_type=SolverType.ecos):
 
-        super().__init__(power_signals_d, rank_k, weights, tau)
+        super().__init__(power_signals_d, rank_k, weights, tau,
+                         solver_type=solver_type)
         self._mu_l = mu_l
 
     def _define_parameters(self, l_cs_value, r_cs_value, beta_value):
@@ -91,6 +93,7 @@ class LeftMatrixMinimization(AbstractMinimization):
         l_cs_param.value = l_cs_value
         r_cs_param = r_cs_value
         beta_param = cvx.Variable()
+        beta_param.value = beta_value
         return l_cs_param, r_cs_param, beta_param
 
     def _term_f2(self, l_cs_param, r_cs_param):
@@ -105,8 +108,8 @@ class LeftMatrixMinimization(AbstractMinimization):
     def _constraints(self, l_cs_param, r_cs_param, beta_param):
         return [
             l_cs_param * r_cs_param >= 0,
-            l_cs_param[np.average(self._power_signals_d, axis=1)
-                <= 1e-5, :] == 0,
+            l_cs_param[np.average(self._power_signals_d, axis=1) <= 1e-5,
+                       :] == 0,
             cvx.sum(l_cs_param[:, 1:], axis=0) == 0
         ]
 
@@ -125,9 +128,11 @@ class RightMatrixMinimization(AbstractMinimization):
 
     def __init__(self, power_signals_d, rank_k, weights, tau, mu_r,
                  component_r0, is_degradation_calculated=True,
-                 max_degradation=0., min_degradation=-0.25):
+                 max_degradation=0., min_degradation=-0.25,
+                 solver_type=SolverType.ecos):
 
-        super().__init__(power_signals_d, rank_k, weights, tau)
+        super().__init__(power_signals_d, rank_k, weights, tau,
+                         solver_type=solver_type)
         self._mu_r = mu_r
         self._component_r0 = component_r0
 
@@ -141,6 +146,7 @@ class RightMatrixMinimization(AbstractMinimization):
                                          self._power_signals_d.shape[1]))
         r_cs_param.value = r_cs_value
         beta_param = cvx.Variable()
+        beta_param.value = beta_value
         return l_cs_param, r_cs_param, beta_param
 
     def _term_f2(self, l_cs_param, r_cs_param):
