@@ -93,8 +93,8 @@ class TestLeftMatrixMinimization(unittest.TestCase):
         np.testing.assert_array_equal(actual_r_cs_value, expected_r_cs_value)
         np.testing.assert_array_equal(actual_beta_value, expected_beta_value)
 
-    @unittest.skip("TODO: Travis CI cannot locate fixture files." +
-                   " Find a way to resolve this issue.")
+    # @unittest.skip("This test uses MOSEK solver because default ECOS fails." +
+    #                " Unless MOSEK is installed, this test fails.")
     def test_minimize_with_example_02_data(self):
 
         input_power_signals_file_path = os.path.abspath(
@@ -141,7 +141,7 @@ class TestLeftMatrixMinimization(unittest.TestCase):
         with open(r_cs_value_after_iteration_1_file_path) as file:
             expected_r_cs_value = np.loadtxt(file, delimiter=',')
 
-        expected_beta_value = 0.0
+        expected_beta_value = initial_beta_value
 
         left_matrix_minimization = LeftMatrixMinimization(power_signals_d,
             rank_k, weights, tau, mu_l, solver_type=SolverType.mosek)

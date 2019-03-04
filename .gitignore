@@ -13,7 +13,7 @@ logs
 
 ### Data ###
 notebooks/local_cache
-*.csv
+notebooks/*.csv
 *.dat
 *.efx
 *.gbr
