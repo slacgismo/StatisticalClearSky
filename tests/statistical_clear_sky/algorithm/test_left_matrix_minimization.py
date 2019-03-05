@@ -114,7 +114,6 @@ class TestLeftMatrixMinimization(unittest.TestCase):
 
         tau = 0.9
         mu_l = 5e2
-        solver_type=SolverType.ecos
 
         initial_l_cs_value_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),

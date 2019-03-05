@@ -170,7 +170,7 @@ class RightMatrixMinimization(AbstractMinimization):
             l_cs_param * r_cs_param >= 0,
             r_cs_param >= 0
         ]
-        if self._power_signals_d > 365:
+        if self._power_signals_d.shape[1] > 365:
             r = r_cs_param[0, :].T
             if self._is_degradation_calculated:
                 constraints.extend([
