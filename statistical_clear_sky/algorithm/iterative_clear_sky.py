@@ -174,6 +174,21 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
     def state_data(self):
         return self._state_data
 
+    # Alias method for l_cs_value accessor:
+    def left_low_rank_matrix(self):
+        return self.l_cs_value()
+
+    # Alias method for r_cs_value accessor:
+    def right_low_rank_matrix(self):
+        return self.r_cs_value()
+
+    # Alias method for beta_value accessor:
+    def degradation_rate(self):
+        return self.beta_value()
+
+    def clear_sky_signals(self):
+        return self._l_cs_value.dot(self._r_cs_value)
+
     def _calculate_objective(self, mu_l, mu_r, tau, l_cs_value, r_cs_value,
                              beta_value, weights, sum_components=True):
         weights_w1 = np.diag(weights)
