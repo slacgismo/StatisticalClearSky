@@ -1,10 +1,10 @@
 import unittest
+import os
 import numpy as np
-from statistical_clear_sky.algorithm.iterative_clear_sky\
-import IterativeClearSky
+from statistical_clear_sky.algorithm.iterative_fitting import IterativeFitting
 from statistical_clear_sky.solver_type import SolverType
 
-class TestIterativeClearSky(unittest.TestCase):
+class TestIterativeFitting(unittest.TestCase):
 
     def test_initialization(self):
 
@@ -22,8 +22,41 @@ class TestIterativeClearSky(unittest.TestCase):
         rank_k = 4
         solver_type = SolverType.ecos
 
-        iterative_clear_sky = IterativeClearSky(power_signals_d, rank_k=rank_k,
+        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
             solver_type=SolverType.ecos, auto_fix_time_shifts=False)
+
+    @unittest.skip("Add expected values")
+    def test_execute(self):
+
+        input_power_signals_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         "../fixtures/power_signals_d_1.csv"))
+        with open(input_power_signals_file_path) as file:
+            power_signals_d = np.loadtxt(file, delimiter=',')
+
+        rank_k = 6
+
+        # TODO: Add data:
+        expected_clear_sky_signals = np.array([[]])
+        expected_degradation_rate = np.array([])
+
+        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
+                                             solver_type=SolverType.mosek)
+
+        iterative_fitting.execute(mu_l=5e2, mu_r=1e3, tau=0.9, max_iteration=10)
+
+        if iterative_fitting.state_data.is_solver_error is True:
+            self.skipTest("This test uses MOSEK solver"
+                + "because default ECOS solver fails with large data. "
+                + "And MOSEK is installed, this test fails.")
+        else:
+            actual_clear_sky_signals = iterative_fitting.clear_sky_signals()
+            actual_degradation_rate = iterative_fitting.degradation_rate()
+
+            np.testing.assert_array_equal(actual_clear_sky_signals,
+                                          expected_clear_sky_signals)
+            np.testing.assert_array_equal(actual_degradation_rate,
+                                          expected_degradation_rate)
 
     def test_adjust_low_rank_matrices(self):
 
@@ -67,11 +100,11 @@ class TestIterativeClearSky(unittest.TestCase):
                                                      [0.0, 1.0, 0.0, 0.0],
                                                      [0.0, 0.0, 1.0, 0.0]])
 
-        iterative_clear_sky = IterativeClearSky(power_signals_d,
-                                                auto_fix_time_shifts=False)
+        iterative_fitting = IterativeFitting(power_signals_d,
+                                             auto_fix_time_shifts=False)
 
         actual_left_low_rank_matrix_u, actual_right_low_rank_matrix_v = \
-            iterative_clear_sky._adjust_low_rank_matrices(
+            iterative_fitting._adjust_low_rank_matrices(
                 left_low_rank_matrix_u, right_low_rank_matrix_v)
 
         np.testing.assert_array_equal(actual_left_low_rank_matrix_u,

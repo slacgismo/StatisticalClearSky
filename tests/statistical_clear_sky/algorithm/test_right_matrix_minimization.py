@@ -7,8 +7,6 @@ from statistical_clear_sky.algorithm.minimization import RightMatrixMinimization
 
 class TestRightMatrixMinimization(unittest.TestCase):
 
-    # @unittest.skip("This test uses MOSEK solver because default ECOS fails." +
-    #                " Unless MOSEK is installed, this test fails.")
     @unittest.skip("TODO: Investigate result mismatch")
     def test_minimize_with_example_02_data(self):
 

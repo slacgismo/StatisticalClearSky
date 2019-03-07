@@ -20,7 +20,7 @@ from statistical_clear_sky.algorithm.serialization.serialization_mixin\
  import SerializationMixin
 from statistical_clear_sky.algorithm.plot.plot_mixin import PlotMixin
 
-class IterativeClearSky(SerializationMixin, PlotMixin):
+class IterativeFitting(SerializationMixin, PlotMixin):
     """
     Implementation of "Statistical Clear Sky Fitting" algorithm.
     """
@@ -60,16 +60,67 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
 
         self._set_residuals()
 
-    def minimize_objective(self, mu_l=1.0, mu_r=20.0, tau=0.8,
-                           eps=1e-3, max_iter=100,
-                           is_degradation_calculated=True,
-                           max_degradation=None, min_degradation=None,
-                           verbose=True):
+    def execute(self, mu_l=1.0, mu_r=20.0, tau=0.8, exit_criterion_epsilon=1e-3,
+                max_iteration=100, is_degradation_calculated=True,
+                max_degradation=None, min_degradation=None,
+                verbose=True):
 
         # mu_l, mu_r, tau = self._use_stored_date_if_any(mu_l, mu_r, tau)
         l_cs_value, r_cs_value, beta_value = self._obtain_initial_values()
         component_r0 = self._obtain_initial_component_r0()
         weights = self._obtain_weights()
+
+        self._minimize_objective(l_cs_value, r_cs_value, beta_value,
+            component_r0, weights, mu_l=mu_l, mu_r=mu_r, tau=tau,
+            exit_criterion_epsilon=exit_criterion_epsilon,
+            max_iteration=max_iteration,
+            is_degradation_calculated=is_degradation_calculated,
+            max_degradation=max_degradation, min_degradation=min_degradation,
+            verbose=verbose)
+
+        self._store_final_state_data(weights)
+
+    @property
+    def l_cs_value(self):
+        return self._l_cs_value
+
+    @property
+    def r_cs_value(self):
+        return self._r_cs_value
+
+    @property
+    def beta_value(self):
+        return self._beta_value
+
+    @property
+    def state_data(self):
+        return self._state_data
+
+    # Alias method for l_cs_value accessor:
+    def left_low_rank_matrix(self):
+        # return self.l_cs_value()
+        return self._l_cs_value
+
+    # Alias method for r_cs_value accessor:
+    def right_low_rank_matrix(self):
+        # return self.r_cs_value()
+        return self._r_cs_value
+
+    # Alias method for beta_value accessor:
+    def degradation_rate(self):
+        # return self.beta_value()
+        return self._beta_value
+
+    def clear_sky_signals(self):
+        return self._l_cs_value.dot(self._r_cs_value)
+
+    def _minimize_objective(self, l_cs_value, r_cs_value, beta_value,
+                            component_r0, weights,
+                            mu_l=1.0, mu_r=20.0, tau=0.8,
+                            exit_criterion_epsilon=1e-3, max_iteration=100,
+                            is_degradation_calculated=True,
+                            max_degradation=None, min_degradation=None,
+                            verbose=True):
 
         ti = time()
         try:
@@ -81,19 +132,21 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
                         np.sum(objective_values)), objective_values)
             improvement = np.inf
             old_objective_value = np.sum(objective_values)
-            it = 0
+            iteration = 0
             f1_last = objective_values[0]
 
             left_matric_minimization = LeftMatrixMinimization(
-                self._power_signals_d, self._rank_k, weights, tau, mu_l)
+                self._power_signals_d, self._rank_k, weights, tau, mu_l,
+                solver_type=self._solver_type)
             right_matric_minimization = RightMatrixMinimization(
                 self._power_signals_d, self._rank_k, weights, tau, mu_r,
-                    component_r0,
-                    is_degradation_calculated=is_degradation_calculated,
-                    max_degradation=max_degradation,
-                    min_degradation=min_degradation)
+                component_r0,
+                is_degradation_calculated=is_degradation_calculated,
+                max_degradation=max_degradation,
+                min_degradation=min_degradation,
+                solver_type=self._solver_type)
 
-            while improvement >= eps:
+            while improvement >= exit_criterion_epsilon:
                 self._store_minimization_state_data(mu_l, mu_r, tau,
                     l_cs_value, r_cs_value, beta_value, component_r0)
 
@@ -118,10 +171,11 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
                 improvement = ((old_objective_value - new_objective_value)
                     * 1. / old_objective_value)
                 old_objective_value = new_objective_value
-                it += 1
+                iteration += 1
                 if verbose:
                     print('iteration {}: {:.3f}'.format(
-                        it, new_obj), np.round(objective_values, 3))
+                        iteration, new_objective_value),
+                        np.round(objective_values, 3))
                 if objective_values[0] > f1_last:
                     self._state_data.f1_increase = True
                     if verbose:
@@ -131,7 +185,7 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
                         print('Caution: objective increased.')
                     self._state_data.obj_increase = True
                     improvement *= -1
-                if it >= max_iter:
+                if iteration >= max_iteration:
                     if verbose:
                         print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
                     improvement = 0.
@@ -155,39 +209,6 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
             self._analyze_residuals(l_cs_value, r_cs_value, weights)
             self._make_result_variables_accessible(l_cs_value, r_cs_value,
                                                    beta_value)
-
-        self._store_final_state_data(weights)
-
-    @property
-    def l_cs_value(self):
-        return self._l_cs_value
-
-    @property
-    def r_cs_value(self):
-        return self._r_cs_value
-
-    @property
-    def beta_value(self):
-        return self._beta_value
-
-    @property
-    def state_data(self):
-        return self._state_data
-
-    # Alias method for l_cs_value accessor:
-    def left_low_rank_matrix(self):
-        return self.l_cs_value()
-
-    # Alias method for r_cs_value accessor:
-    def right_low_rank_matrix(self):
-        return self.r_cs_value()
-
-    # Alias method for beta_value accessor:
-    def degradation_rate(self):
-        return self.beta_value()
-
-    def clear_sky_signals(self):
-        return self._l_cs_value.dot(self._r_cs_value)
 
     def _calculate_objective(self, mu_l, mu_r, tau, l_cs_value, r_cs_value,
                              beta_value, weights, sum_components=True):
@@ -333,7 +354,7 @@ class IterativeClearSky(SerializationMixin, PlotMixin):
         self._residuals_median = np.median(final_metric)
         self._residuals_variance = np.power(np.std(final_metric), 2)
         self._residual_l0_norm = np.linalg.norm(
-                self._metrix_l0[:, 0] - l_cs_value[:, 0])
+                self._matrix_l0[:, 0] - l_cs_value[:, 0])
 
     def _make_result_variables_accessible(self, l_cs_value, r_cs_value,
                                           beta_value):

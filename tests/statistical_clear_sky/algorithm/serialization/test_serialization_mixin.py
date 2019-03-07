@@ -3,8 +3,7 @@ import numpy as np
 import tempfile
 import shutil
 import os
-from statistical_clear_sky.algorithm.iterative_clear_sky\
-import IterativeClearSky
+from statistical_clear_sky.algorithm.iterative_fitting import IterativeFitting
 
 class TestSerializationMixin(unittest.TestCase):
 
@@ -30,15 +29,15 @@ class TestSerializationMixin(unittest.TestCase):
                                      0.00000000e+00, 2.77419996e+00]])
         rank_k = 4
 
-        original_iterative_clear_sky = IterativeClearSky(power_signals_d,
+        original_iterative_fitting = IterativeFitting(power_signals_d,
                                    rank_k=rank_k, auto_fix_time_shifts=False)
 
-        original_iterative_clear_sky.save_instance(self.filepath)
+        original_iterative_fitting.save_instance(self.filepath)
 
-        deserialized_iterative_clear_sky = IterativeClearSky.load_instance(
+        deserialized_iterative_fitting = IterativeFitting.load_instance(
             self.filepath)
 
-        np.testing.assert_array_equal(deserialized_iterative_clear_sky.
+        np.testing.assert_array_equal(deserialized_iterative_fitting.
                                       _power_signals_d,
-                                      original_iterative_clear_sky.
+                                      original_iterative_fitting.
                                       _power_signals_d)

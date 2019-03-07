@@ -35,8 +35,6 @@ class TestWeightSetting(unittest.TestCase):
 
         np.testing.assert_array_equal(actual_weights, expected_weights)
 
-    # @unittest.skip("This test uses MOSEK solver because default ECOS fails." +
-    #                " Unless MOSEK is installed, this test fails.")
     def test_obtain_weights_with_example_02_data(self):
 
         input_power_signals_file_path = os.path.abspath(
