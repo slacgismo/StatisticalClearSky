@@ -228,18 +228,18 @@ iterative_fitting.execute()
 # Get the resulting left low rank matrix and right low rank matrix for evaluation.
 left_low_rank_matrix = iterative_fitting.left_low_rank_matrix()
 # The above can be also obtained as l_cs_value:
-l_cs_value = iterative_fitting.l_cs_value()
+l_cs_value = iterative_fitting.l_cs_value
 
 # Get the resulting right low rank matrix for evaluation.
 right_low_rank_matrix = iterative_fitting.right_low_rank_matrix()
 # The above can be also obtained as r_cs_value:
-r_cs_value = iterative_fitting.r_cs_value()
+r_cs_value = iterative_fitting.r_cs_value
 
 clear_sky_signals = iterative_fitting.clear_sky_signals()
 
 degradation_rate = iterative_fitting.degradation_rate()
 # The above can be also obtained as beta_value:
-beta_value = iterative_fitting.beta_value()
+beta_value = iterative_fitting.beta_value
 ```
 
 #### Example 5: Setting different hyper-parameters for minimization of objective function of Generalized Low Rank Modeling.

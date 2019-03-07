@@ -96,20 +96,17 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     def state_data(self):
         return self._state_data
 
-    # Alias method for l_cs_value accessor:
+    # Alias method for l_cs_value accessor (with property decorator):
     def left_low_rank_matrix(self):
-        # return self.l_cs_value()
-        return self._l_cs_value
+        return self.l_cs_value
 
-    # Alias method for r_cs_value accessor:
+    # Alias method for r_cs_value accessor (with property decorator):
     def right_low_rank_matrix(self):
-        # return self.r_cs_value()
-        return self._r_cs_value
+        return self.r_cs_value
 
-    # Alias method for beta_value accessor:
+    # Alias method for beta_value accessor (with property decorator):
     def degradation_rate(self):
-        # return self.beta_value()
-        return self._beta_value
+        return self.beta_value
 
     def clear_sky_signals(self):
         return self._l_cs_value.dot(self._r_cs_value)
