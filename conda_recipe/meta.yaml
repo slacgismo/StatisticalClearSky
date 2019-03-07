@@ -1,5 +1,5 @@
 {% set name = "statistical-clear-sky" %}
-{% set version = "0.1.5" %}
+{% set version = "0.1.6" %}
 
 package:
   name: "{{ name|lower }}"
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 13228d21065ee2067df5d21e0f5a2a1e52abb01e93cb7a4fe9650ea9d1c134fe
+  sha256: c41d3fc17852c79af865e5b469ed13e44a9be8f69b774f6b4383d93889d24858
 
 build:
   number: 0
@@ -34,6 +34,8 @@ test:
     - statistical_clear_sky.algorithm.serialization
     - statistical_clear_sky.algorithm.plot
     - statistical_clear_sky.algorithm.util
+  commands:
+    - python -m unittest
 
 about:
   home: https://github.com/bmeyers/StatisticalClearSky
@@ -46,4 +48,5 @@ about:
 
 extra:
   recipe-maintainers:
-    - your-github-id-here
+    - bmeyers
+    - tadatoshi
