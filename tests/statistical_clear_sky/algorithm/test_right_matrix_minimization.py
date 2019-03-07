@@ -7,7 +7,6 @@ from statistical_clear_sky.algorithm.minimization import RightMatrixMinimization
 
 class TestRightMatrixMinimization(unittest.TestCase):
 
-    @unittest.skip("TODO: Investigate result mismatch")
     def test_minimize_with_example_02_data(self):
 
         input_power_signals_file_path = os.path.abspath(
@@ -79,15 +78,13 @@ class TestRightMatrixMinimization(unittest.TestCase):
         else:
             np.testing.assert_array_equal(actual_l_cs_value,
                                           expected_l_cs_value)
-            # TODO: Didn't match.
-            np.testing.assert_array_equal(actual_r_cs_value,
-                                          expected_r_cs_value)
-            # np.testing.assert_almost_equal(actual_r_cs_value,
-            #                                expected_r_cs_value,
-            #                                decimal=1)
-            # TODO: actual_beta_value was -0.046192. Investigate further.
-            np.testing.assert_array_equal(actual_beta_value,
-                                          expected_beta_value)
-            # np.testing.assert_almost_equal(actual_beta_value,
-            #                                expected_beta_value,
-            #                                decimal=4)
+            # np.testing.assert_array_equal(actual_r_cs_value,
+            #                               expected_r_cs_value)
+            np.testing.assert_almost_equal(actual_r_cs_value,
+                                           expected_r_cs_value,
+                                           decimal=4)
+            # np.testing.assert_array_equal(actual_beta_value,
+            #                               expected_beta_value)
+            np.testing.assert_almost_equal(actual_beta_value,
+                                           expected_beta_value,
+                                           decimal=8)

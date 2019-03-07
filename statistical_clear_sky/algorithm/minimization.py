@@ -168,7 +168,7 @@ class RightMatrixMinimization(AbstractMinimization):
     def _constraints(self, l_cs_param, r_cs_param, beta_param):
         constraints = [
             l_cs_param * r_cs_param >= 0,
-            r_cs_param >= 0
+            r_cs_param[0] >= 0
         ]
         if self._power_signals_d.shape[1] > 365:
             r = r_cs_param[0, :].T

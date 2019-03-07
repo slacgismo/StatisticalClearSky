@@ -310,7 +310,7 @@ power_signals_d = np.array([[0.0, 0.0, 0.0, 0.0],
 
 iterative_fitting = IterativeFitting(power_signals_d)
 
-iterative_fitting.execute(max_degradation=0.5, min_degradation=0.0)
+iterative_fitting.execute(max_degradation=0.0, min_degradation=-0.5)
 
 clear_sky_signals = iterative_fitting.clear_sky_signals()
 degradation_rate = iterative_fitting.degradation_rate()
