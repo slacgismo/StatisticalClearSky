@@ -55,6 +55,6 @@ class TestWeightSetting(unittest.TestCase):
         except cvx.SolverError:
             self.skipTest("This test uses MOSEK solver"
                 + "because default ECOS solver fails with large data. "
-                + "And MOSEK is installed, this test fails.")
+                + "Unless MOSEK is installed, this test fails.")
         else:
             np.testing.assert_array_equal(actual_weights, expected_weights)

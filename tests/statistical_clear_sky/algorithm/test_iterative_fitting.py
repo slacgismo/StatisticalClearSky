@@ -45,28 +45,35 @@ class TestIterativeFitting(unittest.TestCase):
         iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
                                              solver_type=SolverType.mosek)
 
-        iterative_fitting.execute(mu_l=5e2, mu_r=1e3, tau=0.9, max_iteration=10)
-
-        if iterative_fitting.state_data.is_solver_error is True:
+        try: # try block for solver usage at initialization.
+            iterative_fitting.execute(mu_l=5e2, mu_r=1e3, tau=0.9,
+                                      max_iteration=10)
+        except cvx.SolverError:
             self.skipTest("This test uses MOSEK solver"
                 + "because default ECOS solver fails with large data. "
-                + "And MOSEK is installed, this test fails.")
+                + "Unless MOSEK is installed, this test fails.")
         else:
-            actual_clear_sky_signals = iterative_fitting.clear_sky_signals()
-            actual_degradation_rate = iterative_fitting.degradation_rate()
+            # Handling solver error coming from minimization.
+            if iterative_fitting.state_data.is_solver_error is True:
+                self.skipTest("This test uses MOSEK solver"
+                    + "because default ECOS solver fails with large data. "
+                    + "Unless MOSEK is installed, this test fails.")
+            else:
+                actual_clear_sky_signals = iterative_fitting.clear_sky_signals()
+                actual_degradation_rate = iterative_fitting.degradation_rate()
 
-            # TODO: Investigate further. Result was:
-            #     Mismatch: 59.7%
-            #     Max absolute difference: 2.50458988
-            #     Max relative difference: nan
-            # np.testing.assert_array_equal(actual_clear_sky_signals,
-            #                               expected_clear_sky_signals)
-            # TODO: Investigate further
-            # np.testing.assert_array_equal(actual_degradation_rate,
-            #                               expected_degradation_rate)
-            np.testing.assert_almost_equal(actual_degradation_rate,
-                                           expected_degradation_rate,
-                                           decimal=2)
+                # TODO: Investigate further. Result was:
+                #     Mismatch: 59.7%
+                #     Max absolute difference: 2.50458988
+                #     Max relative difference: nan
+                # np.testing.assert_array_equal(actual_clear_sky_signals,
+                #                               expected_clear_sky_signals)
+                # TODO: Investigate further
+                # np.testing.assert_array_equal(actual_degradation_rate,
+                #                               expected_degradation_rate)
+                np.testing.assert_almost_equal(actual_degradation_rate,
+                                               expected_degradation_rate,
+                                               decimal=2)
 
     def test_adjust_low_rank_matrices(self):
 
