@@ -205,7 +205,15 @@ class IterativeClearSky(object):
                 if self.test_days is not None:
                     self.weights[self.test_days] = 0
                 self.min_L()
+
+                # Temp:
+                import pdb; pdb.set_trace()
+
                 self.min_R(calc_deg=calc_deg, max_deg=max_deg, min_deg=min_deg)
+
+                # Temp:
+                import pdb; pdb.set_trace()
+
                 obj_vals = self.calc_objective(sum_components=False)
                 new_obj = np.sum(obj_vals)
                 improvement = (old_obj - new_obj) * 1. / old_obj
