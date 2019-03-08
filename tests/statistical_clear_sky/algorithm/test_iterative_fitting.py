@@ -115,8 +115,13 @@ class TestIterativeFitting(unittest.TestCase):
             mu_l, mu_r, tau, l_cs_value, r_cs_value,
             beta_value, weights, sum_components=False)
 
-        np.testing.assert_array_equal(actual_objective_values,
-                                      expected_objective_values)
+        # Note: With Python 3.7, assertion passes
+        #       but with Python 3.6, there is a minor discrepancy.
+        # np.testing.assert_array_equal(actual_objective_values,
+        #                               expected_objective_values)
+        np.testing.assert_almost_equal(actual_objective_values,
+                                       expected_objective_values,
+                                       decimal=6)
 
     def test_calculate_objective_iteration_1(self):
 
