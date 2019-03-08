@@ -63,18 +63,161 @@ class TestIterativeFitting(unittest.TestCase):
                 actual_clear_sky_signals = iterative_fitting.clear_sky_signals()
                 actual_degradation_rate = iterative_fitting.degradation_rate()
 
-                # TODO: Investigate further. Result was:
-                #     Mismatch: 59.7%
-                #     Max absolute difference: 2.50458988
-                #     Max relative difference: nan
-                # np.testing.assert_array_equal(actual_clear_sky_signals,
-                #                               expected_clear_sky_signals)
-                # TODO: Investigate further
+                np.testing.assert_array_equal(actual_clear_sky_signals,
+                                              expected_clear_sky_signals)
                 # np.testing.assert_array_equal(actual_degradation_rate,
                 #                               expected_degradation_rate)
                 np.testing.assert_almost_equal(actual_degradation_rate,
                                                expected_degradation_rate,
-                                               decimal=2)
+                                               decimal=8)
+
+    def test_calculate_objective_before_iteration_1(self):
+
+        input_power_signals_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         "../fixtures/power_signals_d_1.csv"))
+        with open(input_power_signals_file_path) as file:
+            power_signals_d = np.loadtxt(file, delimiter=',')
+
+        rank_k = 6
+
+        mu_l = 5e2
+        mu_r = 1e3
+        tau = 0.9
+
+        initial_l_cs_value_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+            "../fixtures/initial_l_cs_value_1.csv"))
+        with open(initial_l_cs_value_file_path) as file:
+            l_cs_value = np.loadtxt(file, delimiter=',')
+
+        initial_r_cs_value_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+            "../fixtures/initial_r_cs_value_1.csv"))
+        with open(initial_r_cs_value_file_path) as file:
+            r_cs_value = np.loadtxt(file, delimiter=',')
+
+        beta_value = 0.0
+
+        weights_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         "../fixtures/weights_1.csv"))
+        with open(weights_file_path) as file:
+            weights = np.loadtxt(file, delimiter=',')
+
+        expected_objective_values = np.array([2171.1759047049295,
+            183.68448929381688, 388776.7729609732, 137624.12552820993])
+
+        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
+                                             solver_type=SolverType.mosek)
+
+        actual_objective_values = iterative_fitting._calculate_objective(
+            mu_l, mu_r, tau, l_cs_value, r_cs_value,
+            beta_value, weights, sum_components=False)
+
+        np.testing.assert_array_equal(actual_objective_values,
+                                      expected_objective_values)
+
+    def test_calculate_objective_iteration_1(self):
+
+        input_power_signals_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         "../fixtures/power_signals_d_1.csv"))
+        with open(input_power_signals_file_path) as file:
+            power_signals_d = np.loadtxt(file, delimiter=',')
+
+        rank_k = 6
+
+        mu_l = 5e2
+        mu_r = 1e3
+        tau = 0.9
+
+        initial_l_cs_value_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+            "../fixtures/objective_calculation",
+            "l_cs_value_after_iteration_1_1.csv"))
+        with open(initial_l_cs_value_file_path) as file:
+            l_cs_value = np.loadtxt(file, delimiter=',')
+
+        initial_r_cs_value_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+            "../fixtures/objective_calculation",
+            "r_cs_value_after_iteration_1_1.csv"))
+        with open(initial_r_cs_value_file_path) as file:
+            r_cs_value = np.loadtxt(file, delimiter=',')
+
+        beta_value = 0.0
+
+        weights_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         "../fixtures/weights_1.csv"))
+        with open(weights_file_path) as file:
+            weights = np.loadtxt(file, delimiter=',')
+
+        expected_objective_values = np.array([1911.9056612619852,
+            20.310140581069636, 207.5667132341283, 4.7643179724417583e-05])
+
+        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
+                                             solver_type=SolverType.mosek)
+
+        actual_objective_values = iterative_fitting._calculate_objective(
+            mu_l, mu_r, tau, l_cs_value, r_cs_value,
+            beta_value, weights, sum_components=False)
+
+        np.testing.assert_array_equal(actual_objective_values,
+                                      expected_objective_values)
+
+    def test_calculate_objective_iteration_2(self):
+
+        input_power_signals_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         "../fixtures/power_signals_d_1.csv"))
+        with open(input_power_signals_file_path) as file:
+            power_signals_d = np.loadtxt(file, delimiter=',')
+
+        rank_k = 6
+
+        mu_l = 5e2
+        mu_r = 1e3
+        tau = 0.9
+
+        initial_l_cs_value_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+            "../fixtures/objective_calculation",
+            "l_cs_value_after_iteration_2_1.csv"))
+        with open(initial_l_cs_value_file_path) as file:
+            l_cs_value = np.loadtxt(file, delimiter=',')
+
+        initial_r_cs_value_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+            "../fixtures/objective_calculation",
+            "r_cs_value_after_iteration_2_1.csv"))
+        with open(initial_r_cs_value_file_path) as file:
+            r_cs_value = np.loadtxt(file, delimiter=',')
+
+        beta_value = 0.0
+
+        weights_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         "../fixtures/weights_1.csv"))
+        with open(weights_file_path) as file:
+            weights = np.loadtxt(file, delimiter=',')
+
+        expected_objective_values = np.array([1613.9301083819053,
+            18.429829588941793, 196.44983089760348, 2.347949251896394e-05])
+
+        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
+                                             solver_type=SolverType.mosek)
+
+        actual_objective_values = iterative_fitting._calculate_objective(
+            mu_l, mu_r, tau, l_cs_value, r_cs_value,
+            beta_value, weights, sum_components=False)
+
+        # np.testing.assert_array_equal(actual_objective_values,
+        #                               expected_objective_values)
+        np.testing.assert_almost_equal(actual_objective_values,
+                                       expected_objective_values,
+                                       decimal=13)
 
     def test_adjust_low_rank_matrices(self):
 

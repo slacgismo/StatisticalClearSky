@@ -197,11 +197,10 @@ class RightMatrixMinimization(AbstractMinimization):
         return l_cs_param, r_cs_param.value, beta_param.value
 
     def _obtain_r_tilde(self, r_cs_param):
-        if (not hasattr(self, '_r_tilde')) or (self._r_tilde is None):
-            if r_cs_param.shape[1] < 365 + 2:
-                n_tilde = 365 + 2 - r_cs_param.shape[1]
-                self._r_tilde = cvx.hstack([r_cs_param,
+        if r_cs_param.shape[1] < 365 + 2:
+            n_tilde = 365 + 2 - r_cs_param.shape[1]
+            r_tilde = cvx.hstack([r_cs_param,
                                   cvx.Variable(shape=(self._rank_k, n_tilde))])
-            else:
-                self._r_tilde = r_cs_param
-        return self._r_tilde
+        else:
+            r_tilde = r_cs_param
+        return r_tilde
