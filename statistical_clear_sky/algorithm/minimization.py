@@ -24,13 +24,14 @@ class AbstractMinimization(object):
         self._tau = tau
         self._solver_type = solver_type
 
-    def minimize(self, l_cs_value, r_cs_value, beta_value):
+    def minimize(self, l_cs_value, r_cs_value, beta_value, component_r0):
         l_cs_param, r_cs_param, beta_param = self._define_parameters(l_cs_value,
             r_cs_value, beta_value)
         objective = cvx.Minimize(self._term_f1(l_cs_param, r_cs_param)
                                  + self._term_f2(l_cs_param, r_cs_param)
                                  + self._term_f3(l_cs_param, r_cs_param))
-        constraints = self._constraints(l_cs_param, r_cs_param, beta_param)
+        constraints = self._constraints(l_cs_param, r_cs_param, beta_param,
+                                        component_r0)
         problem = cvx.Problem(objective, constraints)
         problem.solve(solver=self._solver_type.value)
         self._handle_exception(problem)
@@ -63,7 +64,7 @@ class AbstractMinimization(object):
         pass
 
     @abstractmethod
-    def _constraints(self, l_cs_param, r_cs_param, beta_param):
+    def _constraints(self, l_cs_param, r_cs_param, beta_param, component_r0):
         pass
 
     @abstractmethod
@@ -105,7 +106,7 @@ class LeftMatrixMinimization(AbstractMinimization):
     def _term_f3(self, l_cs_param, r_cs_param):
         return 0
 
-    def _constraints(self, l_cs_param, r_cs_param, beta_param):
+    def _constraints(self, l_cs_param, r_cs_param, beta_param, component_r0):
         return [
             l_cs_param * r_cs_param >= 0,
             l_cs_param[np.average(self._power_signals_d, axis=1) <= 1e-5,
@@ -127,14 +128,13 @@ class RightMatrixMinimization(AbstractMinimization):
     """
 
     def __init__(self, power_signals_d, rank_k, weights, tau, mu_r,
-                 component_r0, is_degradation_calculated=True,
+                 is_degradation_calculated=True,
                  max_degradation=0., min_degradation=-0.25,
                  solver_type=SolverType.ecos):
 
         super().__init__(power_signals_d, rank_k, weights, tau,
                          solver_type=solver_type)
         self._mu_r = mu_r
-        self._component_r0 = component_r0
 
         self._is_degradation_calculated = is_degradation_calculated
         self._max_degradation = max_degradation
@@ -165,7 +165,7 @@ class RightMatrixMinimization(AbstractMinimization):
                                       - r_tilde[:, 365:], 'fro')
         return term_f3
 
-    def _constraints(self, l_cs_param, r_cs_param, beta_param):
+    def _constraints(self, l_cs_param, r_cs_param, beta_param, component_r0):
         constraints = [
             l_cs_param * r_cs_param >= 0,
             r_cs_param[0] >= 0
@@ -174,7 +174,7 @@ class RightMatrixMinimization(AbstractMinimization):
             r = r_cs_param[0, :].T
             if self._is_degradation_calculated:
                 constraints.extend([
-                    cvx.multiply(1./ self._component_r0[:-365],
+                    cvx.multiply(1./ component_r0[:-365],
                                  r[365:] - r[:-365]) == beta_param,
                     beta_param >= -.25
                 ])
@@ -185,7 +185,7 @@ class RightMatrixMinimization(AbstractMinimization):
                     constraints.append(
                         beta_param >= self._min_degradation)
             else:
-                constraints.append(cvx.multiply(1./ self._component_r0[:-365],
+                constraints.append(cvx.multiply(1./ component_r0[:-365],
                                                 r[365:] - r[:-365]) == 0)
         return constraints
 

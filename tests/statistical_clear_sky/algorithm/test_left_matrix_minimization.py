@@ -57,6 +57,8 @@ class TestLeftMatrixMinimization(unittest.TestCase):
                                        [-0.86265428, -3.28835462,
                                         -4.00326343, -1.76664483]])
         initial_beta_value = 0.0
+        initial_component_r0 = np.array([1.36527916, 2.70624333, 4.04720749,
+                                         5.38817165])
 
         # TODO: In Example_02, rank is specified to be 6. Find better data.
         # expected_l_cs_value = np.array([[1.25425950e-01, -4.29673887e-02,
@@ -86,7 +88,8 @@ class TestLeftMatrixMinimization(unittest.TestCase):
         actual_l_cs_value, actual_r_cs_value, actual_beta_value =\
             left_matrix_minimization.minimize(initial_l_cs_value,
                                               initial_r_cs_value,
-                                              initial_beta_value)
+                                              initial_beta_value,
+                                              initial_component_r0)
 
         # np.testing.assert_array_equal(actual_l_cs_value, expected_l_cs_value)
         np.testing.assert_almost_equal(actual_l_cs_value, expected_l_cs_value,
@@ -143,14 +146,21 @@ class TestLeftMatrixMinimization(unittest.TestCase):
 
         expected_beta_value = initial_beta_value
 
+        initial_r0_value_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+            "../fixtures/right_matrix_minimization/initial_r0_value_1.csv"))
+        with open(initial_r0_value_file_path) as file:
+            initial_component_r0_value = np.loadtxt(file, delimiter=',')
+
         left_matrix_minimization = LeftMatrixMinimization(power_signals_d,
             rank_k, weights, tau, mu_l, solver_type=SolverType.mosek)
 
         try:
             actual_l_cs_value, actual_r_cs_value, actual_beta_value =\
                 left_matrix_minimization.minimize(initial_l_cs_value,
-                                              initial_r_cs_value,
-                                              initial_beta_value)
+                                                  initial_r_cs_value,
+                                                  initial_beta_value,
+                                                  initial_component_r0_value)
         except cvx.SolverError:
             self.skipTest("This test uses MOSEK solver"
                 + "because default ECOS solver fails with large data. "

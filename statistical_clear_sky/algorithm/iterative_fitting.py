@@ -132,12 +132,11 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             iteration = 0
             f1_last = objective_values[0]
 
-            left_matric_minimization = LeftMatrixMinimization(
+            left_matrix_minimization = LeftMatrixMinimization(
                 self._power_signals_d, self._rank_k, weights, tau, mu_l,
                 solver_type=self._solver_type)
-            right_matric_minimization = RightMatrixMinimization(
+            right_matrix_minimization = RightMatrixMinimization(
                 self._power_signals_d, self._rank_k, weights, tau, mu_r,
-                component_r0,
                 is_degradation_calculated=is_degradation_calculated,
                 max_degradation=max_degradation,
                 min_degradation=min_degradation,
@@ -150,14 +149,14 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 if verbose:
                     print('Miminizing left L matrix')
                 l_cs_value, r_cs_value, beta_value\
-                    = left_matric_minimization.minimize(l_cs_value, r_cs_value,
-                                                        beta_value)
+                    = left_matrix_minimization.minimize(
+                        l_cs_value, r_cs_value, beta_value, component_r0)
 
                 if verbose:
                     print('Miminizing right R matrix')
                 l_cs_value, r_cs_value, beta_value\
-                    = right_matric_minimization.minimize(l_cs_value,
-                                                         r_cs_value, beta_value)
+                    = right_matrix_minimization.minimize(
+                        l_cs_value, r_cs_value, beta_value, component_r0)
 
                 component_r0 = r_cs_value[0, :]
 
@@ -233,8 +232,10 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         else:
             # Note: it was cvx.norm. Check if this modification makes a
             # difference:
-            term_f4 = (mu_r * norm(r_cs_value[1:, :-365] - r_cs_value[1:, 365:],
-                                 'fro'))
+            # term_f4 = (mu_r * norm(
+            #             r_cs_value[1:, :-365] - r_cs_value[1:, 365:], 'fro'))
+            term_f4 = ((mu_r * cvx.norm(
+                r_cs_value[1:, :-365] - r_cs_value[1:, 365:], 'fro'))).value
         components = [term_f1, term_f2, term_f3, term_f4]
         objective = sum(components)
         if sum_components:

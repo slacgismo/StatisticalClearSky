@@ -30,7 +30,7 @@ class TestRightMatrixMinimization(unittest.TestCase):
             os.path.join(os.path.dirname(__file__),
             "../fixtures/right_matrix_minimization/initial_r0_value_1.csv"))
         with open(initial_r0_value_file_path) as file:
-            initial_component_ro_value = np.loadtxt(file, delimiter=',')
+            initial_component_r0_value = np.loadtxt(file, delimiter=',')
 
         initial_l_cs_value_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
@@ -63,14 +63,14 @@ class TestRightMatrixMinimization(unittest.TestCase):
         expected_beta_value = -0.04617361
 
         right_matrix_minimization = RightMatrixMinimization(power_signals_d,
-            rank_k, weights, tau, mu_r, initial_component_ro_value,
-            solver_type=SolverType.mosek)
+            rank_k, weights, tau, mu_r, solver_type=SolverType.mosek)
 
         try:
             actual_l_cs_value, actual_r_cs_value, actual_beta_value =\
                 right_matrix_minimization.minimize(initial_l_cs_value,
-                                              initial_r_cs_value,
-                                              initial_beta_value)
+                                                   initial_r_cs_value,
+                                                   initial_beta_value,
+                                                   initial_component_r0_value)
         except cvx.SolverError:
             self.skipTest("This test uses MOSEK solver"
                 + "because default ECOS solver fails with large data. "
