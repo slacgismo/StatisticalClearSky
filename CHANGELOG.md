@@ -1,3 +1,7 @@
+## statistical-clear-sky 0.1.9 (March 8, 2019) ##
+
+* Fixed an error in RightMatrixMinimization, not using an updated value in a certain calculation.
+
 ## statistical-clear-sky 0.1.8 (March 7, 2019) ##
 
 * Fixed a typo in RightMatrixMinimization.
