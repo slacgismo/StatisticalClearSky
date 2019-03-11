@@ -1,3 +1,7 @@
+## statistical-clear-sky 0.1.10 (March 11, 2019) ##
+
+* Moved tests directory to be under statistical_clear_sky, in order to avoid a potential namespace conflict.
+
 ## statistical-clear-sky 0.1.9 (March 8, 2019) ##
 
 * Fixed an error in RightMatrixMinimization, not using an updated value in a certain calculation.

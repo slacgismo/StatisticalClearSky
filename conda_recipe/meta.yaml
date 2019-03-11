@@ -1,5 +1,5 @@
 {% set name = "statistical-clear-sky" %}
-{% set version = "0.1.9" %}
+{% set version = "0.1.10" %}
 
 package:
   name: "{{ name|lower }}"
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: e724812d065260dce387a4849e46caa3d33b4b7c93a667c1190f1873a30f1dd1
+  sha256: 5bc1edaa5aab010fb7f9b78d113b25d1821ebf1942d4ac86e456e67b45f1dca8
 
 build:
   number: 0
