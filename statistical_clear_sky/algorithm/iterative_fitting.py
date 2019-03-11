@@ -6,7 +6,8 @@ from time import time
 import numpy as np
 from numpy.linalg import norm
 import cvxpy as cvx
-from statistical_clear_sky.algorithm.util.time_shifts import fix_time_shifts
+from statistical_clear_sky.algorithm.utilities.time_shifts\
+ import fix_time_shifts
 from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
 from statistical_clear_sky.algorithm.initialization.weight_setting\
