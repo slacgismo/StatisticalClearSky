@@ -78,6 +78,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             max_degradation=max_degradation, min_degradation=min_degradation,
             verbose=verbose)
 
+        self._make_supporting_parameters_accesible(weights)
         self._store_final_state_data(weights)
 
     @property
@@ -91,6 +92,10 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     @property
     def beta_value(self):
         return self._beta_value
+
+    @property
+    def weights(self):
+        return self._weights
 
     @property
     def state_data(self):
@@ -359,6 +364,9 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._l_cs_value = l_cs_value
         self._r_cs_value = r_cs_value
         self._beta_value = beta_value
+
+    def _make_supporting_parameters_accesible(self, weights):
+        self._weights = weights
 
     def _store_initial_state_data(self, auto_fix_time_shifts):
         self._state_data.auto_fix_time_shifts = auto_fix_time_shifts
