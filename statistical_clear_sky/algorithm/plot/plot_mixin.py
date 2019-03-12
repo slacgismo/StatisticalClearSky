@@ -9,18 +9,21 @@ class PlotMixin(object):
 
     def plot_lr(self, figsize=(14, 10), show_days=False):
         fig, ax = plt.subplots(nrows=2, ncols=2, figsize=figsize)
-        ax[0, 1].plot(self._r_cs.value[0])
-        ax[1, 1].plot(self._r_cs.value[1:].T)
-        ax[0, 0].plot(self._l_cs.value[:, 0])
-        ax[1, 0].plot(self._l_cs.value[:, 1:])
+        ax[0, 1].plot(self._r_cs_value[0])
+        ax[1, 1].plot(self._r_cs_value[1:].T)
+        ax[0, 0].plot(self._l_cs_value[:, 0])
+        ax[1, 0].plot(self._l_cs_value[:, 1:])
         ax[0, 0].legend(['$\\ell_1$'])
-        ax[1, 0].legend(['$\\ell_{}$'.format(ix) for ix in range(2, self._r_cs.value.shape[0] + 1)])
+        ax[1, 0].legend(['$\\ell_{}$'.format(ix) for ix in range(2,
+            self._r_cs_value.shape[0] + 1)])
         ax[0, 1].legend(['$r_{1}$'])
-        ax[1, 1].legend(['$r_{}$'.format(ix) for ix in range(2, self._r_cs.value.shape[0] + 1)])
+        ax[1, 1].legend(['$r_{}$'.format(ix) for ix in range(2,
+            self._r_cs_value.shape[0] + 1)])
         if show_days:
             use_day = self._weights > 1e-1
             days = np.arange(self._power_signals_d.shape[1])
-            ax[0, 1].scatter(days[use_day], self._r_cs.value[0][use_day], color='orange', alpha=0.7)
+            ax[0, 1].scatter(days[use_day], self._r_cs.value[0][use_day],
+                color='orange', alpha=0.7)
         plt.tight_layout()
         return fig
 
@@ -28,12 +31,14 @@ class PlotMixin(object):
         plt.figure(figsize=figsize)
         plt.plot(np.sum(self._power_signals_d, axis=0) * 24 / self._power_signals_d.shape[0], linewidth=1)
         if show_clear:
-            plt.plot((self._r_cs.value[0] * np.sum(self._l_cs.value[:, 0])) * 24 / self._power_signals_d.shape[0], linewidth=1)
+            plt.plot((self._r_cs_value[0] * np.sum(self._l_cs_value[:, 0])) *
+                24 / self._power_signals_d.shape[0], linewidth=1)
         if show_days:
             use_day = self._weights > 1e-1
             days = np.arange(self._power_signals_d.shape[1])
-            plt.scatter(days[use_day], np.sum(self._power_signals_d, axis=0)[use_day] * 24 / self._power_signals_d.shape[0],
-                        color='orange', alpha=0.7)
+            plt.scatter(days[use_day], np.sum(self._power_signals_d,
+                axis=0)[use_day] * 24 / self._power_signals_d.shape[0],
+                color='orange', alpha=0.7)
         fig = plt.gcf()
         return fig
 
@@ -82,7 +87,7 @@ class PlotMixin(object):
             fig, ax = plt.subplots(nrows=2, figsize=figsize, sharex=True)
             foo = ax[0].imshow(self._power_signals_d, cmap='hot', interpolation='none', aspect='auto')
             ax[0].set_title('Measured power')
-            bar = ax[1].imshow(self._l_cs.value.dot(self._r_cs.value), cmap='hot',
+            bar = ax[1].imshow(self.clear_sky_signals(), cmap='hot',
                                vmin=0, vmax=np.max(self._power_signals_d), interpolation='none', aspect='auto')
             ax[1].set_title('Estimated clear sky power')
             plt.colorbar(foo, ax=ax[0], label='kW')
@@ -109,7 +114,7 @@ class PlotMixin(object):
         D1 = start_day
         D2 = D1 + num_days
         actual = self._power_signals_d[:, D1:D2].ravel(order='F')
-        clearsky = ((self._l_cs.value.dot(self._r_cs.value)))[:, D1:D2].ravel(order='F')
+        clearsky = ((self.clear_sky_signals()))[:, D1:D2].ravel(order='F')
         fig, ax = plt.subplots(nrows=1, figsize=figsize)
         ax.plot(actual, linewidth=1, label='measured power')
         ax.plot(clearsky, linewidth=1, color='red', label='clear sky signal')
@@ -126,7 +131,7 @@ class PlotMixin(object):
         D1 = start_day
         D2 = D1 + num_days
         actual = self._power_signals_d[:, D1:D2].ravel(order='F')
-        clearsky = ((self._l_cs.value.dot(self._r_cs.value)))[:, D1:D2].ravel(order='F')
+        clearsky = ((self.clear_sky_signals()))[:, D1:D2].ravel(order='F')
         fig, ax = plt.subplots(num=fig_title, nrows=2, figsize=figsize, sharex=True,
                                gridspec_kw={'height_ratios': [3, 1]})
         xs = np.linspace(D1, D2, len(actual))

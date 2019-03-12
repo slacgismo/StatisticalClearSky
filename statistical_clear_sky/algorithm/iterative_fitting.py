@@ -61,12 +61,13 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
         self._set_residuals()
 
-    def execute(self, mu_l=1.0, mu_r=20.0, tau=0.8, exit_criterion_epsilon=1e-3,
+    def execute(self, mu_l=None, mu_r=None, tau=None,
+                exit_criterion_epsilon=1e-3,
                 max_iteration=100, is_degradation_calculated=True,
                 max_degradation=None, min_degradation=None,
                 verbose=True):
 
-        # mu_l, mu_r, tau = self._use_stored_date_if_any(mu_l, mu_r, tau)
+        mu_l, mu_r, tau = self._obtain_hyper_parameters(mu_l, mu_r, tau)
         l_cs_value, r_cs_value, beta_value = self._obtain_initial_values()
         component_r0 = self._obtain_initial_component_r0()
         weights = self._obtain_weights()
@@ -79,8 +80,49 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             max_degradation=max_degradation, min_degradation=min_degradation,
             verbose=verbose)
 
-        self._make_supporting_parameters_accesible(weights)
+        self._keep_supporting_parameters_as_properties(weights)
         self._store_final_state_data(weights)
+
+    def calculate_objective(self, mu_l, mu_r, tau, l_cs_value, r_cs_value,
+                            beta_value, weights, sum_components=True):
+        weights_w1 = np.diag(weights)
+        # Note: Not using cvx.sum and cvx.abs as in following caused
+        # an error at * weights_w1:
+        # ValueError: operands could not be broadcast together with shapes
+        # (288,1300) (1300,1300)
+        # term_f1 = sum((0.5 * abs(
+        #     self._power_signals_d - l_cs_value.dot(r_cs_value))
+        #     + (tau - 0.5)
+        #     * (self._power_signals_d - l_cs_value.dot(r_cs_value)))
+        #     * weights_w1)
+        term_f1 = (cvx.sum((0.5 * cvx.abs(
+                    self._power_signals_d - l_cs_value.dot(r_cs_value))
+                    + (tau - 0.5) * (self._power_signals_d - l_cs_value.dot(
+                        r_cs_value))) * weights_w1)).value
+        weights_w2 = np.eye(self._rank_k)
+        term_f2 = mu_l * norm((l_cs_value[:-2, :] - 2 * l_cs_value[1:-1, :] +
+                               l_cs_value[2:, :]).dot(weights_w2), 'fro')
+        term_f3 = mu_r * norm(r_cs_value[:, :-2] - 2 * r_cs_value[:, 1:-1] +
+                               r_cs_value[:, 2:], 'fro')
+        if r_cs_value.shape[1] < 365 + 2:
+            term_f4 = 0
+        else:
+            # Note: it was cvx.norm. Check if this modification makes a
+            # difference:
+            # term_f4 = (mu_r * norm(
+            #             r_cs_value[1:, :-365] - r_cs_value[1:, 365:], 'fro'))
+            term_f4 = ((mu_r * cvx.norm(
+                r_cs_value[1:, :-365] - r_cs_value[1:, 365:], 'fro'))).value
+        components = [term_f1, term_f2, term_f3, term_f4]
+        objective = sum(components)
+        if sum_components:
+            return objective
+        else:
+            return components
+
+    @property
+    def power_signals_d(self):
+        return self._power_signals_d
 
     @property
     def l_cs_value(self):
@@ -119,7 +161,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
     def _minimize_objective(self, l_cs_value, r_cs_value, beta_value,
                             component_r0, weights,
-                            mu_l=1.0, mu_r=20.0, tau=0.8,
+                            mu_l=None, mu_r=None, tau=None,
                             exit_criterion_epsilon=1e-3, max_iteration=100,
                             is_degradation_calculated=True,
                             max_degradation=None, min_degradation=None,
@@ -127,7 +169,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
         ti = time()
         try:
-            objective_values = self._calculate_objective(mu_l, mu_r, tau,
+            objective_values = self.calculate_objective(mu_l, mu_r, tau,
                 l_cs_value, r_cs_value, beta_value, weights,
                 sum_components=False)
             if verbose:
@@ -166,7 +208,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
                 component_r0 = r_cs_value[0, :]
 
-                objective_values = self._calculate_objective(mu_l, mu_r, tau,
+                objective_values = self.calculate_objective(mu_l, mu_r, tau,
                     l_cs_value, r_cs_value, beta_value, weights,
                     sum_components=False)
                 new_objective_value = np.sum(objective_values)
@@ -209,45 +251,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 print('Minimization complete in {:.2f} minutes'.format(
                       (tf - ti) / 60.))
             self._analyze_residuals(l_cs_value, r_cs_value, weights)
-            self._make_result_variables_accessible(l_cs_value, r_cs_value,
-                                                   beta_value)
-
-    def _calculate_objective(self, mu_l, mu_r, tau, l_cs_value, r_cs_value,
-                             beta_value, weights, sum_components=True):
-        weights_w1 = np.diag(weights)
-        # Note: Not using cvx.sum and cvx.abs as in following caused
-        # an error at * weights_w1:
-        # ValueError: operands could not be broadcast together with shapes
-        # (288,1300) (1300,1300)
-        # term_f1 = sum((0.5 * abs(
-        #     self._power_signals_d - l_cs_value.dot(r_cs_value))
-        #     + (tau - 0.5)
-        #     * (self._power_signals_d - l_cs_value.dot(r_cs_value)))
-        #     * weights_w1)
-        term_f1 = (cvx.sum((0.5 * cvx.abs(
-                    self._power_signals_d - l_cs_value.dot(r_cs_value))
-                    + (tau - 0.5) * (self._power_signals_d - l_cs_value.dot(
-                        r_cs_value))) * weights_w1)).value
-        weights_w2 = np.eye(self._rank_k)
-        term_f2 = mu_l * norm((l_cs_value[:-2, :] - 2 * l_cs_value[1:-1, :] +
-                               l_cs_value[2:, :]).dot(weights_w2), 'fro')
-        term_f3 = mu_r * norm(r_cs_value[:, :-2] - 2 * r_cs_value[:, 1:-1] +
-                               r_cs_value[:, 2:], 'fro')
-        if r_cs_value.shape[1] < 365 + 2:
-            term_f4 = 0
-        else:
-            # Note: it was cvx.norm. Check if this modification makes a
-            # difference:
-            # term_f4 = (mu_r * norm(
-            #             r_cs_value[1:, :-365] - r_cs_value[1:, 365:], 'fro'))
-            term_f4 = ((mu_r * cvx.norm(
-                r_cs_value[1:, :-365] - r_cs_value[1:, 365:], 'fro'))).value
-        components = [term_f1, term_f2, term_f3, term_f4]
-        objective = sum(components)
-        if sum_components:
-            return objective
-        else:
-            return components
+            self._keep_result_variables_as_properties(l_cs_value, r_cs_value,
+                                                      beta_value)
 
     def _handle_time_shift(self, power_signals_d, auto_fix_time_shifts):
         self._fixed_time_stamps = False
@@ -269,14 +274,14 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
         return left_low_rank_matrix_u, right_low_rank_matrix_v
 
-    # def _use_stored_date_if_any(self, mu_l, mu_r, tau):
-    #     if self._state_data.mu_l is not None:
-    #         mu_l = self._state_data.mu_l
-    #     if self._state_data.mu_r is not None:
-    #         mu_r = self._state_data.mu_r
-    #     if self._state_data.tau is not None:
-    #         tau = self._state_data.tau
-    #     return mu_l, mu_r, tau
+    def _obtain_hyper_parameters(self, mu_l, mu_r, tau):
+        if mu_l is None and self._state_data.mu_l is not None:
+            mu_l = self._state_data.mu_l
+        if mu_r is None and self._state_data.mu_r is not None:
+            mu_r = self._state_data.mu_r
+        if tau is None and self._state_data.tau is not None:
+            tau = self._state_data.tau
+        return mu_l, mu_r, tau
 
     def _obtain_initial_values(self):
         if self._state_data.l_value.size > 0:
@@ -294,8 +299,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             beta_value = self._state_data.beta_value
         else:
             beta_value = 0.0
-        self._make_result_variables_accessible(l_cs_value, r_cs_value,
-                                               beta_value)
+        self._keep_result_variables_as_properties(l_cs_value, r_cs_value,
+                                                  beta_value)
         return l_cs_value, r_cs_value, beta_value
 
     def _obtain_initial_component_r0(self, verbose=True):
@@ -360,13 +365,13 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._residual_l0_norm = np.linalg.norm(
                 self._matrix_l0[:, 0] - l_cs_value[:, 0])
 
-    def _make_result_variables_accessible(self, l_cs_value, r_cs_value,
-                                          beta_value):
+    def _keep_result_variables_as_properties(self, l_cs_value, r_cs_value,
+                                             beta_value):
         self._l_cs_value = l_cs_value
         self._r_cs_value = r_cs_value
         self._beta_value = beta_value
 
-    def _make_supporting_parameters_accesible(self, weights):
+    def _keep_supporting_parameters_as_properties(self, weights):
         self._weights = weights
 
     def _store_initial_state_data(self, auto_fix_time_shifts):
@@ -375,6 +380,9 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._state_data.rank_k = self._rank_k
         self._state_data.matrix_l0 = self._matrix_l0
         self._state_data.matrix_r0 = self._matrix_r0
+        self._state_data.mu_l = 1.0
+        self._state_data.mu_r = 20.0
+        self._state_data.tau = 0.8
 
     def _store_minimization_state_data(self, mu_l, mu_r, tau,
             l_cs_value, r_cs_value, beta_value, component_r0):
