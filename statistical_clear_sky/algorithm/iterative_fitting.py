@@ -114,6 +114,26 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         return self._weights
 
     @property
+    def residuals_median(self):
+        return self._residuals_median
+
+    @property
+    def residuals_variance(self):
+        return self._residuals_variance
+
+    @property
+    def residual_l0_norm(self):
+        return self._residual_l0_norm
+
+    @property
+    def fixed_time_stamps(self):
+        return self._fixed_time_stamps
+
+    @property
+    def test_days(self):
+        return self._test_days
+
+    @property
     def state_data(self):
         return self._state_data
 
