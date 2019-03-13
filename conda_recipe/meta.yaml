@@ -1,5 +1,5 @@
 {% set name = "statistical-clear-sky" %}
-{% set version = "0.1.10" %}
+{% set version = "0.1.13" %}
 
 package:
   name: "{{ name|lower }}"
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 5bc1edaa5aab010fb7f9b78d113b25d1821ebf1942d4ac86e456e67b45f1dca8
+  sha256: 0540017be6f38cd277fb1055f6ca6723f49c80d4d7a2d520568bd493f927522d
 
 build:
   number: 0
@@ -33,7 +33,8 @@ test:
     - statistical_clear_sky.algorithm.initialization
     - statistical_clear_sky.algorithm.serialization
     - statistical_clear_sky.algorithm.plot
-    - statistical_clear_sky.algorithm.util
+    - statistical_clear_sky.algorithm.utilities
+    - statistical_clear_sky.utilities
   commands:
     - python -m unittest
 

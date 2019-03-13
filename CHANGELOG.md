@@ -1,3 +1,11 @@
+## statistical-clear-sky 0.1.13, 0.1.12 (March 12, 2019) ##
+
+* Minor fix for conda build.
+
+## statistical-clear-sky 0.1.11 (March 12, 2019) ##
+
+* Refactored IterativeFitting to work in the context of PointBrowser.
+
 ## statistical-clear-sky 0.1.10 (March 11, 2019) ##
 
 * Moved tests directory to be under statistical_clear_sky, in order to avoid a potential namespace conflict.
