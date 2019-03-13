@@ -1,3 +1,7 @@
+## statistical-clear-sky 0.1.14 (March 13, 2019) ##
+
+* Modified IterativeFitting to support more codes in Jupyter notebook..
+
 ## statistical-clear-sky 0.1.13, 0.1.12 (March 12, 2019) ##
 
 * Minor fix for conda build.
