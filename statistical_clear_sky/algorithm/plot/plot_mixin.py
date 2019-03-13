@@ -22,7 +22,7 @@ class PlotMixin(object):
         if show_days:
             use_day = self._weights > 1e-1
             days = np.arange(self._power_signals_d.shape[1])
-            ax[0, 1].scatter(days[use_day], self._r_cs.value[0][use_day],
+            ax[0, 1].scatter(days[use_day], self._r_cs_value[0][use_day],
                 color='orange', alpha=0.7)
         plt.tight_layout()
         return fig

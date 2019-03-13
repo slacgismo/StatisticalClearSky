@@ -111,7 +111,7 @@ class TestIterativeFitting(unittest.TestCase):
         iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
                                              solver_type=SolverType.mosek)
 
-        actual_objective_values = iterative_fitting.calculate_objective(
+        actual_objective_values = iterative_fitting._calculate_objective(
             mu_l, mu_r, tau, l_cs_value, r_cs_value,
             beta_value, weights, sum_components=False)
 
@@ -165,7 +165,7 @@ class TestIterativeFitting(unittest.TestCase):
         iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
                                              solver_type=SolverType.mosek)
 
-        actual_objective_values = iterative_fitting.calculate_objective(
+        actual_objective_values = iterative_fitting._calculate_objective(
             mu_l, mu_r, tau, l_cs_value, r_cs_value,
             beta_value, weights, sum_components=False)
 
@@ -214,7 +214,7 @@ class TestIterativeFitting(unittest.TestCase):
         iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
                                              solver_type=SolverType.mosek)
 
-        actual_objective_values = iterative_fitting.calculate_objective(
+        actual_objective_values = iterative_fitting._calculate_objective(
             mu_l, mu_r, tau, l_cs_value, r_cs_value,
             beta_value, weights, sum_components=False)
 

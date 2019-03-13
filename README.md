@@ -87,6 +87,21 @@ In case, you run example codes under notebooks folder in Jupyter notebook, espec
     $ conda install -c conda-forge cassandra-driver
     ```
 
+* [s3fs](http://datastax.github.io/python-driver/index.html) - [Optional] - For accessing Amazon S3.
+
+    An example code in Jupyter notebook depends on it.
+    Thus, this package is necessary only when running the example code.
+
+    If you are using pip:
+    ```sh
+    $ pip install s3fs
+    ```
+
+    If you are using Anaconda:
+    ```sh
+    $ conda install -c conda-forge s3fs
+    ```
+
 #### Solvers
 
 By default, ECOS solver is used, which is supported by cvxpy because it is Open Source.

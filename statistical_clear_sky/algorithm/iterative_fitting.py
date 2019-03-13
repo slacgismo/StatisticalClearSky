@@ -83,42 +83,15 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._keep_supporting_parameters_as_properties(weights)
         self._store_final_state_data(weights)
 
-    def calculate_objective(self, mu_l, mu_r, tau, l_cs_value, r_cs_value,
-                            beta_value, weights, sum_components=True):
-        weights_w1 = np.diag(weights)
-        # Note: Not using cvx.sum and cvx.abs as in following caused
-        # an error at * weights_w1:
-        # ValueError: operands could not be broadcast together with shapes
-        # (288,1300) (1300,1300)
-        # term_f1 = sum((0.5 * abs(
-        #     self._power_signals_d - l_cs_value.dot(r_cs_value))
-        #     + (tau - 0.5)
-        #     * (self._power_signals_d - l_cs_value.dot(r_cs_value)))
-        #     * weights_w1)
-        term_f1 = (cvx.sum((0.5 * cvx.abs(
-                    self._power_signals_d - l_cs_value.dot(r_cs_value))
-                    + (tau - 0.5) * (self._power_signals_d - l_cs_value.dot(
-                        r_cs_value))) * weights_w1)).value
-        weights_w2 = np.eye(self._rank_k)
-        term_f2 = mu_l * norm((l_cs_value[:-2, :] - 2 * l_cs_value[1:-1, :] +
-                               l_cs_value[2:, :]).dot(weights_w2), 'fro')
-        term_f3 = mu_r * norm(r_cs_value[:, :-2] - 2 * r_cs_value[:, 1:-1] +
-                               r_cs_value[:, 2:], 'fro')
-        if r_cs_value.shape[1] < 365 + 2:
-            term_f4 = 0
-        else:
-            # Note: it was cvx.norm. Check if this modification makes a
-            # difference:
-            # term_f4 = (mu_r * norm(
-            #             r_cs_value[1:, :-365] - r_cs_value[1:, 365:], 'fro'))
-            term_f4 = ((mu_r * cvx.norm(
-                r_cs_value[1:, :-365] - r_cs_value[1:, 365:], 'fro'))).value
-        components = [term_f1, term_f2, term_f3, term_f4]
-        objective = sum(components)
-        if sum_components:
-            return objective
-        else:
-            return components
+    def calculate_objective_with_result(self, sum_components=True):
+        # TODO: Consider getting mu_l, mu_r, and tau without going through
+        #       state_data.
+        #       It was done this way, without being aware of the usage by
+        #       dataViewer.PointBrowser.
+        return self._calculate_objective(self._state_data.mu_l,
+            self._state_data.mu_r, self._state_data.tau, self._l_cs_value,
+            self._r_cs_value, self._beta_value, self._weights,
+            sum_components=sum_components)
 
     @property
     def power_signals_d(self):
@@ -169,7 +142,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
         ti = time()
         try:
-            objective_values = self.calculate_objective(mu_l, mu_r, tau,
+            objective_values = self._calculate_objective(mu_l, mu_r, tau,
                 l_cs_value, r_cs_value, beta_value, weights,
                 sum_components=False)
             if verbose:
@@ -208,7 +181,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
                 component_r0 = r_cs_value[0, :]
 
-                objective_values = self.calculate_objective(mu_l, mu_r, tau,
+                objective_values = self._calculate_objective(mu_l, mu_r, tau,
                     l_cs_value, r_cs_value, beta_value, weights,
                     sum_components=False)
                 new_objective_value = np.sum(objective_values)
@@ -253,6 +226,43 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             self._analyze_residuals(l_cs_value, r_cs_value, weights)
             self._keep_result_variables_as_properties(l_cs_value, r_cs_value,
                                                       beta_value)
+
+    def _calculate_objective(self, mu_l, mu_r, tau, l_cs_value, r_cs_value,
+                             beta_value, weights, sum_components=True):
+        weights_w1 = np.diag(weights)
+        # Note: Not using cvx.sum and cvx.abs as in following caused
+        # an error at * weights_w1:
+        # ValueError: operands could not be broadcast together with shapes
+        # (288,1300) (1300,1300)
+        # term_f1 = sum((0.5 * abs(
+        #     self._power_signals_d - l_cs_value.dot(r_cs_value))
+        #     + (tau - 0.5)
+        #     * (self._power_signals_d - l_cs_value.dot(r_cs_value)))
+        #     * weights_w1)
+        term_f1 = (cvx.sum((0.5 * cvx.abs(
+                    self._power_signals_d - l_cs_value.dot(r_cs_value))
+                    + (tau - 0.5) * (self._power_signals_d - l_cs_value.dot(
+                        r_cs_value))) * weights_w1)).value
+        weights_w2 = np.eye(self._rank_k)
+        term_f2 = mu_l * norm((l_cs_value[:-2, :] - 2 * l_cs_value[1:-1, :] +
+                               l_cs_value[2:, :]).dot(weights_w2), 'fro')
+        term_f3 = mu_r * norm(r_cs_value[:, :-2] - 2 * r_cs_value[:, 1:-1] +
+                               r_cs_value[:, 2:], 'fro')
+        if r_cs_value.shape[1] < 365 + 2:
+            term_f4 = 0
+        else:
+            # Note: it was cvx.norm. Check if this modification makes a
+            # difference:
+            # term_f4 = (mu_r * norm(
+            #             r_cs_value[1:, :-365] - r_cs_value[1:, 365:], 'fro'))
+            term_f4 = ((mu_r * cvx.norm(
+                r_cs_value[1:, :-365] - r_cs_value[1:, 365:], 'fro'))).value
+        components = [term_f1, term_f2, term_f3, term_f4]
+        objective = sum(components)
+        if sum_components:
+            return objective
+        else:
+            return components
 
     def _handle_time_shift(self, power_signals_d, auto_fix_time_shifts):
         self._fixed_time_stamps = False
