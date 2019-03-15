@@ -66,7 +66,7 @@ def edge_find_1d(s1, tol=5e-2, ixs=None, ix0=0, w=30, mu=3,
         # There is a step shift in this data segment
         ix = np.argsort(-s2)[0]
         vr_best = -np.inf
-        for j in xrange(ix - w, ix + w):
+        for j in range(ix - w, ix + w):
             jx = max(0, j)
             jx = min(jx, len(s1))
             sa = s1[:jx][np.isfinite(s1)[:jx]]

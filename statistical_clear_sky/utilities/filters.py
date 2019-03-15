@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import cvxpy as cvx
 
 def lowpass_2d(data, r=25):
@@ -44,7 +45,7 @@ def edge_find_1d(s1, tol=5e-2, ixs=None, ix0=0, w=30, mu=3, debug=False):
         # There is a step shift in this data segment
         ix = np.argsort(-s2)[0]
         vr_best = -np.inf
-        for j in xrange(ix - w, ix + w):
+        for j in range(ix - w, ix + w):
             jx = max(0, j)
             jx = min(jx, len(s1))
             sa = s1[:jx][np.isfinite(s1)[:jx]]
@@ -56,7 +57,7 @@ def edge_find_1d(s1, tol=5e-2, ixs=None, ix0=0, w=30, mu=3, debug=False):
                 vr_best = vr
                 ix_best = jx
         ixs.append(ix_best + ix0)
-        ixs1 = edge_find_1D(s1[:ix_best], tol=tol, ixs=ixs, ix0=ix0)
-        ixs2 = edge_find_1D(s1[ix_best:], tol=tol, ixs=ixs1, ix0=ix0+ix_best)
+        ixs1 = edge_find_1d(s1[:ix_best], tol=tol, ixs=ixs, ix0=ix0)
+        ixs2 = edge_find_1d(s1[ix_best:], tol=tol, ixs=ixs1, ix0=ix0+ix_best)
         ixs2.sort()
         return ixs2

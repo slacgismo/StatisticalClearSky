@@ -3,6 +3,7 @@ This module defines Mixin for plot for IterativeClearSky.
 """
 
 import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 class PlotMixin(object):
@@ -20,7 +21,7 @@ class PlotMixin(object):
         ax[1, 1].legend(['$r_{}$'.format(ix) for ix in range(2,
             self._r_cs_value.shape[0] + 1)])
         if show_days:
-            use_day = self._weights > 1e-1
+            use_day = self._obtain_weights_for_plotting() > 1e-1
             days = np.arange(self._power_signals_d.shape[1])
             ax[0, 1].scatter(days[use_day], self._r_cs_value[0][use_day],
                 color='orange', alpha=0.7)
@@ -34,7 +35,7 @@ class PlotMixin(object):
             plt.plot((self._r_cs_value[0] * np.sum(self._l_cs_value[:, 0])) *
                 24 / self._power_signals_d.shape[0], linewidth=1)
         if show_days:
-            use_day = self._weights > 1e-1
+            use_day = self._obtain_weights_for_plotting() > 1e-1
             days = np.arange(self._power_signals_d.shape[1])
             plt.scatter(days[use_day], np.sum(self._power_signals_d,
                 axis=0)[use_day] * 24 / self._power_signals_d.shape[0],
@@ -54,7 +55,7 @@ class PlotMixin(object):
         ax[-1][0].set_xlabel('$i \\in 1, \\ldots, m$ (5-minute periods in one day)')
         ax[-1][1].set_xlabel('$j \\in 1, \\ldots, n$ (days)')
         if show_days:
-            use_day = self._weights > 1e-1
+            use_day = self._obtain_weights_for_plotting() > 1e-1
             days = np.arange(self._power_signals_d.shape[1])
             for i in range(k):
                 ax[i, 1].scatter(days[use_day], self._matrix_r0[i][use_day], color='orange', alpha=0.7)
@@ -73,7 +74,7 @@ class PlotMixin(object):
             if show_days:
                 xlim = ax.get_xlim()
                 ylim = ax.get_ylim()
-                use_day = self._weights > 1e-1
+                use_day = self._obtain_weights_for_plotting() > 1e-1
                 days = np.arange(self._power_signals_d.shape[1])
                 y1 = np.ones_like(days[use_day]) * self._power_signals_d.shape[0] * .99
                 ax.scatter(days[use_day], y1, marker='|', color='yellow', s=2)
@@ -100,7 +101,7 @@ class PlotMixin(object):
             if show_days:
                 xlim = ax[0].get_xlim()
                 ylim = ax[0].get_ylim()
-                use_day = self._weights > 1e-1
+                use_day = self._obtain_weights_for_plotting() > 1e-1
                 days = np.arange(self._power_signals_d.shape[1])
                 y1 = np.ones_like(days[use_day]) * self._power_signals_d.shape[0] * .99
                 ax[0].scatter(days[use_day], y1, marker='|', color='yellow', s=2)
@@ -111,15 +112,15 @@ class PlotMixin(object):
         return fig
 
     def ts_plot(self, start_day=0, num_days=2, figsize=(8, 4), loc=(.35, .7)):
-        D1 = start_day
-        D2 = D1 + num_days
-        actual = self._power_signals_d[:, D1:D2].ravel(order='F')
-        clearsky = ((self.clear_sky_signals()))[:, D1:D2].ravel(order='F')
+        d1 = start_day
+        d2 = d1 + num_days
+        actual = self._power_signals_d[:, d1:d2].ravel(order='F')
+        clearsky = ((self.clear_sky_signals()))[:, d1:d2].ravel(order='F')
         fig, ax = plt.subplots(nrows=1, figsize=figsize)
         ax.plot(actual, linewidth=1, label='measured power')
         ax.plot(clearsky, linewidth=1, color='red', label='clear sky signal')
         plt.legend(loc=loc)
-        ax.set_xlim(0, 288 * (D2 - D1))
+        ax.set_xlim(0, 288 * (d2 - d1))
         ax.set_ylabel('kW')
         ax.set_xticks(np.arange(0, 288 * num_days, 4 * 12))
         ax.set_xticklabels(np.tile(np.arange(0, 24, 4), num_days))
@@ -128,22 +129,32 @@ class PlotMixin(object):
 
     def ts_plot_with_weights(self, fig_title=None, start_day=0, num_days=5,
                              figsize=(16, 8)):
-        D1 = start_day
-        D2 = D1 + num_days
-        actual = self._power_signals_d[:, D1:D2].ravel(order='F')
-        clearsky = ((self.clear_sky_signals()))[:, D1:D2].ravel(order='F')
+        d1 = start_day
+        d2 = d1 + num_days
+        actual = self._power_signals_d[:, d1:d2].ravel(order='F')
+        clearsky = ((self.clear_sky_signals()))[:, d1:d2].ravel(order='F')
         fig, ax = plt.subplots(num=fig_title, nrows=2, figsize=figsize, sharex=True,
                                gridspec_kw={'height_ratios': [3, 1]})
-        xs = np.linspace(D1, D2, len(actual))
+        xs = np.linspace(d1, d2, len(actual))
         ax[0].plot(xs, actual, alpha=0.4, label='measured power')
         ax[0].plot(xs, clearsky, linewidth=1, label='clear sky estimate')
-        ax[1].plot(xs, np.repeat(self._weights[D1:D2], 288), linewidth=1, label='day weight')
+        ax[1].plot(xs, np.repeat(self._obtain_weights_for_plotting()[d1:d2],
+            288), linewidth=1, label='day weight')
         ax[0].legend()
         ax[1].legend()
         # ax[0].set_ylim(0, np.max(actual) * 1.3)
-        ax[1].set_xlim(D1, D2)
+        ax[1].set_xlim(d1, d2)
         ax[1].set_ylim(0, 1)
         ax[1].set_xlabel('day number')
         ax[0].set_ylabel('power')
         plt.tight_layout()
         return fig
+
+    def _obtain_weights_for_plotting(self):
+        '''
+        Workaround not to perform long-running weight setting optimization code
+        in constructor.
+        '''
+        if (not hasattr(self, '_weights')) or (self._weights is None):
+            self._weights = self._obtain_weights()
+        return self._weights
