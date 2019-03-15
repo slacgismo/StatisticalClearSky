@@ -120,7 +120,7 @@ However, it is found that Mosek solver is more stable. Thus, we encourage you to
     $ conda install -c mosek mosek
     ```
 
-### Installing
+### Installation
 
 If you are using pip:
 
@@ -146,6 +146,24 @@ $ conda install -c tadatoshi statistical-clear-sky
 ```
 
 ## Usage
+
+### Through a Command-line interface
+
+The input power signals is in a CSV file that you need to specify after "execute" command.
+
+* Note: The following example is using Mosek solver.
+
+```sh
+$ statistical_clear_sky execute power_signals_d_1.csv --rank 6 --solver_type mosek --mu_l 5e2 --mu_r 1e3 --tau 0.9 --max_iteration 10
+```
+
+Options are displayed when you pass "--help" to the command.
+
+```sh
+$ statistical_clear_sky execute --help
+```
+
+### As a part of Python code or inside Jupyter notebook
 
 #### Example 1: Simplest example with the fewest number of input parameters.
 
