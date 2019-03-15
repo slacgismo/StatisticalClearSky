@@ -1,6 +1,12 @@
+## statistical-clear-sky 0.1.15 (March 14, 2019) ##
+
+* Added command line interface.
+
+* Majority of Jupyer notebooks functioning.
+
 ## statistical-clear-sky 0.1.14 (March 13, 2019) ##
 
-* Modified IterativeFitting to support more codes in Jupyter notebook..
+* Modified IterativeFitting to support more codes in Jupyter notebook.
 
 ## statistical-clear-sky 0.1.13, 0.1.12 (March 12, 2019) ##
 
