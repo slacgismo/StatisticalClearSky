@@ -1,5 +1,5 @@
 {% set name = "statistical-clear-sky" %}
-{% set version = "0.1.16" %}
+{% set version = "0.1.17" %}
 
 package:
   name: "{{ name|lower }}"
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 0ac9b1fb003ee9f8d116540e98ec1dced1d197d6d60ac1985c950ff8d850a803
+  sha256: 6843b5d5b80eb97ae051101763308cd105040f6d5e98d3a3648a21ecddce6752
 
 build:
   number: 0
@@ -20,11 +20,13 @@ requirements:
     - pip
     - python
     - seaborn
+    - solar-data-tools
   run:
     - numpy
     - pandas
     - python
     - seaborn
+    - solar-data-tools
 
 test:
   imports:
@@ -33,6 +35,7 @@ test:
     - statistical_clear_sky.algorithm.initialization
     - statistical_clear_sky.algorithm.serialization
     - statistical_clear_sky.algorithm.plot
+    - statistical_clear_sky.algorithm.time_shift
     - statistical_clear_sky.algorithm.utilities
     - statistical_clear_sky.utilities
   commands:
