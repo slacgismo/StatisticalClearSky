@@ -86,10 +86,6 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._store_final_state_data(weights)
 
     def calculate_objective_with_result(self, sum_components=True):
-        # TODO: Consider getting mu_l, mu_r, and tau without going through
-        #       state_data.
-        #       It was done this way, without being aware of the usage by
-        #       dataViewer.PointBrowser.
         return self._calculate_objective(self._state_data.mu_l,
             self._state_data.mu_r, self._state_data.tau, self._l_cs_value,
             self._r_cs_value, self._beta_value, self._weights,

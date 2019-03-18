@@ -61,7 +61,7 @@ class TestLeftMatrixMinimization(unittest.TestCase):
         initial_component_r0 = np.array([1.36527916, 2.70624333, 4.04720749,
                                          5.38817165])
 
-        # TODO: In Example_02, rank is specified to be 6. Find better data.
+        # Note: In Example_02, rank is specified to be 6. Better data needed.
         # expected_l_cs_value = np.array([[1.25425950e-01, -4.29673887e-02,
         #                                  1.35640294e-02, 8.16029351e-02],
         #                                 [1.25222358e-01, -5.45503992e-02,

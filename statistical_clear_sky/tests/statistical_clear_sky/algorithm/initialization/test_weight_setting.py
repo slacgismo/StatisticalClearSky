@@ -25,9 +25,6 @@ class TestWeightSetting(unittest.TestCase):
         # Data from Example_02 Jupyter notebook.
         # From 100th to 103th element of array.
         #expected_weights = np.array([0.0, 0.97870261, 0.93385772, 0.0])
-        # TODO: Get better test data, so that some of the values are > 0.6.
-        #       Note: Data must be smaller than the data from Example_02,
-        #             since the default ECOS solver fails with large data.
         expected_weights = np.array([0.0, 0.0, 0.0, 0.0])
 
         weight_setting = WeightSetting()
