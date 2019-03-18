@@ -31,7 +31,16 @@ class TestClusteringTimeShift(unittest.TestCase):
             expected_power_signals_d_fix = np.loadtxt(file, delimiter=',')
 
         time_shift = ClusteringTimeShift(power_signals_d)
-        actual_power_signals_d_fix = time_shift.fix_time_shifts()
 
-        np.testing.assert_array_equal(actual_power_signals_d_fix,
-                                      expected_power_signals_d_fix)
+        # Underling solar-data-tools uses MOSEK solver and
+        # if it's not used, try with ECOS solver.
+        # However, fails with ECOS solver and raises cvx.SolverError.
+        try:
+            actual_power_signals_d_fix = time_shift.fix_time_shifts()
+        except cvx.SolverError:
+            self.skipTest("This test uses MOSEK solver"
+                + "because default ECOS solver fails with large data. "
+                + "Unless MOSEK is installed, this test fails.")
+        else:
+            np.testing.assert_array_equal(actual_power_signals_d_fix,
+                                          expected_power_signals_d_fix)

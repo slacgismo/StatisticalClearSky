@@ -43,10 +43,9 @@ class TestIterativeFitting(unittest.TestCase):
             expected_clear_sky_signals = np.loadtxt(file, delimiter=',')
         expected_degradation_rate = np.array(-0.04215127)
 
-        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
-                                             solver_type=SolverType.mosek)
-
         try: # try block for solver usage at initialization.
+            iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
+                                                 solver_type=SolverType.mosek)
             iterative_fitting.execute(mu_l=5e2, mu_r=1e3, tau=0.9,
                                       max_iteration=10)
         except cvx.SolverError:
@@ -109,7 +108,7 @@ class TestIterativeFitting(unittest.TestCase):
             183.68448929381688, 388776.7729609732, 137624.12552820993])
 
         iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
-                                             solver_type=SolverType.mosek)
+                                             auto_fix_time_shifts=False)
 
         actual_objective_values = iterative_fitting._calculate_objective(
             mu_l, mu_r, tau, l_cs_value, r_cs_value,
@@ -163,7 +162,7 @@ class TestIterativeFitting(unittest.TestCase):
             20.310140581069636, 207.5667132341283, 4.7643179724417583e-05])
 
         iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
-                                             solver_type=SolverType.mosek)
+                                             auto_fix_time_shifts=False)
 
         actual_objective_values = iterative_fitting._calculate_objective(
             mu_l, mu_r, tau, l_cs_value, r_cs_value,
@@ -212,7 +211,7 @@ class TestIterativeFitting(unittest.TestCase):
             18.429829588941793, 196.44983089760348, 2.347949251896394e-05])
 
         iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
-                                             solver_type=SolverType.mosek)
+                                             auto_fix_time_shifts=False)
 
         actual_objective_values = iterative_fitting._calculate_objective(
             mu_l, mu_r, tau, l_cs_value, r_cs_value,
