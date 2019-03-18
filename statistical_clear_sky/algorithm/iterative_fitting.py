@@ -14,8 +14,10 @@ from statistical_clear_sky.algorithm.initialization.weight_setting\
  import WeightSetting
 from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.exception import ProblemStatusError
-from statistical_clear_sky.algorithm.minimization import LeftMatrixMinimization
-from statistical_clear_sky.algorithm.minimization import RightMatrixMinimization
+from statistical_clear_sky.algorithm.minimization.left_matrix\
+ import LeftMatrixMinimization
+from statistical_clear_sky.algorithm.minimization.right_matrix\
+ import RightMatrixMinimization
 from statistical_clear_sky.algorithm.serialization.state_data import StateData
 from statistical_clear_sky.algorithm.serialization.serialization_mixin\
  import SerializationMixin
