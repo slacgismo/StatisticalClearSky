@@ -7,6 +7,7 @@ import unittest
 import os
 import sys
 import numpy as np
+import cvxpy as cvx
 from statistical_clear_sky.algorithm.time_shift.clustering\
 import ClusteringTimeShift
 
