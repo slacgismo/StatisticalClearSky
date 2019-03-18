@@ -6,8 +6,8 @@ from time import time
 import numpy as np
 from numpy.linalg import norm
 import cvxpy as cvx
-from statistical_clear_sky.algorithm.utilities.time_shifts\
- import fix_time_shifts
+from statistical_clear_sky.algorithm.time_shift.clustering\
+import ClusteringTimeShift
 from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
 from statistical_clear_sky.algorithm.initialization.weight_setting\
@@ -287,7 +287,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     def _handle_time_shift(self, power_signals_d, auto_fix_time_shifts):
         self._fixed_time_stamps = False
         if auto_fix_time_shifts:
-            power_signals_d_fix = fix_time_shifts(power_signals_d)
+            power_signals_d_fix = self._time_shift(
+                power_signals_d).fix_time_shifts()
             if np.alltrue(np.isclose(power_signals_d, power_signals_d_fix)):
                 del power_signals_d_fix
             else:
@@ -394,6 +395,12 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._residuals_variance = np.power(np.std(final_metric), 2)
         self._residual_l0_norm = np.linalg.norm(
                 self._matrix_l0[:, 0] - l_cs_value[:, 0])
+
+    def _time_shift(self, power_signals_d):
+        '''
+        Method in order to define which TimeShift to use.
+        '''
+        return ClusteringTimeShift(power_signals_d)
 
     def _keep_result_variables_as_properties(self, l_cs_value, r_cs_value,
                                              beta_value):

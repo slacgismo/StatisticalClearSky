@@ -2,10 +2,10 @@ import unittest
 import os
 import sys
 import numpy as np
-from statistical_clear_sky.algorithm.utilities.time_shift\
- import fix_time_shifts
+from statistical_clear_sky.algorithm.time_shift.signal_processing\
+import SignalProcessingTimeShift
 
-class TestTimeShift(unittest.TestCase):
+class TestSignalProcessingTimeShift(unittest.TestCase):
 
     def setUp(self):
         np.set_printoptions(threshold=sys.maxsize)
@@ -25,7 +25,9 @@ class TestTimeShift(unittest.TestCase):
         with open(input_power_signals_file_path) as file:
             expected_power_signals_d_fix = np.loadtxt(file, delimiter=',')
 
-        actual_power_signals_d_fix = fix_time_shifts(power_signals_d)
+        time_shift = SignalProcessingTimeShift(
+            power_signals_d, weight=30, tolerance=5e-2)
+        actual_power_signals_d_fix = time_shift.fix_time_shifts()
 
         np.testing.assert_array_equal(actual_power_signals_d_fix,
                                       expected_power_signals_d_fix)

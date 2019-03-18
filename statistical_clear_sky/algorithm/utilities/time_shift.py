@@ -1,5 +1,7 @@
 """
-TODO: Modify style to conform to "PEP 8 -- Style Guide for Python Code"
+This module defines time shift related functions that are already used in
+example codes.
+They are kept as functions for backward compatibility.
 """
 
 import numpy as np

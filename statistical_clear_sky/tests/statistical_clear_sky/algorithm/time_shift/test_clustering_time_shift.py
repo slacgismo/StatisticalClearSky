@@ -1,11 +1,16 @@
+'''
+Unit test should be written in solar-data-tools project.
+This test is written in order to verify the impact of switching from
+signal processing based time shifts to clustering based time shifts.
+'''
 import unittest
 import os
 import sys
 import numpy as np
-from statistical_clear_sky.algorithm.utilities.time_shift\
- import fix_time_shifts
+from statistical_clear_sky.algorithm.time_shift.clustering\
+import ClusteringTimeShift
 
-class TestTimeShift(unittest.TestCase):
+class TestClusteringTimeShift(unittest.TestCase):
 
     def setUp(self):
         np.set_printoptions(threshold=sys.maxsize)
@@ -25,7 +30,8 @@ class TestTimeShift(unittest.TestCase):
         with open(input_power_signals_file_path) as file:
             expected_power_signals_d_fix = np.loadtxt(file, delimiter=',')
 
-        actual_power_signals_d_fix = fix_time_shifts(power_signals_d)
+        time_shift = ClusteringTimeShift(power_signals_d)
+        actual_power_signals_d_fix = time_shift.fix_time_shifts()
 
         np.testing.assert_array_equal(actual_power_signals_d_fix,
                                       expected_power_signals_d_fix)
