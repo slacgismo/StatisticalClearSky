@@ -25,3 +25,4 @@ deploy:
     all_branches: true
     tags: true
   skip_cleanup: true
+  twine_version: 1.13.0
