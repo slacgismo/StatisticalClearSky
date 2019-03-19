@@ -1,3 +1,11 @@
+## statistical-clear-sky 0.1.17 (March 15, 2019) ##
+
+* For time shift fix, uses implementation from solar-data-tools package.
+
+## statistical-clear-sky 0.1.16 (March 15, 2019) ##
+
+* Added information about command-line interface to README.
+
 ## statistical-clear-sky 0.1.15 (March 14, 2019) ##
 
 * Added command line interface.
