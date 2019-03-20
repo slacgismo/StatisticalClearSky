@@ -1,3 +1,7 @@
+## statistical-clear-sky 0.1.18 (March 19, 2019) ##
+
+* Continuous Deployment setting.
+
 ## statistical-clear-sky 0.1.17 (March 15, 2019) ##
 
 * For time shift fix, uses implementation from solar-data-tools package.

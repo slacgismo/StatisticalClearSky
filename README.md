@@ -142,7 +142,7 @@ $ pip install statistical-clear-sky
 If you are using Anaconda:
 
 ```sh
-$ conda install -c tadatoshi statistical-clear-sky
+$ conda install -c slacgismo statistical-clear-sky
 ```
 
 ## Usage
