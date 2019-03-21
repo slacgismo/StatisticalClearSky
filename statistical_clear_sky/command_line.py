@@ -21,43 +21,53 @@ def main():
     --max_iteration 10
     '''
 
-    parser = argparse.ArgumentParser(
-        prog='Executes iterative fitting algorithm')
+    parser = argparse.ArgumentParser(prog='statistical_clear_sky')
 
-    # "dest": the name of the variable that holds the name of subparser.
-    subparsers = parser.add_subparsers(title='execute', dest='execute')
+    subparsers = parser.add_subparsers(
+        help="Executes iterative fitting algorithm")
 
     parser_parameter_extraction = subparsers.add_parser('execute')
-    parser_parameter_extraction.add_argument('power_signals_file', nargs='?')
+    parser_parameter_extraction.add_argument('power_signals_file', nargs='?',
+        help=("Path and name of the CSV file containing input power signals, "
+        "representing a matrix with row for dates and colum for time of day"))
     parser_parameter_extraction.add_argument('--rank', nargs='?', type=int,
-        required=False)
+        required=False, help="Rank for target low-rank matrices")
     parser_parameter_extraction.add_argument('--solver_type', nargs='?',
-        type=lambda x:SolverType[x], required=False)
+        type=lambda x:SolverType[x], choices=['ecos', 'mosek'], required=False,
+        help="Solver type")
     parser_parameter_extraction.add_argument('--reserve_test_data', nargs='?',
-        type=lambda x:bool(distutils.util.strtobool(x)), required=False)
+        type=lambda x:bool(distutils.util.strtobool(x)), required=False,
+        help="Ratio of test data that is reserved (> 0.0 and <= 1.0)")
     parser_parameter_extraction.add_argument('--auto_fix_time_shifts',
         nargs='?', type=lambda x:bool(distutils.util.strtobool(x)),
-        required=False)
+        required=False, help="Specifies if time shift is fixed automatically")
     parser_parameter_extraction.add_argument('--mu_l', nargs='?', type=float,
-        required=False)
+        required=False, help="Hyper-parameter for the second term")
     parser_parameter_extraction.add_argument('--mu_r', nargs='?', type=float,
-        required=False)
+        required=False, help="Hyper-parameter for the thrid term")
     parser_parameter_extraction.add_argument('--tau', nargs='?', type=float,
-        required=False)
+        required=False, help="Hyper-parameter for the fourth term")
     parser_parameter_extraction.add_argument('--exit_criterion_epsilon',
-        nargs='?', type=float, required=False)
+        nargs='?', type=float, required=False,
+        help="Exit criterion for iteration")
     parser_parameter_extraction.add_argument('--max_iteration',
-        nargs='?', type=int, required=False)
+        nargs='?', type=int, required=False,
+        help="Maximum number of iterations")
     parser_parameter_extraction.add_argument('--is_degradation_calculated',
         nargs='?', type=lambda x:bool(distutils.util.strtobool(x)),
-        required=False)
+        required=False, help=("Specifies if estimating clear sky signals is " "based on the assumption that there is year-to-year degradation "
+        "or not"))
     parser_parameter_extraction.add_argument('--max_degradation',
-        nargs='?', type=float, required=False)
+        nargs='?', type=float, required=False,
+        help=("Upper limit of degradation. "
+        "(Note; degradation rate is zero or a negative value"))
     parser_parameter_extraction.add_argument('--min_degradation',
-        nargs='?', type=float, required=False)
+        nargs='?', type=float, required=False,
+        help=("Lower limit of degradation. "
+        "(Note; degradation rate is zero or a negative value"))
     parser_parameter_extraction.add_argument('--verbose',
         nargs='?', type=lambda x:bool(distutils.util.strtobool(x)),
-        required=False)
+        required=False, help="If True, verbose message is printed out")
 
     # Note: Calls execute_iterative_fitting function with the arguments:
     parser_parameter_extraction.set_defaults(func=execute_iterative_fitting)
