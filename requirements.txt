@@ -1,5 +1,6 @@
 cvxpy>=1.0
-numpy
+numpy>=1.16
 pandas
 matplotlib
 seaborn
+solar-data-tools

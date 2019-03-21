@@ -13,7 +13,7 @@ logs
 
 ### Data ###
 notebooks/local_cache
-*.csv
+notebooks/*.csv
 *.dat
 *.efx
 *.gbr
@@ -275,3 +275,6 @@ pip-selfcheck.json
 
 
 # End of https://www.gitignore.io/api/data,macos,python,pycharm,database
+
+data/PVO/
+data/stanford_university/
