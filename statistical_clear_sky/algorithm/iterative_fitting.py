@@ -171,15 +171,13 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             iteration = 0
             f1_last = objective_values[0]
 
-            left_matrix_minimization = LeftMatrixMinimization(
-                self._power_signals_d, self._rank_k, weights, tau, mu_l,
-                solver_type=self._solver_type)
-            right_matrix_minimization = RightMatrixMinimization(
-                self._power_signals_d, self._rank_k, weights, tau, mu_r,
+            left_matrix_minimization = self.left_matrix_minimization(weights,
+                tau, mu_l)
+            right_matrix_minimization = self.right_matrix_minimization(
+                weights, tau, mu_r,
                 is_degradation_calculated=is_degradation_calculated,
                 max_degradation=max_degradation,
-                min_degradation=min_degradation,
-                solver_type=self._solver_type)
+                min_degradation=min_degradation)
 
             while improvement >= exit_criterion_epsilon:
                 self._store_minimization_state_data(mu_l, mu_r, tau,
@@ -395,10 +393,49 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 self._matrix_l0[:, 0] - l_cs_value[:, 0])
 
     def _time_shift(self, power_signals_d):
-        '''
+        """
         Method in order to define which TimeShift to use.
-        '''
+        """
         return ClusteringTimeShift(power_signals_d)
+
+    def left_matrix_minimization(self, weights, tau, mu_l):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        if ((not hasattr(self, '_left_matrix_minimization')) or
+           (self._left_matrix_minimization is None)):
+           return LeftMatrixMinimization(
+               self._power_signals_d, self._rank_k, weights, tau, mu_l,
+               solver_type=self._solver_type)
+        return self._left_matrix_minimization
+
+    def set_left_matrix_minimization(self, value):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        self._left_matrix_minimization = value
+
+    def right_matrix_minimization(self, weights, tau, mu_r,
+        is_degradation_calculated=True,
+        max_degradation=None, min_degradation=None):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        if ((not hasattr(self, '_right_matrix_minimization')) or
+           (self._right_matrix_minimization is None)):
+           return RightMatrixMinimization(
+               self._power_signals_d, self._rank_k, weights, tau, mu_r,
+               is_degradation_calculated=is_degradation_calculated,
+               max_degradation=max_degradation,
+               min_degradation=min_degradation,
+               solver_type=self._solver_type)
+        return self._right_matrix_minimization
+
+    def set_right_matrix_minimization(self, value):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        self._right_matrix_minimization = value
 
     def _keep_result_variables_as_properties(self, l_cs_value, r_cs_value,
                                              beta_value):
