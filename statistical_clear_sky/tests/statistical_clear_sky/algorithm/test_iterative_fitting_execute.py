@@ -5,6 +5,10 @@ import numpy as np
 import cvxpy as cvx
 from statistical_clear_sky.algorithm.iterative_fitting import IterativeFitting
 from statistical_clear_sky.solver_type import SolverType
+from statistical_clear_sky.algorithm.initialization.linearization_helper\
+ import LinearizationHelper
+from statistical_clear_sky.algorithm.initialization.weight_setting\
+ import WeightSetting
 from statistical_clear_sky.algorithm.minimization.left_matrix\
  import LeftMatrixMinimization
 from statistical_clear_sky.algorithm.minimization.right_matrix\
@@ -13,6 +17,26 @@ from statistical_clear_sky.algorithm.minimization.right_matrix\
 class TestIterativeFittingExecute(unittest.TestCase):
 
     def setUp(self):
+
+        initial_r0_value_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+            "../fixtures/for_mock/initial_r0_value_1.csv"))
+        with open(initial_r0_value_file_path) as file:
+            linearization_helper_return_value = np.loadtxt(file, delimiter=',')
+
+        self.mock_linearization_helper = Mock(spec=LinearizationHelper)
+        self.mock_linearization_helper.obtain_component_r0.return_value =\
+            linearization_helper_return_value
+
+        weights_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+                         "../fixtures/for_mock/weights_1.csv"))
+        with open(weights_file_path) as file:
+            weight_setting_return_value = np.loadtxt(file, delimiter=',')
+
+        self.mock_weight_setting = Mock(spec=WeightSetting)
+        self.mock_weight_setting.obtain_weights.return_value =\
+            weight_setting_return_value
 
         left_matrix_minimize_return_values = []
 
@@ -102,10 +126,16 @@ class TestIterativeFittingExecute(unittest.TestCase):
         try: # try block for solver usage at initialization.
             iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
                                                  solver_type=SolverType.mosek)
+
+            # Inject mock objects by dependency injection:
+            iterative_fitting.set_linearization_helper(
+                self.mock_linearization_helper)
+            iterative_fitting.set_weight_setting(self.mock_weight_setting)
             iterative_fitting.set_left_matrix_minimization(
                 self.mock_left_matrix_minimization)
             iterative_fitting.set_right_matrix_minimization(
                 self.mock_right_matrix_minimization)
+
             iterative_fitting.execute(mu_l=5e2, mu_r=1e3, tau=0.9,
                                       max_iteration=10)
         except cvx.SolverError:

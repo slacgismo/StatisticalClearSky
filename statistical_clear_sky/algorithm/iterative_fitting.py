@@ -50,11 +50,6 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._matrix_r0 = np.diag(self._singular_values_sigma[:rank_k]).dot(
             right_low_rank_matrix_v[:rank_k, :])
 
-        self._linearization_helper = LinearizationHelper(
-            solver_type=self._solver_type)
-
-        self._weight_setting = WeightSetting(solver_type=self._solver_type)
-
         self._set_testdays(power_signals_d, reserve_test_data)
 
         # Stores the current state of the object:
@@ -171,9 +166,9 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             iteration = 0
             f1_last = objective_values[0]
 
-            left_matrix_minimization = self.left_matrix_minimization(weights,
-                tau, mu_l)
-            right_matrix_minimization = self.right_matrix_minimization(
+            left_matrix_minimization = self._get_left_matrix_minimization(
+                weights, tau, mu_l)
+            right_matrix_minimization = self._get_right_matrix_minimization(
                 weights, tau, mu_r,
                 is_degradation_calculated=is_degradation_calculated,
                 max_degradation=max_degradation,
@@ -336,7 +331,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         if self._state_data.component_r0.size > 0:
             component_r0 = self._state_data.component_r0
         else:
-            component_r0 = self._linearization_helper.obtain_component_r0(
+            component_r0 = self._get_linearization_helper().obtain_component_r0(
                 self._power_signals_d, self._left_low_rank_matrix_u,
                 self._singular_values_sigma, self._right_low_rank_matrix_v,
                 rank_k=self._rank_k)
@@ -348,7 +343,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         if self._state_data.weights.size > 0:
             weights = self._state_data.weights
         else:
-            weights = self._weight_setting.obtain_weights(self._power_signals_d)
+            weights = self._get_weight_setting().obtain_weights(
+                self._power_signals_d)
             if self._test_days is not None:
                 weights[self._test_days] = 0
         return weights
@@ -398,7 +394,39 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         """
         return ClusteringTimeShift(power_signals_d)
 
-    def left_matrix_minimization(self, weights, tau, mu_l):
+    def _get_linearization_helper(self):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        if ((not hasattr(self, '_linearization_helper')) or
+           (self._linearization_helper is None)):
+           return LinearizationHelper(solver_type=self._solver_type)
+        else: # This must be mock object inject from test
+           return self._linearization_helper
+
+    def set_linearization_helper(self, value):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        self._linearization_helper = value
+
+    def _get_weight_setting(self):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        if ((not hasattr(self, '_weight_setting')) or
+           (self._weight_setting is None)):
+           return WeightSetting(solver_type=self._solver_type)
+        else: # This must be mock object inject from test
+           return self._weight_setting
+
+    def set_weight_setting(self, value):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        self._weight_setting = value
+
+    def _get_left_matrix_minimization(self, weights, tau, mu_l):
         """
         For dependency injection for testing, i.e. for injecting mock.
         """
@@ -407,7 +435,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
            return LeftMatrixMinimization(
                self._power_signals_d, self._rank_k, weights, tau, mu_l,
                solver_type=self._solver_type)
-        return self._left_matrix_minimization
+        else: # This must be mock object inject from test
+            return self._left_matrix_minimization
 
     def set_left_matrix_minimization(self, value):
         """
@@ -415,7 +444,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         """
         self._left_matrix_minimization = value
 
-    def right_matrix_minimization(self, weights, tau, mu_r,
+    def _get_right_matrix_minimization(self, weights, tau, mu_r,
         is_degradation_calculated=True,
         max_degradation=None, min_degradation=None):
         """
@@ -429,7 +458,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                max_degradation=max_degradation,
                min_degradation=min_degradation,
                solver_type=self._solver_type)
-        return self._right_matrix_minimization
+        else: # This must be mock object inject from test
+            return self._right_matrix_minimization
 
     def set_right_matrix_minimization(self, value):
         """
