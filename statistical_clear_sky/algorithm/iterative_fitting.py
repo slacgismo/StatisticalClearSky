@@ -29,12 +29,13 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     """
 
     def __init__(self, power_signals_d, rank_k=4, solver_type=SolverType.ecos,
-                 reserve_test_data=False, auto_fix_time_shifts=True):
+                 reserve_test_data=False, auto_fix_time_shifts=True,
+                 time_shift=None):
 
         self._solver_type = solver_type
 
-        self._power_signals_d = self._handle_time_shift(power_signals_d,
-                                                        auto_fix_time_shifts)
+        self._power_signals_d = self._handle_time_shift(
+            power_signals_d, auto_fix_time_shifts, time_shift=time_shift)
         self._rank_k = rank_k
 
         left_low_rank_matrix_u, singular_values_sigma, right_low_rank_matrix_v \
@@ -275,11 +276,12 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         else:
             return components
 
-    def _handle_time_shift(self, power_signals_d, auto_fix_time_shifts):
+    def _handle_time_shift(self, power_signals_d, auto_fix_time_shifts,
+                           time_shift=None):
         self._fixed_time_stamps = False
         if auto_fix_time_shifts:
             power_signals_d_fix = self._get_time_shift(
-                power_signals_d).fix_time_shifts()
+                power_signals_d, time_shift=time_shift).fix_time_shifts()
             if np.alltrue(np.isclose(power_signals_d, power_signals_d_fix)):
                 del power_signals_d_fix
             else:
@@ -388,24 +390,19 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._residual_l0_norm = np.linalg.norm(
                 self._matrix_l0[:, 0] - l_cs_value[:, 0])
 
-    def _get_time_shift(self, power_signals_d):
+    def _get_time_shift(self, power_signals_d, time_shift=None):
         """
         Method in order to define which TimeShift to use.
 
         This also works for dependency injection for testing,
         i.e. for injecting mock.
+        Since it's used in constructor,
+        TimeShift is injected through constructor.
         """
-        if ((not hasattr(self, '_time_shift')) or
-            (self._time_shift is None)):
+        if time_shift is not None:
             return ClusteringTimeShift(power_signals_d)
         else:
-            return self._time_shift
-
-    def set_time_shift(self, value):
-        """
-        For dependency injection for testing, i.e. for injecting mock.
-        """
-        self._time_shift = value
+            return time_shift
 
     def _get_linearization_helper(self):
         """
