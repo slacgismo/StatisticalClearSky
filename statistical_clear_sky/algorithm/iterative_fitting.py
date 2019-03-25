@@ -399,7 +399,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         Since it's used in constructor,
         TimeShift is injected through constructor.
         """
-        if time_shift is not None:
+        if time_shift is None:
             return ClusteringTimeShift(power_signals_d)
         else:
             return time_shift
