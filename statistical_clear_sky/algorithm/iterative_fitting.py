@@ -278,7 +278,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     def _handle_time_shift(self, power_signals_d, auto_fix_time_shifts):
         self._fixed_time_stamps = False
         if auto_fix_time_shifts:
-            power_signals_d_fix = self._time_shift(
+            power_signals_d_fix = self._get_time_shift(
                 power_signals_d).fix_time_shifts()
             if np.alltrue(np.isclose(power_signals_d, power_signals_d_fix)):
                 del power_signals_d_fix
@@ -388,11 +388,24 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._residual_l0_norm = np.linalg.norm(
                 self._matrix_l0[:, 0] - l_cs_value[:, 0])
 
-    def _time_shift(self, power_signals_d):
+    def _get_time_shift(self, power_signals_d):
         """
         Method in order to define which TimeShift to use.
+
+        This also works for dependency injection for testing,
+        i.e. for injecting mock.
         """
-        return ClusteringTimeShift(power_signals_d)
+        if ((not hasattr(self, '_time_shift')) or
+            (self._time_shift is None)):
+            return ClusteringTimeShift(power_signals_d)
+        else:
+            return self._time_shift
+
+    def set_time_shift(self, value):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        self._time_shift = value
 
     def _get_linearization_helper(self):
         """

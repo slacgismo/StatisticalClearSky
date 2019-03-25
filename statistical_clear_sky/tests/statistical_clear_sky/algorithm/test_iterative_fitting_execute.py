@@ -5,6 +5,8 @@ import numpy as np
 import cvxpy as cvx
 from statistical_clear_sky.algorithm.iterative_fitting import IterativeFitting
 from statistical_clear_sky.solver_type import SolverType
+from statistical_clear_sky.algorithm.time_shift.clustering\
+import AbstractTimeShift
 from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
 from statistical_clear_sky.algorithm.initialization.weight_setting\
@@ -17,6 +19,16 @@ from statistical_clear_sky.algorithm.minimization.right_matrix\
 class TestIterativeFittingExecute(unittest.TestCase):
 
     def setUp(self):
+
+        fixed_power_signals_d_file_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__),
+            "../fixtures/for_mock/power_signals_d_with_time_shift_fix_1.csv"))
+        with open(fixed_power_signals_d_file_path) as file:
+            fixed_power_signals_d = np.loadtxt(file, delimiter=',')
+
+        self.mock_time_shift = Mock(spec=AbstractTimeShift)
+        self.mock_time_shift.fix_time_shifts.return_value =\
+            fixed_power_signals_d
 
         initial_r0_value_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
@@ -123,33 +135,28 @@ class TestIterativeFittingExecute(unittest.TestCase):
             expected_clear_sky_signals = np.loadtxt(file, delimiter=',')
         expected_degradation_rate = np.array(-0.04215127)
 
-        try: # try block for solver usage at initialization.
-            iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
-                                                 solver_type=SolverType.mosek)
-        except cvx.SolverError:
-            self.skipTest("This test uses MOSEK solver"
-                + "because default ECOS solver fails with large data. "
-                + "Unless MOSEK is installed, this test fails.")
-        else:
-            # Inject mock objects by dependency injection:
-            iterative_fitting.set_linearization_helper(
-                self.mock_linearization_helper)
-            iterative_fitting.set_weight_setting(self.mock_weight_setting)
-            iterative_fitting.set_left_matrix_minimization(
-                self.mock_left_matrix_minimization)
-            iterative_fitting.set_right_matrix_minimization(
-                self.mock_right_matrix_minimization)
+        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k)
 
-            iterative_fitting.execute(mu_l=5e2, mu_r=1e3, tau=0.9,
-                                      max_iteration=10)
+        # Inject mock objects by dependency injection:
+        iterative_fitting.set_time_shift(self.mock_time_shift)
+        iterative_fitting.set_linearization_helper(
+            self.mock_linearization_helper)
+        iterative_fitting.set_weight_setting(self.mock_weight_setting)
+        iterative_fitting.set_left_matrix_minimization(
+            self.mock_left_matrix_minimization)
+        iterative_fitting.set_right_matrix_minimization(
+            self.mock_right_matrix_minimization)
 
-            actual_clear_sky_signals = iterative_fitting.clear_sky_signals()
-            actual_degradation_rate = iterative_fitting.degradation_rate()
+        iterative_fitting.execute(mu_l=5e2, mu_r=1e3, tau=0.9,
+                                  max_iteration=10)
 
-            np.testing.assert_array_equal(actual_clear_sky_signals,
-                                          expected_clear_sky_signals)
-            # np.testing.assert_array_equal(actual_degradation_rate,
-            #                               expected_degradation_rate)
-            np.testing.assert_almost_equal(actual_degradation_rate,
-                                           expected_degradation_rate,
-                                           decimal=8)
+        actual_clear_sky_signals = iterative_fitting.clear_sky_signals()
+        actual_degradation_rate = iterative_fitting.degradation_rate()
+
+        np.testing.assert_array_equal(actual_clear_sky_signals,
+                                      expected_clear_sky_signals)
+        # np.testing.assert_array_equal(actual_degradation_rate,
+        #                               expected_degradation_rate)
+        np.testing.assert_almost_equal(actual_degradation_rate,
+                                       expected_degradation_rate,
+                                       decimal=8)
