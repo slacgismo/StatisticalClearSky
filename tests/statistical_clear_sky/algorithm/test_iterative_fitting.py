@@ -7,25 +7,6 @@ from statistical_clear_sky.solver_type import SolverType
 
 class TestIterativeFitting(unittest.TestCase):
 
-    def test_initialization(self):
-
-        # Data from Example_02 Jupyter notebook.
-        # From 100th to 103th element of outer array,
-        # first 4 elements of inner array.
-        power_signals_d = np.array([[3.65099996e-01, 0.00000000e+00,
-                                     0.00000000e+00, 2.59570003e+00],
-                                    [6.21100008e-01, 0.00000000e+00,
-                                     0.00000000e+00, 2.67740011e+00],
-                                    [8.12500000e-01, 0.00000000e+00,
-                                     0.00000000e+00, 2.72729993e+00],
-                                    [9.00399983e-01, 0.00000000e+00,
-                                     0.00000000e+00, 2.77419996e+00]])
-        rank_k = 4
-        solver_type = SolverType.ecos
-
-        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
-            solver_type=SolverType.ecos, auto_fix_time_shifts=False)
-
     def test_calculate_objective_before_iteration_1(self):
 
         input_power_signals_file_path = os.path.abspath(
@@ -77,55 +58,6 @@ class TestIterativeFitting(unittest.TestCase):
         np.testing.assert_almost_equal(actual_objective_values,
                                        expected_objective_values,
                                        decimal=6)
-
-    def test_calculate_objective_iteration_1(self):
-
-        input_power_signals_file_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__),
-                         "../fixtures/power_signals_d_1.csv"))
-        with open(input_power_signals_file_path) as file:
-            power_signals_d = np.loadtxt(file, delimiter=',')
-
-        rank_k = 6
-
-        mu_l = 5e2
-        mu_r = 1e3
-        tau = 0.9
-
-        initial_l_cs_value_file_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__),
-            "../fixtures/objective_calculation",
-            "l_cs_value_after_iteration_1_1.csv"))
-        with open(initial_l_cs_value_file_path) as file:
-            l_cs_value = np.loadtxt(file, delimiter=',')
-
-        initial_r_cs_value_file_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__),
-            "../fixtures/objective_calculation",
-            "r_cs_value_after_iteration_1_1.csv"))
-        with open(initial_r_cs_value_file_path) as file:
-            r_cs_value = np.loadtxt(file, delimiter=',')
-
-        beta_value = 0.0
-
-        weights_file_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__),
-                         "../fixtures/weights_1.csv"))
-        with open(weights_file_path) as file:
-            weights = np.loadtxt(file, delimiter=',')
-
-        expected_objective_values = np.array([1911.9056612619852,
-            20.310140581069636, 207.5667132341283, 4.7643179724417583e-05])
-
-        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
-                                             auto_fix_time_shifts=False)
-
-        actual_objective_values = iterative_fitting._calculate_objective(
-            mu_l, mu_r, tau, l_cs_value, r_cs_value,
-            beta_value, weights, sum_components=False)
-
-        np.testing.assert_array_equal(actual_objective_values,
-                                      expected_objective_values)
 
     def test_calculate_objective_iteration_2(self):
 
@@ -181,9 +113,6 @@ class TestIterativeFitting(unittest.TestCase):
 
     def test_adjust_low_rank_matrices(self):
 
-        # Data from Example_02 Jupyter notebook.
-        # From 100th to 103th element of outer array,
-        # first 4 elements of inner array.
         power_signals_d = np.array([[3.65099996e-01, 0.00000000e+00,
                                      0.00000000e+00, 2.59570003e+00],
                                     [6.21100008e-01, 0.00000000e+00,
