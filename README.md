@@ -8,117 +8,6 @@ Statistical estimation of a clear sky signal from PV system power data
 ## Getting Started
 
 You can install pip package or Anaconda package for this project.
-Alternatively, you can clone this repository (GIT) and execute the example codes under notebooks folder.
-
-### Prerequisites
-
-When you install this project as PIP package, dependencies are automatically installed.
-
-As of February 11, 2019, it fails because scs package installed as a dependency of cxvpy expects numpy to be already installed.
-[scs issue 85](https://github.com/cvxgrp/scs/issues/85) says, it is fixed.
-However, it doesn't seem to be reflected in its pip package.
-Also, cvxpy doesn't work with numpy version less than 1.16.
-As a work around, install numpy separatly first and then install this package.
-i.e.
-```sh
-$ pip install 'numpy>=1.16'
-```
-
-When you use this project in any other ways, the following instruction can be useful.
-
-Simplest way to install dependencies if you are using pip is by
-
-```sh
-$ pip install -r requirements.txt
-```
-
-As of February 11, 2019, it fails because scs package installed as a dependency of cxvpy expects numpy to be already installed.
-[scs issue 85](https://github.com/cvxgrp/scs/issues/85) says, it is fixed.
-However, it doesn't seem to be reflected in its pip package.
-Also, cvxpy doesn't work with numpy version less than 1.16.
-As a work around, install numpy separatly first and install the other packages using requirements.txt. i.e.
-```sh
-$ pip install 'numpy>=1.16'
-$ pip install -r requirements.txt
-```
-
-In case, you run example codes under notebooks folder in Jupyter notebook, especially run in Anaconda environment, you may need to take care of the following.   
-
-* [cvxpy](https://www.cvxpy.org/) - For Convex optimization.
-
-    If you are using pip:
-    ```sh
-    $ pip install cvxpy
-    ```
-
-    If you are using Anaconda:
-    ```sh
-    $ conda install -c conda-forge lapack
-    $ conda install -c cvxgrp cvxpy
-    ```
-
-* [mosek](https://www.mosek.com/resources/getting-started/) - For using MOSEK solver.
-
-    An example code in Jupyter notebook depends on it.
-    Thus, this package is necessary only when running the example code.
-
-    If you are using pip:
-    ```sh
-    $ pip install -f https://download.mosek.com/stable/wheel/index.html Mosek
-    ```
-
-    If you are using Anaconda:
-    ```sh
-    $ conda install -c mosek mosek
-    ```
-
-* [cassandra-driver](http://datastax.github.io/python-driver/index.html) - [Optional] - For accessing Cassandra database.
-
-    An example code in Jupyter notebook depends on it.
-    Thus, this package is necessary only when running the example code.
-
-    If you are using pip:
-    ```sh
-    $ pip install cassandra-driver
-    ```
-
-    If you are using Anaconda:
-    ```sh
-    $ conda install -c conda-forge cassandra-driver
-    ```
-
-* [s3fs](http://datastax.github.io/python-driver/index.html) - [Optional] - For accessing Amazon S3.
-
-    An example code in Jupyter notebook depends on it.
-    Thus, this package is necessary only when running the example code.
-
-    If you are using pip:
-    ```sh
-    $ pip install s3fs
-    ```
-
-    If you are using Anaconda:
-    ```sh
-    $ conda install -c conda-forge s3fs
-    ```
-
-#### Solvers
-
-By default, ECOS solver is used, which is supported by cvxpy because it is Open Source.
-
-However, it is found that Mosek solver is more stable. Thus, we encourage you to install it separately as below and obtain the license on your own.
-
-* [mosek](https://www.mosek.com/resources/getting-started/) - For using MOSEK solver.
-
-    If you are using pip:
-    ```sh
-    $ pip install -f https://download.mosek.com/stable/wheel/index.html Mosek
-    ```
-
-    If you are using Anaconda:
-    ```sh
-    $ conda install -c mosek mosek
-    ```
 
 ### Installation
 
@@ -139,11 +28,29 @@ $ pip install 'numpy>=1.16'
 $ pip install statistical-clear-sky
 ```
 
-If you are using Anaconda:
+If you are using Anaconda, the problem described above doesn't occur since numpy is already installed. And during statistical-clear-sky installation, numpy is upgraded above 1.16:
 
 ```sh
 $ conda install -c slacgismo statistical-clear-sky
 ```
+
+#### Solvers
+
+By default, ECOS solver is used, which is supported by cvxpy because it is Open Source.
+
+However, it is found that Mosek solver is more stable. Thus, we encourage you to install it separately as below and obtain the license on your own.
+
+* [mosek](https://www.mosek.com/resources/getting-started/) - For using MOSEK solver.
+
+    If you are using pip:
+    ```sh
+    $ pip install -f https://download.mosek.com/stable/wheel/index.html Mosek
+    ```
+
+    If you are using Anaconda:
+    ```sh
+    $ conda install -c mosek mosek
+    ```
 
 ## Usage
 
@@ -349,9 +256,28 @@ clear_sky_signals = iterative_fitting.clear_sky_signals()
 degradation_rate = iterative_fitting.degradation_rate()
 ```
 
-## Running the tests
+## Jupyter notebook examples
 
-So far, there are unit tests. Integration tests may be added if found necessary.
+Alternatively, you can clone this repository (GIT) and execute the example codes under notebooks folder.
+
+Simplest way to install dependencies if you are using pip is by
+
+```sh
+$ pip install -r requirements.txt
+```
+
+As mentioned in the section, "Getting Started" above,
+as of February 11, 2019, it fails because scs package installed as a dependency of cxvpy expects numpy to be already installed.
+[scs issue 85](https://github.com/cvxgrp/scs/issues/85) says, it is fixed.
+However, it doesn't seem to be reflected in its pip package.
+Also, cvxpy doesn't work with numpy version less than 1.16.
+As a work around, install numpy separatly first and install the other packages using requirements.txt. i.e.
+```sh
+$ pip install 'numpy>=1.16'
+$ pip install -r requirements.txt
+```
+
+## Running the tests
 
 ### Unit tests (developer tests)
 
