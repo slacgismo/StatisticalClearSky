@@ -155,8 +155,9 @@ class TestIterativeFittingExecute(unittest.TestCase):
         actual_clear_sky_signals = iterative_fitting.clear_sky_signals()
         actual_degradation_rate = iterative_fitting.degradation_rate()
 
-        np.testing.assert_array_equal(actual_clear_sky_signals,
-                                      expected_clear_sky_signals)
+        np.testing.assert_almost_equal(actual_clear_sky_signals,
+                                       expected_clear_sky_signals,
+                                       decimal=14)
         # np.testing.assert_array_equal(actual_degradation_rate,
         #                               expected_degradation_rate)
         np.testing.assert_almost_equal(actual_degradation_rate,
