@@ -18,7 +18,7 @@ class ClusteringTimeShift(AbstractTimeShift):
         Arguments
         ---------
         power_signals_d : numpy array
-            Representing a matrix with row for dates and colum for time of day,
+            Representing a matrix with row for dates and column for time of day,
             containing input power signals.
 
         Keyword arguments

@@ -26,11 +26,11 @@ class TestWeightSetting(unittest.TestCase):
 
         np.testing.assert_array_equal(actual_weights, expected_weights)
 
-    def test_obtain_weights_with_example_02_data(self):
+    def test_obtain_weights_with_large_data(self):
 
         input_power_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-            "../../fixtures/initialization/simple_power_signals_d_1.csv"))
+            "../../fixtures/initialization/one_year_power_signals_1.csv"))
         with open(input_power_signals_file_path) as file:
             power_signals_d = np.loadtxt(file, delimiter=',')
 
