@@ -43,9 +43,10 @@ class TestLinealizationHelper(unittest.TestCase):
         linearization_helper = LinearizationHelper(solver_type=SolverType.ecos)
         left_low_rank_matrix_u, singular_values_sigma, right_low_rank_matrix_v \
             = np.linalg.svd(power_signals_d)
+        initial_r_cs_value = np.diag(singular_values_sigma[:rank_k]).dot(
+                    right_low_rank_matrix_v[:rank_k, :])
         actual_result = linearization_helper.obtain_component_r0(
-            power_signals_d, left_low_rank_matrix_u, singular_values_sigma,
-            right_low_rank_matrix_v, rank_k=rank_k)
+            initial_r_cs_value, rank_k=rank_k)
 
         np.testing.assert_almost_equal(actual_result, expected_result,
                                        decimal=2)

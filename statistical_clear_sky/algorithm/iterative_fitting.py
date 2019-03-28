@@ -298,15 +298,11 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         if self._state_data.l_value.size > 0:
             l_cs_value = self._state_data.l_value
         else:
-            l_cs_value = self._decomposition.left_low_rank_matrix_u[
-                :,:self._rank_k]
+            l_cs_value = self._decomposition.matrix_l0
         if self._state_data.r_value.size > 0:
             r_cs_value = self._state_data.r_value
         else:
-            r_cs_value = np.diag(
-                self._decomposition.singular_values_sigma[:self._rank_k]).dot(
-                    self._decomposition.right_low_rank_matrix_v[
-                        :self._rank_k, :])
+            r_cs_value = self._decomposition.matrix_r0
         if self._state_data.beta_value != 0.0:
             beta_value = self._state_data.beta_value
         else:
