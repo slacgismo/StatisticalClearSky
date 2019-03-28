@@ -36,7 +36,7 @@ class TestWeightSetting(unittest.TestCase):
 
         weights_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                         "../../fixtures/initialization/weights_1.csv"))
+                "../../fixtures/initialization/one_year_weights_1.csv"))
         with open(weights_file_path) as file:
             expected_weights = np.loadtxt(file, delimiter=',')
 
