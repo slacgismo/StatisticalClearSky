@@ -19,14 +19,6 @@ class TestLinealizationHelper(unittest.TestCase):
 
     def test_obtain_component_r0(self):
 
-        # input_power_signals_file_path = os.path.abspath(
-        #     os.path.join(os.path.dirname(__file__),
-        #                  "../fixtures/daily_signals_1.txt"))
-        # power_signals_d = np.loadtxt(input_power_signals_file_path,
-        #                            delimiter = ',')
-        #
-        # print("power_signals_d: %s" % (power_signals_d))
-
         power_signals_d = np.array([[3.65099996e-01, 0.00000000e+00,
                                      0.00000000e+00, 2.59570003e+00],
                                     [6.21100008e-01, 0.00000000e+00,
@@ -46,7 +38,7 @@ class TestLinealizationHelper(unittest.TestCase):
         initial_r_cs_value = np.diag(singular_values_sigma[:rank_k]).dot(
                     right_low_rank_matrix_v[:rank_k, :])
         actual_result = linearization_helper.obtain_component_r0(
-            initial_r_cs_value, rank_k=rank_k)
+            initial_r_cs_value)
 
         np.testing.assert_almost_equal(actual_result, expected_result,
                                        decimal=2)

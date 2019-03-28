@@ -15,14 +15,33 @@ class LinearizationHelper(object):
     """
 
     def __init__(self, solver_type=SolverType.ecos):
+        """
+        Keyword arguments
+        -----------------
+        solver_type : SolverType Enum
+            Type of solver.
+            See statistical_clear_sky.solver_type.SolverType for valid solvers.
+        """
         self._solver_type = solver_type
 
-    def obtain_component_r0(self, initial_r_cs_value, rank_k=4):
+    def obtain_component_r0(self, initial_r_cs_value):
+        """
+        Obtains the initial r0 values that are used in place of variables
+        denominator of degradation equation.
+        Removed duplicated code from the original implementation.
 
-        ########################################################
-        # Beginning of extracted code from the constructor of
-        # main.IterativeClearSky
-        ########################################################
+        Arguments
+        -----------------
+        initial_r_cs_value : numpy array
+            Initial low dimension right matrix.
+
+        Returns
+        -------
+        numpy array
+            The values that is used in order to make the constraint of
+            degradation to be linear.
+        """
+
         component_r0 = initial_r_cs_value[0]
         x = cvx.Variable(initial_r_cs_value.shape[1])
         objective = cvx.Minimize(
@@ -31,9 +50,5 @@ class LinearizationHelper(object):
         problem = cvx.Problem(objective)
         problem.solve(solver=self._solver_type.value)
         result_component_r0 = x.value
-        ########################################################
-        # End of extracted code from the constructor of
-        # main.IterativeClearSky
-        ########################################################
-
+ 
         return result_component_r0

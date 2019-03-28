@@ -318,11 +318,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             component_r0 = self._state_data.component_r0
         else:
             component_r0 = self._get_linearization_helper().obtain_component_r0(
-                self._power_signals_d,
-                self._decomposition.left_low_rank_matrix_u,
-                self._decomposition.singular_values_sigma,
-                self._decomposition.right_low_rank_matrix_v,
-                rank_k=self._rank_k)
+                self._decomposition.matrix_r0)
         return component_r0
 
     def _obtain_weights(self, verbose=True):

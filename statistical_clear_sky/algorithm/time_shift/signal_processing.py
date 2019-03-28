@@ -33,6 +33,9 @@ class SignalProcessingTimeShift(AbstractTimeShift):
         tolerance : float
             The difference under this value is considered not to have time
             shift.
+        solver_type : SolverType Enum
+            Type of solver.
+            See statistical_clear_sky.solver_type.SolverType for valid solvers.
         """
         super().__init__(power_signals_d)
         self._weight = weight
