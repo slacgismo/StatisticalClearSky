@@ -71,7 +71,8 @@ class TestLeftMatrixMinimization(unittest.TestCase):
 
         input_power_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-            "../../fixtures/left_matrix_minimization/power_signals_d_1.csv"))
+            "../../fixtures/left_matrix_minimization",
+            "three_years_power_signals_d_1.csv"))
         with open(input_power_signals_file_path) as file:
             power_signals_d = np.loadtxt(file, delimiter=',')
 
@@ -79,7 +80,8 @@ class TestLeftMatrixMinimization(unittest.TestCase):
 
         weights_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                "../../fixtures/left_matrix_minimization/weights_1.csv"))
+                "../../fixtures/left_matrix_minimization",
+                "three_years_weights.csv"))
         with open(weights_file_path) as file:
             weights = np.loadtxt(file, delimiter=',')
 
@@ -88,13 +90,15 @@ class TestLeftMatrixMinimization(unittest.TestCase):
 
         initial_l_cs_value_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-            "../../fixtures/left_matrix_minimization/initial_l_cs_value_1.csv"))
+            "../../fixtures/left_matrix_minimization",
+            "three_years_initial_l_cs_value.csv"))
         with open(initial_l_cs_value_file_path) as file:
             initial_l_cs_value = np.loadtxt(file, delimiter=',')
 
         initial_r_cs_value_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-            "../../fixtures/left_matrix_minimization/initial_r_cs_value_1.csv"))
+            "../../fixtures/left_matrix_minimization",
+            "three_years_initial_r_cs_value.csv"))
         with open(initial_r_cs_value_file_path) as file:
             initial_r_cs_value = np.loadtxt(file, delimiter=',')
 
@@ -103,14 +107,14 @@ class TestLeftMatrixMinimization(unittest.TestCase):
         l_cs_value_after_iteration_1_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
             "../../fixtures/left_matrix_minimization",
-            "l_cs_value_after_iteration_1_1.csv"))
+            "l_cs_value_after_left_matrix_minimization_iteration_1.csv"))
         with open(l_cs_value_after_iteration_1_file_path) as file:
             expected_l_cs_value = np.loadtxt(file, delimiter=',')
 
         r_cs_value_after_iteration_1_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
             "../../fixtures/left_matrix_minimization",
-            "r_cs_value_after_iteration_1_1.csv"))
+            "r_cs_value_after_left_matrix_minimization_iteration_1.csv"))
         with open(r_cs_value_after_iteration_1_file_path) as file:
             expected_r_cs_value = np.loadtxt(file, delimiter=',')
 
@@ -118,7 +122,8 @@ class TestLeftMatrixMinimization(unittest.TestCase):
 
         initial_r0_value_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-            "../../fixtures/right_matrix_minimization/initial_r0_value_1.csv"))
+            "../../fixtures/left_matrix_minimization",
+            "three_years_initial_component_r0.csv"))
         with open(initial_r0_value_file_path) as file:
             initial_component_r0_value = np.loadtxt(file, delimiter=',')
 
