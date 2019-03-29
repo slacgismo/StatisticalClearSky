@@ -15,14 +15,17 @@ class ClusteringTimeShift(AbstractTimeShift):
 
     def __init__(self, power_signals_d, return_ixs=False):
         """
-        Arguments:
-            power_signals_d (numpy array): Representing a matrix with row for
-                                           dates and colum for time of day,
-                                           containing input power signals.
-        Keyword arguments:
-            return_ixs (boolean): If it's set to True, index set is returned
-                                  along with the power signals with fixed time
-                                  shift.
+        Arguments
+        ---------
+        power_signals_d : numpy array
+            Representing a matrix with row for dates and column for time of day,
+            containing input power signals.
+
+        Keyword arguments
+        -----------------
+        return_ixs : boolean
+            If it's set to True, index set is returned along with the power
+            signals with fixed time shift.
         """
         super().__init__(power_signals_d)
         self._return_ixs = return_ixs
@@ -34,14 +37,18 @@ class ClusteringTimeShift(AbstractTimeShift):
         changed.
         If the format of the input arguments of the underlying method changes,
         the translation from the arguments from IterativeFitting to those input
-        arguments is performed in here. 
+        arguments is performed in here.
 
-        Keyword arguments:
-            verbose (boolean): If True, verbose message is printed out.
-        Returns:
-            numpy array: Representing a matrix with row for dates and colum for
-                         time of day, containing power signals with fixed time
-                         shift.
+        Keyword arguments
+        -----------------
+        verbose :boolean
+            If True, verbose message is printed out.
+
+        Returns
+        -------
+        numpy array
+            Representing a matrix with row for dates and colum for time of day,
+            containing power signals with fixed time shift.
         """
         return fix_time_shifts(self._power_signals_d,
             return_ixs=self._return_ixs, verbose=False)

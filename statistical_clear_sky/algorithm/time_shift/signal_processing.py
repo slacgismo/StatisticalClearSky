@@ -20,14 +20,22 @@ class SignalProcessingTimeShift(AbstractTimeShift):
     def __init__(self, power_signals_d, weight=30, tolerance=5e-2,
                  solver_type=SolverType.ecos):
         """
-        Arguments:
-            power_signals_d (numpy array): Representing a matrix with row for
-                                           dates and colum for time of day,
-                                           containing input power signals.
-        Keyword arguments:
-            weight (integer): Weight used in underlying algorithm.
-            tolerance (float): The difference under this value is considered
-                               not to have time shift.
+        Arguments
+        ---------
+        power_signals_d : numpy array
+            Representing a matrix with row for dates and column for time of day,
+            containing input power signals.
+
+        Keyword arguments
+        -----------------
+        weight : integer
+            Weight used in underlying algorithm.
+        tolerance : float
+            The difference under this value is considered not to have time
+            shift.
+        solver_type : SolverType Enum
+            Type of solver.
+            See statistical_clear_sky.solver_type.SolverType for valid solvers.
         """
         super().__init__(power_signals_d)
         self._weight = weight
@@ -41,14 +49,18 @@ class SignalProcessingTimeShift(AbstractTimeShift):
         changed.
         If the format of the input arguments of the underlying method changes,
         the translation from the arguments from IterativeFitting to those input
-        arguments is performed in here. 
+        arguments is performed in here.
 
-        Keyword arguments:
-            verbose (boolean): If True, verbose message is printed out.
-        Returns:
-            numpy array: Representing a matrix with row for dates and colum for
-                         time of day, containing power signals with fixed time
-                         shift.
+        Keyword arguments
+        -----------------
+        verbose : boolean
+            If True, verbose message is printed out.
+
+        Returns
+        -------
+        numpy array
+            Representing a matrix with row for dates and colum for time of day,
+            containing power signals with fixed time shift.
         """
         return fix_time_shifts(self._power_signals_d, w=self._weight,
             tol=self._tolerance, solver_type=self._solver_type, verbose=False)

@@ -8,6 +8,9 @@ from numpy.linalg import norm
 import cvxpy as cvx
 from statistical_clear_sky.algorithm.time_shift.clustering\
 import ClusteringTimeShift
+from\
+ statistical_clear_sky.algorithm.initialization.singular_value_decomposition\
+ import SingularValueDecomposition
 from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
 from statistical_clear_sky.algorithm.initialization.weight_setting\
@@ -29,31 +32,20 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     """
 
     def __init__(self, power_signals_d, rank_k=4, solver_type=SolverType.ecos,
-                 reserve_test_data=False, auto_fix_time_shifts=True):
+                 reserve_test_data=False, auto_fix_time_shifts=True,
+                 time_shift=None):
 
         self._solver_type = solver_type
 
-        self._power_signals_d = self._handle_time_shift(power_signals_d,
-                                                        auto_fix_time_shifts)
+        self._power_signals_d = self._handle_time_shift(
+            power_signals_d, auto_fix_time_shifts, time_shift=time_shift)
         self._rank_k = rank_k
 
-        left_low_rank_matrix_u, singular_values_sigma, right_low_rank_matrix_v \
-            = np.linalg.svd(power_signals_d)
-        left_low_rank_matrix_u, right_low_rank_matrix_v = \
-            self._adjust_low_rank_matrices(left_low_rank_matrix_u,
-                                           right_low_rank_matrix_v)
-        self._left_low_rank_matrix_u = left_low_rank_matrix_u
-        self._singular_values_sigma = singular_values_sigma
-        self._right_low_rank_matrix_v = right_low_rank_matrix_v
+        self._decomposition = SingularValueDecomposition()
+        self._decomposition.decompose(power_signals_d, rank_k=rank_k)
 
-        self._matrix_l0 = self._left_low_rank_matrix_u[:, :rank_k]
-        self._matrix_r0 = np.diag(self._singular_values_sigma[:rank_k]).dot(
-            right_low_rank_matrix_v[:rank_k, :])
-
-        self._linearization_helper = LinearizationHelper(
-            solver_type=self._solver_type)
-
-        self._weight_setting = WeightSetting(solver_type=self._solver_type)
+        self._matrix_l0 = self._decomposition.matrix_l0
+        self._matrix_r0 = self._decomposition.matrix_r0
 
         self._set_testdays(power_signals_d, reserve_test_data)
 
@@ -171,15 +163,13 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             iteration = 0
             f1_last = objective_values[0]
 
-            left_matrix_minimization = LeftMatrixMinimization(
-                self._power_signals_d, self._rank_k, weights, tau, mu_l,
-                solver_type=self._solver_type)
-            right_matrix_minimization = RightMatrixMinimization(
-                self._power_signals_d, self._rank_k, weights, tau, mu_r,
+            left_matrix_minimization = self._get_left_matrix_minimization(
+                weights, tau, mu_l)
+            right_matrix_minimization = self._get_right_matrix_minimization(
+                weights, tau, mu_r,
                 is_degradation_calculated=is_degradation_calculated,
                 max_degradation=max_degradation,
-                min_degradation=min_degradation,
-                solver_type=self._solver_type)
+                min_degradation=min_degradation)
 
             while improvement >= exit_criterion_epsilon:
                 self._store_minimization_state_data(mu_l, mu_r, tau,
@@ -282,26 +272,18 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         else:
             return components
 
-    def _handle_time_shift(self, power_signals_d, auto_fix_time_shifts):
+    def _handle_time_shift(self, power_signals_d, auto_fix_time_shifts,
+                           time_shift=None):
         self._fixed_time_stamps = False
         if auto_fix_time_shifts:
-            power_signals_d_fix = self._time_shift(
-                power_signals_d).fix_time_shifts()
+            power_signals_d_fix = self._get_time_shift(
+                power_signals_d, time_shift=time_shift).fix_time_shifts()
             if np.alltrue(np.isclose(power_signals_d, power_signals_d_fix)):
                 del power_signals_d_fix
             else:
                 power_signals_d = power_signals_d_fix
                 self._fixed_time_stamps = True
         return power_signals_d
-
-    def _adjust_low_rank_matrices(self, left_low_rank_matrix_u,
-                                  right_low_rank_matrix_v):
-
-        if np.sum(left_low_rank_matrix_u[:, 0]) < 0:
-            left_low_rank_matrix_u[:, 0] *= -1
-            right_low_rank_matrix_v[0] *= -1
-
-        return left_low_rank_matrix_u, right_low_rank_matrix_v
 
     def _obtain_hyper_parameters(self, mu_l, mu_r, tau):
         if mu_l is None and self._state_data.mu_l is not None:
@@ -316,14 +298,11 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         if self._state_data.l_value.size > 0:
             l_cs_value = self._state_data.l_value
         else:
-            l_cs_value = self._left_low_rank_matrix_u[:, :self._rank_k]
+            l_cs_value = self._decomposition.matrix_l0
         if self._state_data.r_value.size > 0:
             r_cs_value = self._state_data.r_value
         else:
-            r_cs_value = np.diag(self._singular_values_sigma[
-                                 :self._rank_k]).dot(
-                                 self._right_low_rank_matrix_v[
-                                 :self._rank_k, :])
+            r_cs_value = self._decomposition.matrix_r0
         if self._state_data.beta_value != 0.0:
             beta_value = self._state_data.beta_value
         else:
@@ -338,10 +317,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         if self._state_data.component_r0.size > 0:
             component_r0 = self._state_data.component_r0
         else:
-            component_r0 = self._linearization_helper.obtain_component_r0(
-                self._power_signals_d, self._left_low_rank_matrix_u,
-                self._singular_values_sigma, self._right_low_rank_matrix_v,
-                rank_k=self._rank_k)
+            component_r0 = self._get_linearization_helper().obtain_component_r0(
+                self._decomposition.matrix_r0)
         return component_r0
 
     def _obtain_weights(self, verbose=True):
@@ -350,7 +327,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         if self._state_data.weights.size > 0:
             weights = self._state_data.weights
         else:
-            weights = self._weight_setting.obtain_weights(self._power_signals_d)
+            weights = self._get_weight_setting().obtain_weights(
+                self._power_signals_d)
             if self._test_days is not None:
                 weights[self._test_days] = 0
         return weights
@@ -394,11 +372,92 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._residual_l0_norm = np.linalg.norm(
                 self._matrix_l0[:, 0] - l_cs_value[:, 0])
 
-    def _time_shift(self, power_signals_d):
-        '''
+    def _get_time_shift(self, power_signals_d, time_shift=None):
+        """
         Method in order to define which TimeShift to use.
-        '''
-        return ClusteringTimeShift(power_signals_d)
+
+        This also works for dependency injection for testing,
+        i.e. for injecting mock.
+        Since it's used in constructor,
+        TimeShift is injected through constructor.
+        """
+        if time_shift is None:
+            return ClusteringTimeShift(power_signals_d)
+        else:
+            return time_shift
+
+    def _get_linearization_helper(self):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        if ((not hasattr(self, '_linearization_helper')) or
+           (self._linearization_helper is None)):
+           return LinearizationHelper(solver_type=self._solver_type)
+        else: # This must be mock object inject from test
+           return self._linearization_helper
+
+    def set_linearization_helper(self, value):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        self._linearization_helper = value
+
+    def _get_weight_setting(self):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        if ((not hasattr(self, '_weight_setting')) or
+           (self._weight_setting is None)):
+           return WeightSetting(solver_type=self._solver_type)
+        else: # This must be mock object inject from test
+           return self._weight_setting
+
+    def set_weight_setting(self, value):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        self._weight_setting = value
+
+    def _get_left_matrix_minimization(self, weights, tau, mu_l):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        if ((not hasattr(self, '_left_matrix_minimization')) or
+           (self._left_matrix_minimization is None)):
+           return LeftMatrixMinimization(
+               self._power_signals_d, self._rank_k, weights, tau, mu_l,
+               solver_type=self._solver_type)
+        else: # This must be mock object inject from test
+            return self._left_matrix_minimization
+
+    def set_left_matrix_minimization(self, value):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        self._left_matrix_minimization = value
+
+    def _get_right_matrix_minimization(self, weights, tau, mu_r,
+        is_degradation_calculated=True,
+        max_degradation=None, min_degradation=None):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        if ((not hasattr(self, '_right_matrix_minimization')) or
+           (self._right_matrix_minimization is None)):
+           return RightMatrixMinimization(
+               self._power_signals_d, self._rank_k, weights, tau, mu_r,
+               is_degradation_calculated=is_degradation_calculated,
+               max_degradation=max_degradation,
+               min_degradation=min_degradation,
+               solver_type=self._solver_type)
+        else: # This must be mock object inject from test
+            return self._right_matrix_minimization
+
+    def set_right_matrix_minimization(self, value):
+        """
+        For dependency injection for testing, i.e. for injecting mock.
+        """
+        self._right_matrix_minimization = value
 
     def _keep_result_variables_as_properties(self, l_cs_value, r_cs_value,
                                              beta_value):
