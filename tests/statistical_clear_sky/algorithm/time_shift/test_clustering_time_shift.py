@@ -39,7 +39,7 @@ class TestClusteringTimeShift(unittest.TestCase):
         # However, fails with ECOS solver and raises cvx.SolverError.
         try:
             actual_power_signals_d_fix = time_shift.fix_time_shifts()
-        except cvx.SolverError:
+        except (cvx.SolverError, ValueError):
             self.skipTest("This test uses MOSEK solver"
                 + "because default ECOS solver fails with large data. "
                 + "Unless MOSEK is installed, this test fails.")
