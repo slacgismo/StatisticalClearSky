@@ -21,14 +21,15 @@ class TestClusteringTimeShift(unittest.TestCase):
 
         input_power_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                         "../../fixtures/power_signals_d_1.csv"))
+                     "../../fixtures/time_shifts",
+                     "one_year_power_signals_d_1.csv"))
         with open(input_power_signals_file_path) as file:
             power_signals_d = np.loadtxt(file, delimiter=',')
 
-        input_power_signals_file_path = os.path.abspath(
+        output_power_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                     "../../fixtures/time_shifts/power_signals_d_fix_1.csv"))
-        with open(input_power_signals_file_path) as file:
+            "../../fixtures/time_shifts/power_signals_d_fix_clustering_1.csv"))
+        with open(output_power_signals_file_path) as file:
             expected_power_signals_d_fix = np.loadtxt(file, delimiter=',')
 
         time_shift = ClusteringTimeShift(power_signals_d)
@@ -38,7 +39,7 @@ class TestClusteringTimeShift(unittest.TestCase):
         # However, fails with ECOS solver and raises cvx.SolverError.
         try:
             actual_power_signals_d_fix = time_shift.fix_time_shifts()
-        except cvx.SolverError:
+        except (cvx.SolverError, ValueError):
             self.skipTest("This test uses MOSEK solver"
                 + "because default ECOS solver fails with large data. "
                 + "Unless MOSEK is installed, this test fails.")

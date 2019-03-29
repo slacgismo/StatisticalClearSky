@@ -22,7 +22,7 @@ class TestIterativeFittingExecute(unittest.TestCase):
 
         fixed_power_signals_d_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-            "../fixtures/for_mock/power_signals_d_with_time_shift_fix_1.csv"))
+            "../fixtures/for_mock/three_years_power_signals_d_1.csv"))
         with open(fixed_power_signals_d_file_path) as file:
             fixed_power_signals_d = np.loadtxt(file, delimiter=',')
 
@@ -32,7 +32,7 @@ class TestIterativeFittingExecute(unittest.TestCase):
 
         initial_r0_value_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-            "../fixtures/for_mock/initial_r0_value_1.csv"))
+            "../fixtures/for_mock/three_years_initial_component_r0.csv"))
         with open(initial_r0_value_file_path) as file:
             linearization_helper_return_value = np.loadtxt(file, delimiter=',')
 
@@ -42,7 +42,7 @@ class TestIterativeFittingExecute(unittest.TestCase):
 
         weights_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                         "../fixtures/for_mock/weights_1.csv"))
+                         "../fixtures/for_mock/three_years_weights.csv"))
         with open(weights_file_path) as file:
             weight_setting_return_value = np.loadtxt(file, delimiter=',')
 
@@ -52,7 +52,7 @@ class TestIterativeFittingExecute(unittest.TestCase):
 
         left_matrix_minimize_return_values = []
 
-        for i in range(8):
+        for i in range(13):
 
             l_cs_value_left_matrix_file_path = os.path.abspath(
                 os.path.join(os.path.dirname(__file__),
@@ -86,7 +86,7 @@ class TestIterativeFittingExecute(unittest.TestCase):
 
         right_matrix_minimize_return_values = []
 
-        for i in range(8):
+        for i in range(13):
 
             l_cs_value_right_matrix_file_path = os.path.abspath(
                 os.path.join(os.path.dirname(__file__),
@@ -122,7 +122,7 @@ class TestIterativeFittingExecute(unittest.TestCase):
 
         input_power_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                         "../fixtures/power_signals_d_1.csv"))
+            "../fixtures/for_mock/three_years_power_signals_d_1.csv"))
         with open(input_power_signals_file_path) as file:
             power_signals_d = np.loadtxt(file, delimiter=',')
 
@@ -130,10 +130,10 @@ class TestIterativeFittingExecute(unittest.TestCase):
 
         clear_sky_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                         "../fixtures/clear_sky_signals_result_1.csv"))
+                "../fixtures/for_mock/three_years_clear_sky_signals.csv"))
         with open(clear_sky_signals_file_path) as file:
             expected_clear_sky_signals = np.loadtxt(file, delimiter=',')
-        expected_degradation_rate = np.array(-0.04215127)
+        expected_degradation_rate = np.array(-0.04069624)
 
         # Since TimeShift is used in constructor, its mock is injected
         # through constructor:
@@ -150,14 +150,17 @@ class TestIterativeFittingExecute(unittest.TestCase):
             self.mock_right_matrix_minimization)
 
         iterative_fitting.execute(mu_l=5e2, mu_r=1e3, tau=0.9,
-                                  max_iteration=10)
+                                  max_iteration=15)
 
         actual_clear_sky_signals = iterative_fitting.clear_sky_signals()
         actual_degradation_rate = iterative_fitting.degradation_rate()
 
+        # Note: Discrepancy is due to the difference in Python 3.6 and 3.7.
+        # np.testing.assert_array_equal(actual_clear_sky_signals,
+        #                               expected_clear_sky_signals)
         np.testing.assert_almost_equal(actual_clear_sky_signals,
                                        expected_clear_sky_signals,
-                                       decimal=14)
+                                       decimal=13)
         # np.testing.assert_array_equal(actual_degradation_rate,
         #                               expected_degradation_rate)
         np.testing.assert_almost_equal(actual_degradation_rate,

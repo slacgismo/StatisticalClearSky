@@ -23,7 +23,7 @@ class SignalProcessingTimeShift(AbstractTimeShift):
         Arguments
         ---------
         power_signals_d : numpy array
-            Representing a matrix with row for dates and colum for time of day,
+            Representing a matrix with row for dates and column for time of day,
             containing input power signals.
 
         Keyword arguments
@@ -33,6 +33,9 @@ class SignalProcessingTimeShift(AbstractTimeShift):
         tolerance : float
             The difference under this value is considered not to have time
             shift.
+        solver_type : SolverType Enum
+            Type of solver.
+            See statistical_clear_sky.solver_type.SolverType for valid solvers.
         """
         super().__init__(power_signals_d)
         self._weight = weight

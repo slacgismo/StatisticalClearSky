@@ -10,9 +10,6 @@ class TestWeightSetting(unittest.TestCase):
 
     def test_obtain_weights(self):
 
-        # Data from Example_02 Jupyter notebook.
-        # From 100th to 103th element of outer array,
-        # first 4 elements of inner array.
         power_signals_d = np.array([[3.65099996e-01, 0.00000000e+00,
                                      0.00000000e+00, 2.59570003e+00],
                                     [6.21100008e-01, 0.00000000e+00,
@@ -22,9 +19,6 @@ class TestWeightSetting(unittest.TestCase):
                                     [9.00399983e-01, 0.00000000e+00,
                                      0.00000000e+00, 2.77419996e+00]])
 
-        # Data from Example_02 Jupyter notebook.
-        # From 100th to 103th element of array.
-        #expected_weights = np.array([0.0, 0.97870261, 0.93385772, 0.0])
         expected_weights = np.array([0.0, 0.0, 0.0, 0.0])
 
         weight_setting = WeightSetting()
@@ -32,17 +26,17 @@ class TestWeightSetting(unittest.TestCase):
 
         np.testing.assert_array_equal(actual_weights, expected_weights)
 
-    def test_obtain_weights_with_example_02_data(self):
+    def test_obtain_weights_with_large_data(self):
 
         input_power_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                         "../../fixtures/power_signals_d_1.csv"))
+            "../../fixtures/initialization/one_year_power_signals_1.csv"))
         with open(input_power_signals_file_path) as file:
             power_signals_d = np.loadtxt(file, delimiter=',')
 
         weights_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                         "../../fixtures/weights_1.csv"))
+                "../../fixtures/initialization/one_year_weights_1.csv"))
         with open(weights_file_path) as file:
             expected_weights = np.loadtxt(file, delimiter=',')
 

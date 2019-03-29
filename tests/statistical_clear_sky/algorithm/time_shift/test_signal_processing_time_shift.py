@@ -15,14 +15,16 @@ class TestSignalProcessingTimeShift(unittest.TestCase):
 
         input_power_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                         "../../fixtures/power_signals_d_1.csv"))
+                    "../../fixtures/time_shifts",
+                    "one_year_power_signals_d_1.csv"))
         with open(input_power_signals_file_path) as file:
             power_signals_d = np.loadtxt(file, delimiter=',')
 
-        input_power_signals_file_path = os.path.abspath(
+        output_power_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-                     "../../fixtures/time_shifts/power_signals_d_fix_1.csv"))
-        with open(input_power_signals_file_path) as file:
+            "../../fixtures/time_shifts",
+            "power_signals_d_fix_signal_processing_1.csv"))
+        with open(output_power_signals_file_path) as file:
             expected_power_signals_d_fix = np.loadtxt(file, delimiter=',')
 
         time_shift = SignalProcessingTimeShift(
