@@ -23,39 +23,39 @@ class SingularValueDecomposition:
             Rank of the resulting low rank matrices.
         """
 
-        left_low_rank_matrix_u, singular_values_sigma, right_low_rank_matrix_v \
-            = np.linalg.svd(power_signals_d)
-        left_low_rank_matrix_u, right_low_rank_matrix_v = \
-            self._adjust_low_rank_matrices(left_low_rank_matrix_u,
-                                           right_low_rank_matrix_v)
-        self._left_low_rank_matrix_u = left_low_rank_matrix_u
+        (left_singular_vectors_u, singular_values_sigma,
+         right_singular_vectors_v) = np.linalg.svd(power_signals_d)
+        left_singular_vectors_u, right_singular_vectors_v = \
+            self._adjust_singular_vectors(left_singular_vectors_u,
+                                           right_singular_vectors_v)
+        self._left_singular_vectors_u = left_singular_vectors_u
         self._singular_values_sigma = singular_values_sigma
-        self._right_low_rank_matrix_v = right_low_rank_matrix_v
+        self._right_singular_vectors_v = right_singular_vectors_v
 
-        self._matrix_l0 = self._left_low_rank_matrix_u[:, :rank_k]
+        self._matrix_l0 = self._left_singular_vectors_u[:, :rank_k]
         self._matrix_r0 = np.diag(self._singular_values_sigma[:rank_k]).dot(
-            right_low_rank_matrix_v[:rank_k, :])
+            right_singular_vectors_v[:rank_k, :])
 
-    def _adjust_low_rank_matrices(self, left_low_rank_matrix_u,
-                                  right_low_rank_matrix_v):
+    def _adjust_singular_vectors(self, left_singular_vectors_u,
+                                  right_singular_vectors_v):
 
-        if np.sum(left_low_rank_matrix_u[:, 0]) < 0:
-            left_low_rank_matrix_u[:, 0] *= -1
-            right_low_rank_matrix_v[0] *= -1
+        if np.sum(left_singular_vectors_u[:, 0]) < 0:
+            left_singular_vectors_u[:, 0] *= -1
+            right_singular_vectors_v[0] *= -1
 
-        return left_low_rank_matrix_u, right_low_rank_matrix_v
+        return left_singular_vectors_u, right_singular_vectors_v
 
     @property
-    def left_low_rank_matrix_u(self):
-        return self._left_low_rank_matrix_u
+    def left_singular_vectors_u(self):
+        return self._left_singular_vectors_u
 
     @property
     def singular_values_sigma(self):
         return self._singular_values_sigma
 
     @property
-    def right_low_rank_matrix_v(self):
-        return self._right_low_rank_matrix_v
+    def right_singular_vectors_v(self):
+        return self._right_singular_vectors_v
 
     @property
     def matrix_l0(self):
