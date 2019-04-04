@@ -1,5 +1,6 @@
 # StatisticalClearSky
 
+[![PyPI release](https://img.shields.io/pypi/v/statistical-clear-sky.svg)](https://pypi.org/project/statistical-clear-sky/)
 [![Build Status](https://travis-ci.com/tadatoshi/StatisticalClearSky.svg?branch=development)](https://travis-ci.com/tadatoshi/StatisticalClearSky)
 [![codecov](https://codecov.io/gh/tadatoshi/StatisticalClearSky/branch/development/graph/badge.svg)](https://codecov.io/gh/tadatoshi/StatisticalClearSky)
 
