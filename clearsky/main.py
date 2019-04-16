@@ -259,9 +259,11 @@ class IterativeClearSky(object):
         W2 = np.eye(self.k)
         f2 = self.mu_L * cvx.norm((self.L_cs[:-2, :] - 2 * self.L_cs[1:-1, :] + self.L_cs[2:, :]) * W2, 'fro')
         objective = cvx.Minimize(f1 + f2)
+        # This handles data sets with spurious nighttime data
+        zero_locs = np.average(self.D, axis=1) / np.max(np.average(self.D, axis=1)) <= 0.005
         constraints = [
             self.L_cs * self.R_cs.value >= 0,
-            self.L_cs[np.average(self.D, axis=1) <= 1e-5, :] == 0,
+            self.L_cs[zero_locs, :] == 0,
             cvx.sum(self.L_cs[:, 1:], axis=0) == 0
         ]
         problem = cvx.Problem(objective, constraints)
