@@ -39,10 +39,10 @@ class LeftMatrixMinimization(AbstractMinimization):
         return 0
 
     def _constraints(self, l_cs_param, r_cs_param, beta_param, component_r0):
+        ixs = self._handle_bad_night_data()
         return [
             l_cs_param * r_cs_param >= 0,
-            l_cs_param[np.average(self._power_signals_d, axis=1) <= 1e-5,
-                       :] == 0,
+            l_cs_param[ixs, :] == 0,
             cvx.sum(l_cs_param[:, 1:], axis=0) == 0
         ]
 
@@ -52,3 +52,8 @@ class LeftMatrixMinimization(AbstractMinimization):
 
     def _result(self, l_cs_param, r_cs_param, beta_param):
         return l_cs_param.value, r_cs_param, beta_param.value
+
+    def _handle_bad_night_data(self):
+        ix_array = np.average(self._power_signals_d, axis=1) / np.max(
+            np.average(self._power_signals_d, axis=1)) <= 0.001
+        return ix_array
