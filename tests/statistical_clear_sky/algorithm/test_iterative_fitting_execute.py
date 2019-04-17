@@ -138,16 +138,16 @@ class TestIterativeFittingExecute(unittest.TestCase):
         # Since TimeShift is used in constructor, its mock is injected
         # through constructor:
         iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
-            time_shift=self.mock_time_shift)
+            time_shift=self.mock_time_shift, solver_type=SolverType.mosek)
 
         # Inject mock objects by dependency injection:
-        iterative_fitting.set_linearization_helper(
-            self.mock_linearization_helper)
-        iterative_fitting.set_weight_setting(self.mock_weight_setting)
-        iterative_fitting.set_left_matrix_minimization(
-            self.mock_left_matrix_minimization)
-        iterative_fitting.set_right_matrix_minimization(
-            self.mock_right_matrix_minimization)
+        # iterative_fitting.set_linearization_helper(
+        #     self.mock_linearization_helper)
+        # iterative_fitting.set_weight_setting(self.mock_weight_setting)
+        # iterative_fitting.set_left_matrix_minimization(
+        #     self.mock_left_matrix_minimization)
+        # iterative_fitting.set_right_matrix_minimization(
+        #     self.mock_right_matrix_minimization)
 
         iterative_fitting.execute(mu_l=5e2, mu_r=1e3, tau=0.9,
                                   max_iteration=15)
