@@ -54,6 +54,10 @@ class LeftMatrixMinimization(AbstractMinimization):
         return l_cs_param.value, r_cs_param, beta_param.value
 
     def _handle_bad_night_data(self):
-        ix_array = np.average(self._power_signals_d, axis=1) / np.max(
-            np.average(self._power_signals_d, axis=1)) <= 0.001
+        data = self._power_signals_d
+        row_sparsity = np.sum(data > 0.005 * np.max(data), axis = 1) / data.shape[1]
+        threshold = 0.06
+        #ix_array = np.average(self._power_signals_d, axis=1) / np.max(
+        #    np.average(self._power_signals_d, axis=1)) <= 0.005
+        ix_array = row_sparsity <= threshold
         return ix_array
