@@ -48,4 +48,4 @@ class TestWeightSetting(unittest.TestCase):
                 + "because default ECOS solver fails with large data. "
                 + "Unless MOSEK is installed, this test fails.")
         else:
-            np.testing.assert_array_equal(actual_weights, expected_weights)
+            np.testing.assert_allclose(actual_weights, expected_weights)
