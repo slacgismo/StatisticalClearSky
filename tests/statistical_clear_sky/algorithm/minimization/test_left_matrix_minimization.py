@@ -107,7 +107,7 @@ class TestLeftMatrixMinimization(unittest.TestCase):
         l_cs_value_after_iteration_1_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
             "../../fixtures/left_matrix_minimization",
-            "l_cs_value_after_left_matrix_minimization_iteration_1.csv"))
+            "l_cs_value_after_left_matrix_minimization_iteration_1_NEW.csv"))
         with open(l_cs_value_after_iteration_1_file_path) as file:
             expected_l_cs_value = np.loadtxt(file, delimiter=',')
 
