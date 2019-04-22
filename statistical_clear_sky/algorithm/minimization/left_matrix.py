@@ -54,10 +54,25 @@ class LeftMatrixMinimization(AbstractMinimization):
         return l_cs_param.value, r_cs_param, beta_param.value
 
     def _handle_bad_night_data(self):
+        '''
+        Method for generating the "nighttime" index set
+
+        This method finds the (approximate) set of time stamps that correspond with
+        nighttime across all seasons in the given data.
+
+        Old method looked for timestamps with an average power across all days that is
+        smaller than 0.5% of the max power value in the data set.
+
+        New method still looks for timestamps with values below 0.5% of the max, but
+        then converts this to a sparsity by row, and returns the rows with a sparsity
+        of greater than 94%. This approach is more robust than the old method because
+        it is not sensitive to the magnitude of any spurious nighttime data values.
+        :return:
+        '''
         data = self._power_signals_d
-        row_sparsity = np.sum(data > 0.005 * np.max(data), axis = 1) / data.shape[1]
-        threshold = 0.06
+        row_sparsity = 1 - np.sum(data > 0.005 * np.max(data), axis = 1) / data.shape[1]
+        threshold = 1 - 0.06
         #ix_array = np.average(self._power_signals_d, axis=1) / np.max(
         #    np.average(self._power_signals_d, axis=1)) <= 0.005
-        ix_array = row_sparsity <= threshold
+        ix_array = row_sparsity >= threshold
         return ix_array
