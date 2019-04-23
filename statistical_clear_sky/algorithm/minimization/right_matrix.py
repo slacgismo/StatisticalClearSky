@@ -37,12 +37,19 @@ class RightMatrixMinimization(AbstractMinimization):
         return l_cs_param, r_cs_param, beta_param
 
     def _term_f2(self, l_cs_param, r_cs_param):
+        '''
+        Apply smoothness constraint to all rows of right matrix
+        '''
         r_tilde = self._obtain_r_tilde(r_cs_param)
         term_f2 = self._mu_r * cvx.norm(r_tilde[:, :-2] - 2
                    * r_tilde[:, 1:-1] + r_tilde[:, 2:], 'fro')
         return term_f2
 
     def _term_f3(self, l_cs_param, r_cs_param):
+        '''
+        Apply periodicity penalty to all rows of right matrix except the
+        first one
+        '''
         r_tilde = self._obtain_r_tilde(r_cs_param)
         if self._power_signals_d.shape[1] > 365:
             term_f3 = self._mu_r * cvx.norm(r_tilde[1:, :-365]
