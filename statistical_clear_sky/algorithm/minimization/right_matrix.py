@@ -6,6 +6,7 @@ import numpy as np
 from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.minimization.abstract\
  import AbstractMinimization
+from statistical_clear_sky.algorithm.exception import ProblemStatusError
 
 class RightMatrixMinimization(AbstractMinimization):
     """

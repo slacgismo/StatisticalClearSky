@@ -6,6 +6,7 @@ import numpy as np
 from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.minimization.abstract\
  import AbstractMinimization
+from statistical_clear_sky.algorithm.exception import ProblemStatusError
 
 class LeftMatrixMinimization(AbstractMinimization):
     """
@@ -65,13 +66,13 @@ class LeftMatrixMinimization(AbstractMinimization):
 
         New method still looks for timestamps with values below 0.5% of the max, but
         then converts this to a sparsity by row, and returns the rows with a sparsity
-        of greater than 94%. This approach is more robust than the old method because
+        of greater than 90%. This approach is more robust than the old method because
         it is not sensitive to the magnitude of any spurious nighttime data values.
         :return:
         '''
         data = self._power_signals_d
         row_sparsity = 1 - np.sum(data > 0.005 * np.max(data), axis = 1) / data.shape[1]
-        threshold = 1 - 0.06
+        threshold = 0.9
         #ix_array = np.average(self._power_signals_d, axis=1) / np.max(
         #    np.average(self._power_signals_d, axis=1)) <= 0.005
         ix_array = row_sparsity >= threshold
