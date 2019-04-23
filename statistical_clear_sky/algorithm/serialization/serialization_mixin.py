@@ -76,4 +76,9 @@ class SerializationMixin(object):
 
         instance.state_data.weights = np.array(load_dict['weights'])
 
+        instance._keep_result_variables_as_properties(instance.state_data.l_cs_value,
+                                                      instance.state_data.r_cs_value,
+                                                      instance.state_data.beta_value)
+        instance._keep_supporting_parameters_as_properties(instance.state_data.weights)
+
         return instance
