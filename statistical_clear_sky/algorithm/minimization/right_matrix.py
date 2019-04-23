@@ -84,6 +84,15 @@ class RightMatrixMinimization(AbstractMinimization):
         return l_cs_param, r_cs_param.value, beta_param.value
 
     def _obtain_r_tilde(self, r_cs_param):
+        '''
+        This function handles the smoothness and periodicity constraints when
+        the data set is less than a year long. It operates by filling out the
+        rest of the year with blank variables, which are subsequently dropped
+        after the problem is solved.
+
+        :param r_cs_param: the right matrix CVX variable
+        :return: A cvx variable with second dimension at least 367
+        '''
         if r_cs_param.shape[1] < 365 + 2:
             n_tilde = 365 + 2 - r_cs_param.shape[1]
             r_tilde = cvx.hstack([r_cs_param,
