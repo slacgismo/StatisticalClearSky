@@ -41,11 +41,17 @@ class LeftMatrixMinimization(AbstractMinimization):
 
     def _constraints(self, l_cs_param, r_cs_param, beta_param, component_r0):
         ixs = self._handle_bad_night_data()
-        return [
-            l_cs_param * r_cs_param >= 0,
-            l_cs_param[ixs, :] == 0,
-            cvx.sum(l_cs_param[:, 1:], axis=0) == 0
-        ]
+        if sum(ixs) > 0:
+         return [
+                l_cs_param * r_cs_param >= 0,
+                l_cs_param[ixs, :] == 0,
+                cvx.sum(l_cs_param[:, 1:], axis=0) == 0
+            ]
+        else:
+            return [
+                l_cs_param * r_cs_param >= 0,
+                cvx.sum(l_cs_param[:, 1:], axis=0) == 0
+            ]
 
     def _handle_exception(self, problem):
         if problem.status != 'optimal':
