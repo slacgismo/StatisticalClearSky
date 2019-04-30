@@ -6,6 +6,7 @@ import numpy as np
 from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.minimization.abstract\
  import AbstractMinimization
+from statistical_clear_sky.algorithm.exception import ProblemStatusError
 
 class RightMatrixMinimization(AbstractMinimization):
     """
@@ -36,12 +37,19 @@ class RightMatrixMinimization(AbstractMinimization):
         return l_cs_param, r_cs_param, beta_param
 
     def _term_f2(self, l_cs_param, r_cs_param):
+        '''
+        Apply smoothness constraint to all rows of right matrix
+        '''
         r_tilde = self._obtain_r_tilde(r_cs_param)
         term_f2 = self._mu_r * cvx.norm(r_tilde[:, :-2] - 2
                    * r_tilde[:, 1:-1] + r_tilde[:, 2:], 'fro')
         return term_f2
 
     def _term_f3(self, l_cs_param, r_cs_param):
+        '''
+        Apply periodicity penalty to all rows of right matrix except the
+        first one
+        '''
         r_tilde = self._obtain_r_tilde(r_cs_param)
         if self._power_signals_d.shape[1] > 365:
             term_f3 = self._mu_r * cvx.norm(r_tilde[1:, :-365]
@@ -83,6 +91,15 @@ class RightMatrixMinimization(AbstractMinimization):
         return l_cs_param, r_cs_param.value, beta_param.value
 
     def _obtain_r_tilde(self, r_cs_param):
+        '''
+        This function handles the smoothness and periodicity constraints when
+        the data set is less than a year long. It operates by filling out the
+        rest of the year with blank variables, which are subsequently dropped
+        after the problem is solved.
+
+        :param r_cs_param: the right matrix CVX variable
+        :return: A cvx variable with second dimension at least 367
+        '''
         if r_cs_param.shape[1] < 365 + 2:
             n_tilde = 365 + 2 - r_cs_param.shape[1]
             r_tilde = cvx.hstack([r_cs_param,

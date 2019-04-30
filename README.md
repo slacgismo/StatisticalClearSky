@@ -1,7 +1,9 @@
 # StatisticalClearSky
 
-[![Build Status](https://travis-ci.com/tadatoshi/StatisticalClearSky.svg?branch=master)](https://travis-ci.com/tadatoshi/StatisticalClearSky)
-[![codecov](https://codecov.io/gh/tadatoshi/StatisticalClearSky/branch/master/graph/badge.svg)](https://codecov.io/gh/tadatoshi/StatisticalClearSky)
+[![PyPI release](https://img.shields.io/pypi/v/statistical-clear-sky.svg)](https://pypi.org/project/statistical-clear-sky/)
+[![Anaconda Cloud release](https://anaconda.org/slacgismo/statistical-clear-sky/badges/version.svg)](https://anaconda.org/slacgismo/statistical-clear-sky)
+[![Build Status](https://travis-ci.com/tadatoshi/StatisticalClearSky.svg?branch=development)](https://travis-ci.com/tadatoshi/StatisticalClearSky)
+[![codecov](https://codecov.io/gh/tadatoshi/StatisticalClearSky/branch/development/graph/badge.svg)](https://codecov.io/gh/tadatoshi/StatisticalClearSky)
 
 Statistical estimation of a clear sky signal from PV system power data
 

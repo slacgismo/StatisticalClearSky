@@ -14,6 +14,8 @@ logs
 ### Data ###
 notebooks/local_cache
 notebooks/*.csv
+data/
+personal_notes/
 *.dat
 *.efx
 *.gbr

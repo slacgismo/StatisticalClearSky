@@ -63,8 +63,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
         mu_l, mu_r, tau = self._obtain_hyper_parameters(mu_l, mu_r, tau)
         l_cs_value, r_cs_value, beta_value = self._obtain_initial_values()
-        component_r0 = self._obtain_initial_component_r0()
-        weights = self._obtain_weights()
+        component_r0 = self._obtain_initial_component_r0(verbose=verbose)
+        weights = self._obtain_weights(verbose=verbose)
 
         self._minimize_objective(l_cs_value, r_cs_value, beta_value,
             component_r0, weights, mu_l=mu_l, mu_r=mu_r, tau=tau,

@@ -44,7 +44,10 @@ class AbstractMinimization():
     def _term_f1(self, l_cs_param, r_cs_param):
         """
         This method defines the generic from of the first term of objective
-        function.
+        function, which calculates a quantile regression cost function,
+        element-wise, between the PV power matrix (`self._power_signals_d`)
+        and the low-rank model (`l_cs_param * r_cs_param`).
+
         Subclass defines which of l_cs and r_cs value is fixed.
         """
 
