@@ -47,7 +47,7 @@ class PlotMixin(object):
         fig, ax = plt.subplots(nrows=k, ncols=2, figsize=(figsize[0], 2*figsize[1]))
         for i in range(k):
             ax[i][0].plot(self._matrix_l0.T[i], linewidth=1)
-            ax[i][0].set_xlim(0, 287)
+            ax[i][0].set_xlim(0, self._power_signals_d.shape[0])
             ax[i][0].set_ylabel('$\\ell_{}$'.format(i + 1))
             ax[i][1].plot(self._matrix_r0[i], linewidth=1)
             ax[i][1].set_xlim(0, self._power_signals_d.shape[1])
@@ -120,15 +120,17 @@ class PlotMixin(object):
         ax.plot(actual, linewidth=1, label='measured power')
         ax.plot(clearsky, linewidth=1, color='red', label='clear sky signal')
         plt.legend(loc=loc)
-        ax.set_xlim(0, 288 * (d2 - d1))
+        n = self._power_signals_d.shape[0]
+        ax.set_xlim(0, n * (d2 - d1))
         ax.set_ylabel('kW')
-        ax.set_xticks(np.arange(0, 288 * num_days, 4 * 12))
+        ax.set_xticks(np.arange(0, n * num_days, 4 * 12))
         ax.set_xticklabels(np.tile(np.arange(0, 24, 4), num_days))
         ax.set_xlabel('Hour of Day')
         plt.show()
 
     def ts_plot_with_weights(self, fig_title=None, start_day=0, num_days=5,
                              figsize=(16, 8)):
+        n = self._power_signals_d.shape[0]
         d1 = start_day
         d2 = d1 + num_days
         actual = self._power_signals_d[:, d1:d2].ravel(order='F')
@@ -139,7 +141,7 @@ class PlotMixin(object):
         ax[0].plot(xs, actual, alpha=0.4, label='measured power')
         ax[0].plot(xs, clearsky, linewidth=1, label='clear sky estimate')
         ax[1].plot(xs, np.repeat(self._obtain_weights_for_plotting()[d1:d2],
-            288), linewidth=1, label='day weight')
+            n), linewidth=1, label='day weight')
         ax[0].legend()
         ax[1].legend()
         # ax[0].set_ylim(0, np.max(actual) * 1.3)
