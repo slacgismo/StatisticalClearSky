@@ -13,7 +13,7 @@ sn=$(echo -e "\033[0;0m") # reset
 ### 
 # Start a logically related section with the above stylings - a simple utility function
 ###
-function start_section {
+start_section() {
     if [ "x$RELLIB_SECTION" = "x" ]; then
         RELLIB_SECTION=0
     fi
@@ -37,7 +37,7 @@ function start_section {
 ### 
 # End a logically related section 
 ###
-function end_section {
+end_section() {
     if [ "$RELLIB_SECTION" = "0" ]; then
        describe_action "ERROR: unexpected end_section"
        exit -255
@@ -49,7 +49,7 @@ function end_section {
 ###
 # Convenience to verify our custom environment variables are properly loaded
 ###
-function check_for_env {
+check_for_env() {
     for envvar in $@; do
         if [ -z "${!envvar}" ]; then
             echo "${sr}${sb}ERROR${sn}: Expected environment variable $envvar to be present and not empty" 1>&2
