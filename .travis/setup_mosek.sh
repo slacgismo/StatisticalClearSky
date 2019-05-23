@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-. $BUILD_ROOT/.travis/utility.sh
+. .travis/utility.sh
 
 start_section "Create the mosek license folder"
     cd $HOME
