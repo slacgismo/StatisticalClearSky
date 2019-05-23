@@ -1,5 +1,8 @@
 #!/bin/sh -e
 
-echo "Hello again"
+echo "Create the mosek license folder"
+cd $HOME
+mkdir mosek
 
-aws --version
+echo "Pull the mosek license from s3"
+aws s3 cp s3://slac.gismo.ci.artifacts/mosek.license/mosek.lic $HOME/mosek/mosek.lic
