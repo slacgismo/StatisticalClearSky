@@ -1,5 +1,5 @@
 #!/bin/sh -e
 
-echo "Hello"
+echo "Hello again"
 
 aws --version
