@@ -13,6 +13,11 @@ sn=$(echo -e "\033[0;0m") # reset
 ### 
 # Start a logically related section with the above stylings - a simple utility function
 ###
+describe_action () {
+    echo
+    echo "${sg}${sb}> ${sw}$@${sn}"
+}
+
 start_section () {
     if [ "x$RELLIB_SECTION" = "x" ]; then
         RELLIB_SECTION=0
