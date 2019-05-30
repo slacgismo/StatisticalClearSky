@@ -176,18 +176,18 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                     l_cs_value, r_cs_value, beta_value, component_r0)
 
                 if verbose:
-                    print('Miminizing left L matrix')
-                l_cs_value, r_cs_value, beta_value\
-                    = left_matrix_minimization.minimize(
-                        l_cs_value, r_cs_value, beta_value, component_r0)
-
-                if verbose:
                     print('Miminizing right R matrix')
                 l_cs_value, r_cs_value, beta_value\
                     = right_matrix_minimization.minimize(
                         l_cs_value, r_cs_value, beta_value, component_r0)
 
                 component_r0 = r_cs_value[0, :]
+
+                if verbose:
+                    print('Miminizing left L matrix')
+                l_cs_value, r_cs_value, beta_value\
+                    = left_matrix_minimization.minimize(
+                        l_cs_value, r_cs_value, beta_value, component_r0)
 
                 objective_values = self._calculate_objective(mu_l, mu_r, tau,
                     l_cs_value, r_cs_value, beta_value, weights,
