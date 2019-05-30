@@ -30,7 +30,8 @@ class PlotMixin(object):
 
     def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=False):
         plt.figure(figsize=figsize)
-        plt.plot(np.sum(self._power_signals_d, axis=0) * 24 / self._power_signals_d.shape[0], linewidth=1)
+        plt.plot(np.sum(self._power_signals_d, axis=0) * 24 / self._power_signals_d.shape[0],
+                 linewidth=1, alpha=0.7)
         if show_clear:
             plt.plot((self._r_cs_value[0] * np.sum(self._l_cs_value[:, 0])) *
                 24 / self._power_signals_d.shape[0], linewidth=1)
