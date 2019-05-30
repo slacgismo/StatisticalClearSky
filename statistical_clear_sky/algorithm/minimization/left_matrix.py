@@ -45,12 +45,14 @@ class LeftMatrixMinimization(AbstractMinimization):
          return [
                 l_cs_param * r_cs_param >= 0,
                 l_cs_param[ixs, :] == 0,
-                cvx.sum(l_cs_param[:, 1:], axis=0) == 0
+                cvx.sum(l_cs_param[:, 1:], axis=0) == 0,
+                l_cs_param[:, 0] >= 0
             ]
         else:
             return [
                 l_cs_param * r_cs_param >= 0,
-                cvx.sum(l_cs_param[:, 1:], axis=0) == 0
+                cvx.sum(l_cs_param[:, 1:], axis=0) == 0,
+                l_cs_param[:, 0] >= 0
             ]
 
     def _handle_exception(self, problem):
