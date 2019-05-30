@@ -15,7 +15,6 @@ from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
 from statistical_clear_sky.algorithm.initialization.weight_setting\
  import WeightSetting
-from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.exception import ProblemStatusError
 from statistical_clear_sky.algorithm.minimization.left_matrix\
  import LeftMatrixMinimization
@@ -31,7 +30,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     Implementation of "Statistical Clear Sky Fitting" algorithm.
     """
 
-    def __init__(self, power_signals_d, rank_k=4, solver_type=SolverType.ecos,
+    def __init__(self, power_signals_d, rank_k=4, solver_type='ECOS',
                  reserve_test_data=False, auto_fix_time_shifts=True,
                  time_shift=None):
 

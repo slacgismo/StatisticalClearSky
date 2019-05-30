@@ -17,7 +17,7 @@ class WeightSetting(object):
     After calculating the geometric mean of these two values, weights below
     """
 
-    def __init__(self, solver_type=SolverType.ecos):
+    def __init__(self, solver_type='ECOS'):
         self._solver_type = solver_type
 
     def obtain_weights(self, power_signals_d):

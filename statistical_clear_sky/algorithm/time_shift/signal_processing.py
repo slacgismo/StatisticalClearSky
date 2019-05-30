@@ -18,7 +18,7 @@ class SignalProcessingTimeShift(AbstractTimeShift):
     """
 
     def __init__(self, power_signals_d, weight=30, tolerance=5e-2,
-                 solver_type=SolverType.ecos):
+                 solver_type='ECOS'):
         """
         Arguments
         ---------
