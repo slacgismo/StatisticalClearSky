@@ -5,7 +5,6 @@ This module contains the a data viewer class for data set investigation.
 from statistical_clear_sky.utilities.data_loading import load_results
 from statistical_clear_sky.utilities.data_loading import load_sys
 from statistical_clear_sky.algorithm.iterative_fitting import IterativeFitting
-from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.configuration import CONFIG1
 
 import numpy as np

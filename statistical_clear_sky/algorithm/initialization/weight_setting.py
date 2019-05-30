@@ -1,9 +1,7 @@
 """
 This module defines a class for Weight Setting Algorithm.
 """
-import numpy as np
-import cvxpy as cvx
-from statistical_clear_sky.solver_type import SolverType
+
 from solardatatools import find_clear_days
 
 class WeightSetting(object):

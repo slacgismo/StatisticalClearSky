@@ -3,7 +3,6 @@ This module defines functionality unique to left matrix minimization.
 """
 import cvxpy as cvx
 import numpy as np
-from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.minimization.abstract\
  import AbstractMinimization
 from statistical_clear_sky.algorithm.exception import ProblemStatusError
@@ -15,7 +14,7 @@ class LeftMatrixMinimization(AbstractMinimization):
     """
 
     def __init__(self, power_signals_d, rank_k, weights, tau, mu_l,
-                 solver_type=SolverType.ecos):
+                 solver_type='ECOS'):
 
         super().__init__(power_signals_d, rank_k, weights, tau,
                          solver_type=solver_type)

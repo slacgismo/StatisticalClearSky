@@ -2,7 +2,6 @@ import unittest
 import os
 import numpy as np
 import cvxpy as cvx
-from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.minimization.right_matrix\
  import RightMatrixMinimization
 
@@ -69,7 +68,7 @@ class TestRightMatrixMinimization(unittest.TestCase):
         expected_beta_value = -0.04015762
 
         right_matrix_minimization = RightMatrixMinimization(power_signals_d,
-            rank_k, weights, tau, mu_r, solver_type=SolverType.mosek)
+            rank_k, weights, tau, mu_r, solver_type='MOSEK')
 
         try:
             actual_l_cs_value, actual_r_cs_value, actual_beta_value =\

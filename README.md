@@ -129,7 +129,6 @@ The following example shows how to specify to use Mosek solver by passing solver
 ```python
 import numpy as np
 from statistical_clear_sky.algorithm.iterative_fitting import IterativeFitting
-from statistical_clear_sky.solver_type import SolverType
 
 # Usually read from a CSV file or a database with more data,
 # covering 1 day (column) and a few years (row):
@@ -139,7 +138,7 @@ power_signals_d = np.array([[0.0, 0.0, 0.0, 0.0],
                             [1.52020001, 1.45150006, 1.84809995, 0.99949998]])
 
 iterative_fitting = IterativeFitting(power_signals_d,
-                                     solver_type=SolverType.mosek)
+                                     solver_type='MOSEK')
 
 iterative_fitting.execute()
 

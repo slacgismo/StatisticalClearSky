@@ -3,7 +3,6 @@ import numpy as np
 # import os
 from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
-from statistical_clear_sky.solver_type import SolverType
 
 class TestLinealizationHelper(unittest.TestCase):
     '''
@@ -32,7 +31,7 @@ class TestLinealizationHelper(unittest.TestCase):
         expected_result = np.array([1.36527916, 2.70624333, 4.04720749,
                                     5.38817165])
 
-        linearization_helper = LinearizationHelper(solver_type=SolverType.ecos)
+        linearization_helper = LinearizationHelper(solver_type='ECOS')
         left_low_rank_matrix_u, singular_values_sigma, right_low_rank_matrix_v \
             = np.linalg.svd(power_signals_d)
         initial_r_cs_value = np.diag(singular_values_sigma[:rank_k]).dot(

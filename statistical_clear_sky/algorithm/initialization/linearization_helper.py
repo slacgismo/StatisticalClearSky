@@ -5,7 +5,6 @@ This module defines helper class for the purpose of linearization.
 
 import numpy as np
 import cvxpy as cvx
-from statistical_clear_sky.solver_type import SolverType
 
 class LinearizationHelper(object):
     """

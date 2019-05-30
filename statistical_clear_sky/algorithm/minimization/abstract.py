@@ -7,7 +7,6 @@ the common code is placed in the abstract base class.
 from abc import abstractmethod
 import cvxpy as cvx
 import numpy as np
-from statistical_clear_sky.solver_type import SolverType
 
 class AbstractMinimization():
     """

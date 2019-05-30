@@ -4,7 +4,6 @@ import os
 import numpy as np
 import cvxpy as cvx
 from statistical_clear_sky.algorithm.iterative_fitting import IterativeFitting
-from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.time_shift.clustering\
 import AbstractTimeShift
 from statistical_clear_sky.algorithm.initialization.linearization_helper\

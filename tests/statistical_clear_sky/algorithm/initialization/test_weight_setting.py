@@ -4,7 +4,6 @@ import numpy as np
 import cvxpy as cvx
 from statistical_clear_sky.algorithm.initialization.weight_setting\
  import WeightSetting
-from statistical_clear_sky.solver_type import SolverType
 
 class TestWeightSetting(unittest.TestCase):
 
@@ -40,7 +39,7 @@ class TestWeightSetting(unittest.TestCase):
         with open(weights_file_path) as file:
             expected_weights = np.loadtxt(file, delimiter=',')
 
-        weight_setting = WeightSetting(solver_type=SolverType.mosek)
+        weight_setting = WeightSetting(solver_type='MOSEK')
         try:
             actual_weights = weight_setting.obtain_weights(power_signals_d)
         except cvx.SolverError:
