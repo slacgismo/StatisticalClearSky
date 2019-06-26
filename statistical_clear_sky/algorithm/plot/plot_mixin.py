@@ -71,7 +71,7 @@ class PlotMixin(object):
             plt.colorbar(foo, ax=ax, label='kW')
             ax.set_xlabel('Day number')
             ax.set_yticks([])
-            ax.set_ylabel('Time of day')
+            ax.set_ylabel('(sunset)        Time of day        (sunrise)')
             if show_days:
                 xlim = ax.get_xlim()
                 ylim = ax.get_ylim()
@@ -96,9 +96,9 @@ class PlotMixin(object):
             plt.colorbar(bar, ax=ax[1], label='kW')
             ax[1].set_xlabel('Day number')
             ax[0].set_yticks([])
-            ax[0].set_ylabel('Time of day')
+            ax[0].set_ylabel('(sunset)   Time of day   (sunrise)')
             ax[1].set_yticks([])
-            ax[1].set_ylabel('Time of day')
+            ax[1].set_ylabel('(sunset)   Time of day   (sunrise)')
             if show_days:
                 xlim = ax[0].get_xlim()
                 ylim = ax[0].get_ylim()
