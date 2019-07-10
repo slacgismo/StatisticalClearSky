@@ -38,9 +38,9 @@ $ conda install -c slacgismo statistical-clear-sky
 
 #### Solvers
 
-By default, ECOS solver is used, which is supported by cvxpy because it is Open Source.
+The default convex solver included with cvxpy is ECOS, which is open source. However this solver tends to fail on problems with >1000 variables, as it does not work for this algorithm.
 
-However, it is found that Mosek solver is more stable. Thus, we encourage you to install it separately as below and obtain the license on your own.
+So, the default behavior of the code is to use the commercial Mosek solver. Thus, we encourage you to install it separately as below and obtain the license on your own.
 
 * [mosek](https://www.mosek.com/resources/getting-started/) - For using MOSEK solver.
 
@@ -54,23 +54,9 @@ However, it is found that Mosek solver is more stable. Thus, we encourage you to
     $ conda install -c mosek mosek
     ```
 
+Academic licenses are available for free here: [https://www.mosek.com/products/academic-licenses/](https://www.mosek.com/products/academic-licenses/)
+
 ## Usage
-
-### Through a Command-line interface
-
-The input power signals is in a CSV file that you need to specify after "execute" command.
-
-* Note: The following example is using Mosek solver.
-
-```sh
-$ statistical_clear_sky execute power_signals_d_1.csv --rank 6 --solver_type mosek --mu_l 5e2 --mu_r 1e3 --tau 0.9 --max_iteration 10
-```
-
-Options are displayed when you pass "--help" to the command.
-
-```sh
-$ statistical_clear_sky execute --help
-```
 
 ### As a part of Python code or inside Jupyter notebook
 
@@ -148,7 +134,7 @@ degradation_rate = iterative_fitting.degradation_rate()
 
 #### Example 4: Setting rank for Generalized Low Rank Modeling.
 
-By default, rank of low rank matrices is specified to be 4.
+By default, rank of low rank matrices is specified to be 6.
 You can change it by specifying rank_k keyword argument (in the constructor).
 
 ```python
