@@ -20,7 +20,7 @@ class LeftMatrixMinimization(AbstractMinimization):
                          solver_type=solver_type)
         self._mu_l = mu_l
 
-    def _define_parameters(self, l_cs_value, r_cs_value, beta_value):
+    def _define_variables_and_parameters(self, l_cs_value, r_cs_value, beta_value, component_r0):
         self.left_matrix = cvx.Variable(shape=(self._power_signals_d.shape[0],
                                          self._rank_k))
         self.left_matrix.value = l_cs_value
@@ -29,7 +29,14 @@ class LeftMatrixMinimization(AbstractMinimization):
         self.right_matrix.value = r_cs_value
         self.beta = cvx.Variable()
         self.beta.value = beta_value
+        self.r0 = cvx.Parameter(len(component_r0))
+        self.r0.value = 1. / component_r0
         return
+
+    def _update_parameters(self, l_cs_value, r_cs_value, beta_value, component_r0):
+        self.right_matrix.value = r_cs_value
+        self.beta.value = beta_value
+        self.r0.value = 1. / component_r0
 
     def _term_f2(self, l_cs_param, r_cs_param):
         weights_w2 = np.eye(self._rank_k)

@@ -25,7 +25,7 @@ class RightMatrixMinimization(AbstractMinimization):
         self._max_degradation = max_degradation
         self._min_degradation = min_degradation
 
-    def _define_parameters(self, l_cs_value, r_cs_value, beta_value):
+    def _define_variables_and_parameters(self, l_cs_value, r_cs_value, beta_value, component_r0):
         self.left_matrix = cvx.Parameter(shape=(self._power_signals_d.shape[0],
                                           self._rank_k))
         self.left_matrix.value = l_cs_value
@@ -34,7 +34,14 @@ class RightMatrixMinimization(AbstractMinimization):
         self.right_matrix.value = r_cs_value
         self.beta = cvx.Variable()
         self.beta.value = beta_value
+        self.r0 = cvx.Parameter(len(component_r0))
+        self.r0.value = 1. / component_r0
         return
+
+    def _update_parameters(self, l_cs_value, r_cs_value, beta_value, component_r0):
+        self.left_matrix.value = l_cs_value
+        self.beta.value = beta_value
+        self.r0.value = 1. / component_r0
 
     def _term_f2(self, l_cs_param, r_cs_param):
         '''
@@ -68,9 +75,7 @@ class RightMatrixMinimization(AbstractMinimization):
             r = r_cs_param[0, :].T
             if self._is_degradation_calculated:
                 constraints.extend([
-                    cvx.multiply(1./ component_r0[:-365],
-                                 r[365:] - r[:-365]) == beta_param,
-                    beta_param >= -.25
+                    cvx.multiply(component_r0[:-365], r[365:] - r[:-365]) == beta_param
                 ])
                 if self._max_degradation is not None:
                     constraints.append(
@@ -79,7 +84,7 @@ class RightMatrixMinimization(AbstractMinimization):
                     constraints.append(
                         beta_param >= self._min_degradation)
             else:
-                constraints.append(cvx.multiply(1./ component_r0[:-365],
+                constraints.append(cvx.multiply(component_r0[:-365],
                                                 r[365:] - r[:-365]) == 0)
         return constraints
 
