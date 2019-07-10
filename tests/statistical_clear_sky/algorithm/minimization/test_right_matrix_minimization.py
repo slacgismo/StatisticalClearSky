@@ -81,10 +81,10 @@ class TestRightMatrixMinimization(unittest.TestCase):
                 + "because default ECOS solver fails with large data. "
                 + "Unless MOSEK is installed, this test fails.")
         else:
-            np.testing.assert_array_equal(actual_l_cs_value,
-                                          expected_l_cs_value)
-            np.testing.assert_array_equal(actual_r_cs_value,
-                                          expected_r_cs_value)
+            np.testing.assert_array_almost_equal(actual_l_cs_value,
+                                          expected_l_cs_value, decimal=4)
+            np.testing.assert_array_almost_equal(actual_r_cs_value,
+                                          expected_r_cs_value, decimal=4)
             # np.testing.assert_array_equal(actual_beta_value,
             #                               expected_beta_value)
             np.testing.assert_almost_equal(actual_beta_value,
