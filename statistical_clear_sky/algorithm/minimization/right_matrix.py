@@ -26,13 +26,15 @@ class RightMatrixMinimization(AbstractMinimization):
         self._min_degradation = min_degradation
 
     def _define_parameters(self, l_cs_value, r_cs_value, beta_value):
-        l_cs_param = l_cs_value
-        r_cs_param = cvx.Variable(shape=(self._rank_k,
+        self.left_matrix = cvx.Parameter(shape=(self._power_signals_d.shape[0],
+                                          self._rank_k))
+        self.left_matrix.value = l_cs_value
+        self.right_matrix = cvx.Variable(shape=(self._rank_k,
                                          self._power_signals_d.shape[1]))
-        r_cs_param.value = r_cs_value
-        beta_param = cvx.Variable()
-        beta_param.value = beta_value
-        return l_cs_param, r_cs_param, beta_param
+        self.right_matrix.value = r_cs_value
+        self.beta = cvx.Variable()
+        self.beta.value = beta_value
+        return
 
     def _term_f2(self, l_cs_param, r_cs_param):
         '''
@@ -84,9 +86,6 @@ class RightMatrixMinimization(AbstractMinimization):
     def _handle_exception(self, problem):
         if problem.status != 'optimal':
             raise ProblemStatusError('Minimize R status: ' + problem.status)
-
-    def _result(self, l_cs_param, r_cs_param, beta_param):
-        return l_cs_param, r_cs_param.value, beta_param.value
 
     def _obtain_r_tilde(self, r_cs_param):
         '''

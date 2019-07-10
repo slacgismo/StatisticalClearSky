@@ -22,23 +22,31 @@ class AbstractMinimization():
         self._weights = weights
         self._tau = tau
         self._solver_type = solver_type
+        self._problem = None
+        self.left_matrix = None
+        self.right_matrix = None
+        self.beta = None
 
     def minimize(self, l_cs_value, r_cs_value, beta_value, component_r0):
-        l_cs_param, r_cs_param, beta_param = self._define_parameters(l_cs_value,
-            r_cs_value, beta_value)
-        objective = cvx.Minimize(self._term_f1(l_cs_param, r_cs_param)
-                                 + self._term_f2(l_cs_param, r_cs_param)
-                                 + self._term_f3(l_cs_param, r_cs_param))
-        constraints = self._constraints(l_cs_param, r_cs_param, beta_param,
-                                        component_r0)
-        problem = cvx.Problem(objective, constraints)
-        problem.solve(solver=self._solver_type)
-        self._handle_exception(problem)
-        return self._result(l_cs_param, r_cs_param, beta_param)
+        self._construct_problem(l_cs_value, r_cs_value, beta_value, component_r0)
+        self._problem.solve(solver=self._solver_type)
+        #problem.solve(solver='SCS', eps=1e-1)
+        self._handle_exception(self._problem)
+        return self._result()
 
     @abstractmethod
     def _define_parameters(self):
         pass
+
+    def _construct_problem(self, l_cs_value, r_cs_value, beta_value, component_r0):
+        self._define_parameters(l_cs_value, r_cs_value, beta_value)
+        objective = cvx.Minimize(self._term_f1(self.left_matrix, self.right_matrix)
+                                 + self._term_f2(self.left_matrix, self.right_matrix)
+                                 + self._term_f3(self.left_matrix, self.right_matrix))
+        constraints = self._constraints(self.left_matrix, self.right_matrix, self.beta,
+                                        component_r0)
+        problem = cvx.Problem(objective, constraints)
+        self._problem = problem
 
     def _term_f1(self, l_cs_param, r_cs_param):
         """
@@ -73,6 +81,5 @@ class AbstractMinimization():
     def _handle_exception(self, problem):
         pass
 
-    @abstractmethod
-    def _result(self, l_cs_param, r_cs_param, beta_param):
-        pass
+    def _result(self):
+        return self.left_matrix.value, self.right_matrix.value, self.beta.value
