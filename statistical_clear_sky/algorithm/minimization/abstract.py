@@ -26,27 +26,40 @@ class AbstractMinimization():
         self.left_matrix = None
         self.right_matrix = None
         self.beta = None
+        self.r0 = None
 
     def minimize(self, l_cs_value, r_cs_value, beta_value, component_r0):
-        self._construct_problem(l_cs_value, r_cs_value, beta_value, component_r0)
-        self._problem.solve(solver=self._solver_type)
-        #problem.solve(solver='SCS', eps=1e-1)
+        if self._problem is None:
+            self._construct_problem(l_cs_value, r_cs_value, beta_value, component_r0)
+        else:
+            self._update_parameters(l_cs_value, r_cs_value, beta_value, component_r0)
+        # self._problem.solve(solver=self._solver_type)
+        self._problem.solve(solver='MOSEK', mosek_params={
+            'MSK_DPAR_INTPNT_CO_TOL_PFEAS': 1e-5,
+            'MSK_DPAR_INTPNT_CO_TOL_DFEAS': 1e-5,
+            'MSK_DPAR_INTPNT_CO_TOL_REL_GAP': 1e-5,
+            'MSK_DPAR_INTPNT_CO_TOL_INFEAS': 1e-5
+        })
         self._handle_exception(self._problem)
         return self._result()
 
     @abstractmethod
-    def _define_parameters(self):
+    def _define_variables_and_parameters(self):
         pass
 
     def _construct_problem(self, l_cs_value, r_cs_value, beta_value, component_r0):
-        self._define_parameters(l_cs_value, r_cs_value, beta_value)
+        self._define_variables_and_parameters(l_cs_value, r_cs_value, beta_value, component_r0)
         objective = cvx.Minimize(self._term_f1(self.left_matrix, self.right_matrix)
                                  + self._term_f2(self.left_matrix, self.right_matrix)
                                  + self._term_f3(self.left_matrix, self.right_matrix))
         constraints = self._constraints(self.left_matrix, self.right_matrix, self.beta,
-                                        component_r0)
+                                        self.r0)
         problem = cvx.Problem(objective, constraints)
         self._problem = problem
+
+    @abstractmethod
+    def _update_parameters(self):
+        pass
 
     def _term_f1(self, l_cs_param, r_cs_param):
         """
