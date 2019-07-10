@@ -22,11 +22,6 @@ after_success:
   - pip install codecov
   - codecov
 
-notifications:
-  email:
-    recipients:
-      - tadatoshi.takahashi@slac.stanford.edu
-
 deploy:
   provider: pypi
   user: slacgismo
