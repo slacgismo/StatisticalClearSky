@@ -30,7 +30,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     Implementation of "Statistical Clear Sky Fitting" algorithm.
     """
 
-    def __init__(self, power_signals_d, rank_k=6, solver_type='ECOS',
+    def __init__(self, power_signals_d, rank_k=6, solver_type='MOSEK',
                  reserve_test_data=False, auto_fix_time_shifts=False,
                  time_shift=None):
 
