@@ -170,7 +170,16 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 max_degradation=max_degradation,
                 min_degradation=min_degradation)
 
+            tol_schedule = np.logspace(-4, -8, 6)
+
             while improvement >= exit_criterion_epsilon:
+                try:
+                    tol = tol_schedule[iteration]
+                except IndexError:
+                    tol = 1e-8
+
+                print('tolerance:', tol)
+
                 self._store_minimization_state_data(mu_l, mu_r, tau,
                     l_cs_value, r_cs_value, beta_value, component_r0)
 
@@ -178,13 +187,13 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                     print('Miminizing left L matrix')
                 l_cs_value, r_cs_value, beta_value\
                     = left_matrix_minimization.minimize(
-                        l_cs_value, r_cs_value, beta_value, component_r0)
+                        l_cs_value, r_cs_value, beta_value, component_r0, tol=tol)
 
                 if verbose:
                     print('Miminizing right R matrix')
                 l_cs_value, r_cs_value, beta_value\
                     = right_matrix_minimization.minimize(
-                        l_cs_value, r_cs_value, beta_value, component_r0)
+                        l_cs_value, r_cs_value, beta_value, component_r0, tol=tol)
 
                 component_r0 = r_cs_value[0, :]
 
