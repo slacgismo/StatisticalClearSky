@@ -178,8 +178,6 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 except IndexError:
                     tol = 1e-8
 
-                print('tolerance:', tol)
-
                 self._store_minimization_state_data(mu_l, mu_r, tau,
                     l_cs_value, r_cs_value, beta_value, component_r0)
 
