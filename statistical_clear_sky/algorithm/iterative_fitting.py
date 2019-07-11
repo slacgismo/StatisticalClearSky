@@ -170,7 +170,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 max_degradation=max_degradation,
                 min_degradation=min_degradation)
 
-            tol_schedule = np.logspace(-4, -8, 6)
+            tol_schedule = [] #np.logspace(-4, -8, 6)
 
             while improvement >= exit_criterion_epsilon:
                 try:
