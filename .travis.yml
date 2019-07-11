@@ -1,25 +1,28 @@
 matrix:
   include:
-    - os: osx
-      python: "3.6-dev"
-      install:
-        - python --version
-        - pip install 'numpy>=1.16'
-        - pip install -r requirements.txt
-        - pip install awscli
-        - pip install -f https://download.mosek.com/stable/wheel/index.html Mosek==8.1.63
+    - name: "Python 3.7.2 on macOS"
+      os: osx
+      osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
+      language: shell       # 'language: python' is an error on Travis CI macOS
 
-      before_script:
-        - .travis/setup_mosek.sh
+install: 
+  - pip3 install --upgrade pip
+  - python3 --version
+  - pip3 install 'numpy>=1.16'
+  - pip3 install -r requirements.txt
+  - pip3 install awscli
+  - pip3 install -f https://download.mosek.com/stable/wheel/index.html Mosek==8.1.63
 
-      script:
-        - pip install coverage
-        - pip list
-        - coverage run -m unittest
+before_script:
+  - .travis/setup_mosek.sh
 
-      after_success:
-        - pip install codecov
-        - codecov
+script:
+  - pip3 install coverage
+  - coverage run -m unittest
+
+after_success:
+  - pip3 install codecov
+  - codecov
 
 # deploy:
 #   provider: pypi
