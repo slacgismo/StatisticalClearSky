@@ -51,7 +51,7 @@ However, it is found that Mosek solver is more stable. Thus, we encourage you to
 
     If you are using Anaconda:
     ```sh
-    $ conda install -c mosek mosek==8.1.33
+    $ conda install -c mosek mosek==8.1.63
     ```
 
 ## Usage
