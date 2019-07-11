@@ -23,7 +23,7 @@ install:
   - export LANG=en_US.UTF-8  
 
 before_script:
-  - pip install awscli
+  - sudo pip install awscli
   - .travis/setup_mosek.sh
 
 script:
