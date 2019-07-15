@@ -6,6 +6,12 @@ jobs:
     steps:
       - checkout            
       - run:
+          name: Setup Virtual Environment
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            
+      - run:
           name: Install dependencies
           command: |
             pip install numpy>=1.16
