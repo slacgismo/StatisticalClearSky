@@ -17,7 +17,7 @@ jobs:
             sudo pip install numpy>=1.16
             sudo pip install -r requirements.txt
             sudo pip install awscli
-            sudo pip install -f https://download.mosek.com/stable/wheel/index.html Mosek==8.1.40
+            sudo pip install -f https://download.mosek.com/stable/wheel/index.html Mosek==8.1.63
 
       - run:
           name: Setup Mosek License file
