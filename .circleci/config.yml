@@ -22,9 +22,8 @@ jobs:
       - run:
           name: Setup Mosek License file
           command: |
-            cd $HOME
-            mkdir mosek
-            aws s3 cp s3://slac.gismo.ci.artifacts/mosek.license/mosek.lic $HOME/mosek/mosek.lic
+            mkdir /root/mosek
+            aws s3 cp s3://slac.gismo.ci.artifacts/mosek.license/mosek.lic /root/mosek/mosek.lic
       
       - run:
           name: Run tests
