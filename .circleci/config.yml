@@ -29,8 +29,8 @@ jobs:
       - run:
           name: Run tests
           command: |
-            pip install coverage
-            coverage run -m unittest
+            sudo pip install coverage
+            sudo coverage run -m unittest
 
 # deploy:
 #   provider: pypi
