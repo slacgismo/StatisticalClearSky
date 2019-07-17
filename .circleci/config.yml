@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: hjd48/redhat
+      - image: circleci/python:3.6.8-jessie
     steps:
       - checkout            
       - run:
