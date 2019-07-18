@@ -4,49 +4,23 @@ jobs:
     docker:
       - image: circleci/python:3.6.8
     steps:
-      - checkout            
-      # - run:
-      #     name: Setup Virtual Environment
-      #     command: |
-      #       python3 -m venv venv
-      #       . venv/bin/activate
-            
-      # - run:
-      #     name: Install dependencies
-      #     command: |
-      #       sudo pip install numpy>=1.16
-      #       sudo pip install -r requirements.txt
-      #       sudo pip install awscli
-      #       sudo pip install -f https://download.mosek.com/stable/wheel/index.html Mosek==8.1.63
-
-      # - run:
-      #     name: Setup Mosek License file
-      #     command: |
-      #       sudo mkdir /root/mosek
-      #       mkdir $HOME/mosek
-      #       aws s3 cp s3://slac.gismo.ci.artifacts/mosek.license/mosek.lic $HOME/mosek/mosek.lic
-      #       sudo cp $HOME/mosek/mosek.lic /root/mosek/mosek.lic
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: |
+            sudo pip install -r requirements.txt
+            sudo pip install awscli coverage
+            sudo pip install -f https://download.mosek.com/stable/wheel/index.html Mosek==8.1.43
       
-      # - run:
-      #     name: Run tests
-      #     command: |
-      #       sudo pip install coverage
-      #       sudo coverage run -m unittest
-
-
-
-
-
-######
-# conda create --name venv_scs python=3.6.8
-# conda install -c conda-forge lapack
-# conda install -c cvxgrp cvxpy
-# pip install pandas matplotlib seaborn solar-data-tools awscli
-# conda install -c mosek mosek==8.1.63
-# mkdir $HOME/mosek
-# aws s3 cp s3://slac.gismo.ci.artifacts/mosek.license/mosek.lic $HOME/mosek/mosek.lic
-
-
+      - run:
+          name: Setup Mosek License File
+          command: |
+            mkdir $HOME/mosek
+            aws s3 cp s3://slac.gismo.ci.artifacts/mosek.license/mosek.lic $HOME/mosek/mosek.lic
+      
+      - run:
+          name: Run Unit Tests
+          command: sudo coverage run -m unittest
 
 # deploy:
 #   provider: pypi
