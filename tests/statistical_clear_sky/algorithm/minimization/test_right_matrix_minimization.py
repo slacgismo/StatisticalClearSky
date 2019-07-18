@@ -84,10 +84,9 @@ class TestRightMatrixMinimization(unittest.TestCase):
         else:
             np.testing.assert_array_equal(actual_l_cs_value,
                                           expected_l_cs_value)
-            np.testing.assert_array_equal(actual_r_cs_value,
-                                          expected_r_cs_value)
-            # np.testing.assert_array_equal(actual_beta_value,
-            #                               expected_beta_value)
+
+            np.testing.assert_array_equal(actual_r_cs_value, expected_r_cs_value)
+            
             np.testing.assert_almost_equal(actual_beta_value,
                                            expected_beta_value,
                                            decimal=8)
