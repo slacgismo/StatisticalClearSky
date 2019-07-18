@@ -141,6 +141,10 @@ class TestLeftMatrixMinimization(unittest.TestCase):
                 + "because default ECOS solver fails with large data. "
                 + "Unless MOSEK is installed, this test fails.")
         else:
+            for t in actual_l_cs_value:
+                print(t)
+            for x in expected_l_cs_value:
+                print(x)
             np.testing.assert_array_equal(actual_l_cs_value,
                                           expected_l_cs_value)
             np.testing.assert_array_equal(actual_r_cs_value,
