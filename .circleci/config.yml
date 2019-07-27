@@ -28,16 +28,29 @@ jobs:
       - run:
           name: Run Unit Tests
           command: sudo coverage run -m unittest
+  
   deploy:
-    requires:
+    steps:
+      - checkout
+      - run:
+          name: 'Deploy if tagged on master'
+          command: |
+            if [[ "${CIRCLE_BRANCH}" == "development" ]]; then
+              echo "I'm on the development branch"
+            fi
+
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
       - build
-    filters:
-      tags:
-        only: /^v.\d+\.\d+\.\d+$/
-    command: |
-      if [[ "${CIRCLE_BRANCH}" == "development" ]]; then
-        echo "I'm on the development branch"
-      fi
+      - deploy:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v.\d+\.\d+\.\d+$/
 
 # DEPLOY_ENV=prod ./.circleci/deploy-circle.sh
 # deploy:
