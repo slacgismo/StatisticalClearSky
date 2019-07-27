@@ -52,7 +52,7 @@ workflows:
             - build
           filters:
             branches:
-              only: development
+              only: release-on-tagging
             tags:
               only: /^v.\d+\.\d+\.\d+$/
 
