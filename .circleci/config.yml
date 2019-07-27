@@ -36,11 +36,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: 'Deploy if tagged on master'
-          command: |
-            if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
-              echo "I'm on the development branch"
-            fi
+          name: Perform deploy steps!
+          command: echo I Would Deploy
 
 workflows:
   version: 2
@@ -54,6 +51,8 @@ workflows:
           requires:
             - build
           filters:
+            branches:
+              only: master
             tags:
               only: /^v.\d+\.\d+\.\d+$/
 
