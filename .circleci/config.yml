@@ -10,26 +10,23 @@ jobs:
     steps:
       - checkout
       - run:
-          name: HELLO
-          command: echo HELLO
-      # - run:
-      #     name: Install Dependencies
-      #     command: |
-      #       sudo pip install -r requirements.txt
-      #       sudo pip install awscli coverage
-      #       sudo pip install -f https://download.mosek.com/stable/wheel/index.html Mosek==8.1.43
+          name: Install Dependencies
+          command: |
+            sudo pip install -r requirements.txt
+            sudo pip install awscli coverage
+            sudo pip install -f https://download.mosek.com/stable/wheel/index.html Mosek==8.1.43
       
-      # - run:
-      #     name: Setup Mosek License File
-      #     command: |
-      #       sudo mkdir /root/mosek
-      #       mkdir $HOME/mosek
-      #       aws s3 cp s3://slac.gismo.ci.artifacts/mosek.license/mosek.lic $HOME/mosek/mosek.lic
-      #       sudo cp $HOME/mosek/mosek.lic /root/mosek/mosek.lic
+      - run:
+          name: Setup Mosek License File
+          command: |
+            sudo mkdir /root/mosek
+            mkdir $HOME/mosek
+            aws s3 cp s3://slac.gismo.ci.artifacts/mosek.license/mosek.lic $HOME/mosek/mosek.lic
+            sudo cp $HOME/mosek/mosek.lic /root/mosek/mosek.lic
       
-      # - run:
-      #     name: Run Unit Tests
-      #     command: sudo coverage run -m unittest
+      - run:
+          name: Run Unit Tests
+          command: sudo coverage run -m unittest
   
   deploy:
     <<: *368_config
@@ -37,7 +34,7 @@ jobs:
       - checkout
       - run:
           name: Perform deploy steps!
-          command: echo I Would Deploy
+          command: echo I need passwords and deploy steps
 
 workflows:
   version: 2
@@ -52,11 +49,10 @@ workflows:
             - build
           filters:
             branches:
-              only: release-on-tagging
+              only: master
             tags:
               only: /^v.\d+\.\d+\.\d+$/
 
-# DEPLOY_ENV=prod ./.circleci/deploy-circle.sh
 # deploy:
 #   provider: pypi
 #   user: slacgismo
