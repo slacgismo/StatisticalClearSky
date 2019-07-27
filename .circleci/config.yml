@@ -3,6 +3,11 @@ jobs:
   build:
     docker:
       - image: circleci/python:3.6.8
+    
+    filters:  
+      tags:
+        only: /.*/
+    
     steps:
       - checkout
       - run:
@@ -23,7 +28,18 @@ jobs:
       - run:
           name: Run Unit Tests
           command: sudo coverage run -m unittest
+  deploy:
+    requires:
+      - build
+    filters:
+      tags:
+        only: /^v.\d+\.\d+\.\d+$/
+    command: |
+      if [[ "${CIRCLE_BRANCH}" == "development" ]]; then
+        echo "I'm on the development branch"
+      fi
 
+# DEPLOY_ENV=prod ./.circleci/deploy-circle.sh
 # deploy:
 #   provider: pypi
 #   user: slacgismo
