@@ -1,7 +1,10 @@
 #!/bin/bash -eu
 set -o errtrace
 
-# cache the root of the project
+########################################
+# Cache the root dir and the latest git
+# tag and commit hash
+########################################
 BUILD_ROOT=$(git rev-parse --show-toplevel)
 LAST_RELEASE_TAG="$(git tag --list "v*[0-9]" --sort=version:refname | tail -1 )"
 LAST_RELEASE_COMMIT="$(git rev-list -n 1 "${LAST_RELEASE_TAG}")"
@@ -12,15 +15,12 @@ source "$BUILD_ROOT"/.scripts/ci-utilities.sh
 # facility for error reporting
 trap 'error_trap "$0 line $LINENO"' ERR
 
+########################################
+# Increment the version, cut the tag and push it
+########################################
 function push_release_tag  {
     local version
-    version=$LAST_RELEASE_TAG
-    if [[ $# -eq 2 ]]; then
-        local tag_name="v${version}-${2}"
-    else
-        local tag_name="v${version}"
-    fi
-
+    version=$LAST_RELEASE_TAG    
     new_version=$(bump_version $version $BUMP_TYPE)
 
     start_section "Tagging master with v${new_version}"
@@ -29,8 +29,12 @@ function push_release_tag  {
     git push origin "v${new_version}"
 }
 
-function main {
-    # validate that we are releasing a major, minor or micro version
+########################################
+# Release a new version of the code by 
+# tagging the latest commit in master with 
+# bump in major, minor or micro version
+########################################
+function main {    
     start_section "Validating SEMVER Cut"
     if [ "$#" == 0 ]; then
         echo "No version specified. Please specify the version bump with either major, minor or micro."

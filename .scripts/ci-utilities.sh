@@ -1,8 +1,8 @@
 #!/bin/bash -eu
 
-####################
+########################################
 # Report Stylings
-####################
+########################################
 sr=$(printf "\\033[;31m") # red
 sg=$(printf "\\033[;32m") # green
 sy=$(printf "\\033[;33m") # yellow
@@ -11,25 +11,26 @@ sw=$(printf "\\033[;37m") # white
 sb=$(printf "\\033[1m")   # bold
 sn=$(printf "\\033[0;0m") # reset
 
-####################
+########################################
 # Helper function for error reporting
-####################
+########################################
 function error_trap {
   echo "${1:-"unknown error"} exit code: $?"
 }
 
-####################
-# Decmarcations
-####################
+########################################
+# Demarcations
+########################################
 function start_section {
   local message="${1}"
   echo
   echo "${sg}${sb}> ${sw}${message}${sn}"
 }
 
-####################
-# Makes sure things are equal or fail. It requires bash -e flag to cause exit on return
-####################
+########################################
+# Makes sure things are equal or fail. 
+# It requires bash -e flag to cause exit on return
+########################################
 function assert_equal {
   local x="${1}"
   local y="${2}"
@@ -42,9 +43,9 @@ function assert_equal {
   fi
 }
 
-####################
-# Did you really mean that?
-####################
+########################################
+# Did you really mean that? Like really though?
+########################################
 function assert_user_confirmation {
   echo "Are you sure you want to do this?"
   echo " In order to proceed type yes"
@@ -57,9 +58,9 @@ function assert_user_confirmation {
   fi
 }
 
-####################
+########################################
 # Makes sure its a version
-####################
+########################################
 function assert_version {
   local x="${1}"
   if [[ ${x} =~ ^[0-9]*\.[0-9]*\.[0-9]*$ ]] ; then
@@ -71,9 +72,10 @@ function assert_version {
   fi
 }
 
-####################
-# Make sure that the second arg is a descendent of the first arg or GAME OVER
-####################
+########################################
+# Make sure that the second arg is a 
+# descendent of the first arg or GAME OVER
+########################################
 function assert_merged {
   local possible_ancestor="${1}"
   local target="${2}"
@@ -86,9 +88,9 @@ function assert_merged {
   fi
 }
 
-####################
+########################################
 # Git sanity verification
-####################
+########################################
 function assert_tree_unchanged {
   start_section "Veriyfing current branch is unchanged"
   if git diff-index --quiet HEAD; then
@@ -109,9 +111,9 @@ function assert_tree_unchanged {
   fi
 }
 
-####################
+########################################
 # Calculate new version
-####################
+########################################
 function bump_version {
   local version=$(echo ${1} | cut -d 'v' -f 2)
   local type=${2}
