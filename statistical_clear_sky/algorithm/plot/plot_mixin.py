@@ -28,18 +28,23 @@ class PlotMixin(object):
         plt.tight_layout()
         return fig
 
-    def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=False):
+    def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=False,
+                    scale_power=False):
+        if scale_power:
+            c = 1./ 1000
+        else:
+            c = 1.
         plt.figure(figsize=figsize)
-        plt.plot(np.sum(self._power_signals_d, axis=0) * 24 / self._power_signals_d.shape[0],
+        plt.plot(np.sum(self._power_signals_d, axis=0) * 24 * c / self._power_signals_d.shape[0],
                  linewidth=1, alpha=0.7)
         if show_clear:
             plt.plot((self._r_cs_value[0] * np.sum(self._l_cs_value[:, 0])) *
-                24 / self._power_signals_d.shape[0], linewidth=1)
+                24 * c / self._power_signals_d.shape[0], linewidth=1)
         if show_days:
             use_day = self._obtain_weights_for_plotting() > 1e-1
             days = np.arange(self._power_signals_d.shape[1])
             plt.scatter(days[use_day], np.sum(self._power_signals_d,
-                axis=0)[use_day] * 24 / self._power_signals_d.shape[0],
+                axis=0)[use_day] * 24 * c / self._power_signals_d.shape[0],
                 color='orange', alpha=0.7)
         fig = plt.gcf()
         return fig
