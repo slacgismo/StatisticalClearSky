@@ -51,7 +51,7 @@ So, the default behavior of the code is to use the commercial Mosek solver. Thus
 
     If you are using Anaconda:
     ```sh
-    $ conda install -c mosek mosek
+    $ conda install -c mosek mosek==8.1.43
     ```
 
 Academic licenses are available for free here: [https://www.mosek.com/products/academic-licenses/](https://www.mosek.com/products/academic-licenses/)
