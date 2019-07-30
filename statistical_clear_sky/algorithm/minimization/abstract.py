@@ -16,7 +16,7 @@ class AbstractMinimization():
     """
 
     def __init__(self, power_signals_d, rank_k, weights, tau,
-                 non_neg_constraints=False, solver_type='ECOS'):
+                 non_neg_constraints=True, solver_type='ECOS'):
         self._power_signals_d = power_signals_d
         self._rank_k = rank_k
         self._weights = weights

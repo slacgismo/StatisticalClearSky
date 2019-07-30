@@ -14,7 +14,7 @@ class LeftMatrixMinimization(AbstractMinimization):
     """
 
     def __init__(self, power_signals_d, rank_k, weights, tau, mu_l,
-                 non_neg_constraints=False, solver_type='ECOS'):
+                 non_neg_constraints=True, solver_type='ECOS'):
 
         super().__init__(power_signals_d, rank_k, weights, tau,
                          non_neg_constraints=non_neg_constraints, solver_type=solver_type)

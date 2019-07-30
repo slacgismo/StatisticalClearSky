@@ -15,7 +15,7 @@ class RightMatrixMinimization(AbstractMinimization):
     def __init__(self, power_signals_d, rank_k, weights, tau, mu_r,
                  is_degradation_calculated=True,
                  max_degradation=0., min_degradation=-0.25,
-                 non_neg_constraints=False, solver_type='ECOS'):
+                 non_neg_constraints=True, solver_type='ECOS'):
 
         super().__init__(power_signals_d, rank_k, weights, tau,
                          non_neg_constraints=non_neg_constraints, solver_type=solver_type)

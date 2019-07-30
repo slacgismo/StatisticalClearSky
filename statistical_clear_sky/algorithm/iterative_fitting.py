@@ -58,7 +58,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 exit_criterion_epsilon=1e-3,
                 max_iteration=100, is_degradation_calculated=True,
                 max_degradation=None, min_degradation=None,
-                non_neg_constraints=False, verbose=True):
+                non_neg_constraints=True, verbose=True):
 
         mu_l, mu_r, tau = self._obtain_hyper_parameters(mu_l, mu_r, tau)
         l_cs_value, r_cs_value, beta_value = self._obtain_initial_values()
@@ -147,7 +147,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                             exit_criterion_epsilon=1e-3, max_iteration=100,
                             is_degradation_calculated=True,
                             max_degradation=None, min_degradation=None,
-                            non_neg_constraints=False, verbose=True):
+                            non_neg_constraints=True, verbose=True):
 
         ti = time()
         try:
@@ -425,7 +425,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._weight_setting = value
 
     def _get_left_matrix_minimization(self, weights, tau, mu_l, 
-                                      non_neg_constraints=False):
+                                      non_neg_constraints=True):
         """
         For dependency injection for testing, i.e. for injecting mock.
         """
@@ -444,7 +444,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._left_matrix_minimization = value
 
     def _get_right_matrix_minimization(self, weights, tau, mu_r,
-        non_neg_constraints=False, is_degradation_calculated=True,
+        non_neg_constraints=True, is_degradation_calculated=True,
         max_degradation=None, min_degradation=None):
         """
         For dependency injection for testing, i.e. for injecting mock.
