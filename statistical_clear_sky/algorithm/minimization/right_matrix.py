@@ -15,10 +15,10 @@ class RightMatrixMinimization(AbstractMinimization):
     def __init__(self, power_signals_d, rank_k, weights, tau, mu_r,
                  is_degradation_calculated=True,
                  max_degradation=0., min_degradation=-0.25,
-                 solver_type='ECOS'):
+                 non_neg_constraints=False, solver_type='ECOS'):
 
         super().__init__(power_signals_d, rank_k, weights, tau,
-                         solver_type=solver_type)
+                         non_neg_constraints=non_neg_constraints, solver_type=solver_type)
         self._mu_r = mu_r
 
         self._is_degradation_calculated = is_degradation_calculated
@@ -67,10 +67,7 @@ class RightMatrixMinimization(AbstractMinimization):
         return term_f3
 
     def _constraints(self, l_cs_param, r_cs_param, beta_param, component_r0):
-        constraints = [
-            l_cs_param * r_cs_param >= 0,
-            r_cs_param[0] >= 0
-        ]
+        constraints = []
         if self._power_signals_d.shape[1] > 365:
             r = r_cs_param[0, :].T
             if self._is_degradation_calculated:
@@ -86,6 +83,11 @@ class RightMatrixMinimization(AbstractMinimization):
             else:
                 constraints.append(cvx.multiply(component_r0[:-365],
                                                 r[365:] - r[:-365]) == 0)
+        if self._non_neg_constraints:
+            constraints.extend([
+                l_cs_param * r_cs_param >= 0,
+                r_cs_param[0] >= 0
+            ])
         return constraints
 
     def _handle_exception(self, problem):

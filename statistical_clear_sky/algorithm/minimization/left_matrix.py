@@ -14,10 +14,10 @@ class LeftMatrixMinimization(AbstractMinimization):
     """
 
     def __init__(self, power_signals_d, rank_k, weights, tau, mu_l,
-                 solver_type='ECOS'):
+                 non_neg_constraints=False, solver_type='ECOS'):
 
         super().__init__(power_signals_d, rank_k, weights, tau,
-                         solver_type=solver_type)
+                         non_neg_constraints=non_neg_constraints, solver_type=solver_type)
         self._mu_l = mu_l
 
     def _define_variables_and_parameters(self, l_cs_value, r_cs_value, beta_value, component_r0):
@@ -48,20 +48,16 @@ class LeftMatrixMinimization(AbstractMinimization):
         return 0
 
     def _constraints(self, l_cs_param, r_cs_param, beta_param, component_r0):
+        constraints = [cvx.sum(l_cs_param[:, 1:], axis=0) == 0]
         ixs = self._handle_bad_night_data()
         if sum(ixs) > 0:
-         return [
+            constraints.append(l_cs_param[ixs, :] == 0)
+        if self._non_neg_constraints:
+            constraints.extend([
                 l_cs_param * r_cs_param >= 0,
-                l_cs_param[ixs, :] == 0,
-                cvx.sum(l_cs_param[:, 1:], axis=0) == 0,
                 l_cs_param[:, 0] >= 0
-            ]
-        else:
-            return [
-                l_cs_param * r_cs_param >= 0,
-                cvx.sum(l_cs_param[:, 1:], axis=0) == 0,
-                l_cs_param[:, 0] >= 0
-            ]
+            ])
+        return constraints
 
     def _handle_exception(self, problem):
         if problem.status != 'optimal':
