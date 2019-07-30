@@ -5,7 +5,6 @@ This module defines helper class for the purpose of linearization.
 
 import numpy as np
 import cvxpy as cvx
-from statistical_clear_sky.solver_type import SolverType
 
 class LinearizationHelper(object):
     """
@@ -14,7 +13,7 @@ class LinearizationHelper(object):
     be convex optimization problem.
     """
 
-    def __init__(self, solver_type=SolverType.ecos):
+    def __init__(self, solver_type='ECOS'):
         """
         Keyword arguments
         -----------------
@@ -48,7 +47,7 @@ class LinearizationHelper(object):
             cvx.sum(0.5 * cvx.abs(component_r0 - x) + (.9 - 0.5) *
                     (component_r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
         problem = cvx.Problem(objective)
-        problem.solve(solver=self._solver_type.value)
+        problem.solve(solver=self._solver_type)
         result_component_r0 = x.value
  
         return result_component_r0

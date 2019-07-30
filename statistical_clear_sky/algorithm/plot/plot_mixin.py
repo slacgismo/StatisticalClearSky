@@ -28,17 +28,23 @@ class PlotMixin(object):
         plt.tight_layout()
         return fig
 
-    def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=False):
+    def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=False,
+                    scale_power=False):
+        if scale_power:
+            c = 1./ 1000
+        else:
+            c = 1.
         plt.figure(figsize=figsize)
-        plt.plot(np.sum(self._power_signals_d, axis=0) * 24 / self._power_signals_d.shape[0], linewidth=1)
+        plt.plot(np.sum(self._power_signals_d, axis=0) * 24 * c / self._power_signals_d.shape[0],
+                 linewidth=1, alpha=0.7)
         if show_clear:
             plt.plot((self._r_cs_value[0] * np.sum(self._l_cs_value[:, 0])) *
-                24 / self._power_signals_d.shape[0], linewidth=1)
+                24 * c / self._power_signals_d.shape[0], linewidth=1)
         if show_days:
             use_day = self._obtain_weights_for_plotting() > 1e-1
             days = np.arange(self._power_signals_d.shape[1])
             plt.scatter(days[use_day], np.sum(self._power_signals_d,
-                axis=0)[use_day] * 24 / self._power_signals_d.shape[0],
+                axis=0)[use_day] * 24 * c / self._power_signals_d.shape[0],
                 color='orange', alpha=0.7)
         fig = plt.gcf()
         return fig
@@ -47,7 +53,7 @@ class PlotMixin(object):
         fig, ax = plt.subplots(nrows=k, ncols=2, figsize=(figsize[0], 2*figsize[1]))
         for i in range(k):
             ax[i][0].plot(self._matrix_l0.T[i], linewidth=1)
-            ax[i][0].set_xlim(0, 287)
+            ax[i][0].set_xlim(0, self._power_signals_d.shape[0])
             ax[i][0].set_ylabel('$\\ell_{}$'.format(i + 1))
             ax[i][1].plot(self._matrix_r0[i], linewidth=1)
             ax[i][1].set_xlim(0, self._power_signals_d.shape[1])
@@ -70,7 +76,7 @@ class PlotMixin(object):
             plt.colorbar(foo, ax=ax, label='kW')
             ax.set_xlabel('Day number')
             ax.set_yticks([])
-            ax.set_ylabel('Time of day')
+            ax.set_ylabel('(sunset)        Time of day        (sunrise)')
             if show_days:
                 xlim = ax.get_xlim()
                 ylim = ax.get_ylim()
@@ -95,9 +101,9 @@ class PlotMixin(object):
             plt.colorbar(bar, ax=ax[1], label='kW')
             ax[1].set_xlabel('Day number')
             ax[0].set_yticks([])
-            ax[0].set_ylabel('Time of day')
+            ax[0].set_ylabel('(sunset)   Time of day   (sunrise)')
             ax[1].set_yticks([])
-            ax[1].set_ylabel('Time of day')
+            ax[1].set_ylabel('(sunset)   Time of day   (sunrise)')
             if show_days:
                 xlim = ax[0].get_xlim()
                 ylim = ax[0].get_ylim()
@@ -120,15 +126,17 @@ class PlotMixin(object):
         ax.plot(actual, linewidth=1, label='measured power')
         ax.plot(clearsky, linewidth=1, color='red', label='clear sky signal')
         plt.legend(loc=loc)
-        ax.set_xlim(0, 288 * (d2 - d1))
+        n = self._power_signals_d.shape[0]
+        ax.set_xlim(0, n * (d2 - d1))
         ax.set_ylabel('kW')
-        ax.set_xticks(np.arange(0, 288 * num_days, 4 * 12))
+        ax.set_xticks(np.arange(0, n * num_days, 4 * 12))
         ax.set_xticklabels(np.tile(np.arange(0, 24, 4), num_days))
         ax.set_xlabel('Hour of Day')
         plt.show()
 
     def ts_plot_with_weights(self, fig_title=None, start_day=0, num_days=5,
                              figsize=(16, 8)):
+        n = self._power_signals_d.shape[0]
         d1 = start_day
         d2 = d1 + num_days
         actual = self._power_signals_d[:, d1:d2].ravel(order='F')
@@ -139,7 +147,7 @@ class PlotMixin(object):
         ax[0].plot(xs, actual, alpha=0.4, label='measured power')
         ax[0].plot(xs, clearsky, linewidth=1, label='clear sky estimate')
         ax[1].plot(xs, np.repeat(self._obtain_weights_for_plotting()[d1:d2],
-            288), linewidth=1, label='day weight')
+            n), linewidth=1, label='day weight')
         ax[0].legend()
         ax[1].legend()
         # ax[0].set_ylim(0, np.max(actual) * 1.3)

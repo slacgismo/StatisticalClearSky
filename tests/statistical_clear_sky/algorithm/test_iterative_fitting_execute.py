@@ -4,7 +4,6 @@ import os
 import numpy as np
 import cvxpy as cvx
 from statistical_clear_sky.algorithm.iterative_fitting import IterativeFitting
-from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.time_shift.clustering\
 import AbstractTimeShift
 from statistical_clear_sky.algorithm.initialization.linearization_helper\
@@ -150,7 +149,7 @@ class TestIterativeFittingExecute(unittest.TestCase):
             self.mock_right_matrix_minimization)
 
         iterative_fitting.execute(mu_l=5e2, mu_r=1e3, tau=0.9,
-                                  max_iteration=15)
+                                  max_iteration=15, verbose=False)
 
         actual_clear_sky_signals = iterative_fitting.clear_sky_signals()
         actual_degradation_rate = iterative_fitting.degradation_rate()

@@ -15,7 +15,6 @@ from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
 from statistical_clear_sky.algorithm.initialization.weight_setting\
  import WeightSetting
-from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.exception import ProblemStatusError
 from statistical_clear_sky.algorithm.minimization.left_matrix\
  import LeftMatrixMinimization
@@ -31,8 +30,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     Implementation of "Statistical Clear Sky Fitting" algorithm.
     """
 
-    def __init__(self, power_signals_d, rank_k=4, solver_type=SolverType.ecos,
-                 reserve_test_data=False, auto_fix_time_shifts=True,
+    def __init__(self, power_signals_d, rank_k=6, solver_type='MOSEK',
+                 reserve_test_data=False, auto_fix_time_shifts=False,
                  time_shift=None):
 
         self._solver_type = solver_type
@@ -474,9 +473,9 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._state_data.rank_k = self._rank_k
         self._state_data.matrix_l0 = self._matrix_l0
         self._state_data.matrix_r0 = self._matrix_r0
-        self._state_data.mu_l = 1.0
-        self._state_data.mu_r = 20.0
-        self._state_data.tau = 0.8
+        self._state_data.mu_l = 5e2
+        self._state_data.mu_r = 1e3
+        self._state_data.tau = 0.85
 
     def _store_minimization_state_data(self, mu_l, mu_r, tau,
             l_cs_value, r_cs_value, beta_value, component_r0):

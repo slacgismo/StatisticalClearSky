@@ -2,7 +2,6 @@ import unittest
 import os
 import numpy as np
 import cvxpy as cvx
-from statistical_clear_sky.solver_type import SolverType
 from statistical_clear_sky.algorithm.minimization.left_matrix\
  import LeftMatrixMinimization
 
@@ -20,7 +19,6 @@ class TestLeftMatrixMinimization(unittest.TestCase):
         weights = np.array([0.0, 0.0, 0.97073243, 0.97243198])
         tau = 0.9
         mu_l = 5e2
-        solver_type=SolverType.ecos
         initial_l_cs_value = np.array([[0.12227644, -0.05536519,
                                         -0.02796016, 0.11115515],
                                        [0.12183656, -0.06418167,
@@ -53,7 +51,7 @@ class TestLeftMatrixMinimization(unittest.TestCase):
         expected_beta_value = initial_beta_value
 
         left_matrix_minimization = LeftMatrixMinimization(power_signals_d,
-            rank_k, weights, tau, mu_l, solver_type=SolverType.ecos)
+            rank_k, weights, tau, mu_l, solver_type='ECOS')
 
         actual_l_cs_value, actual_r_cs_value, actual_beta_value =\
             left_matrix_minimization.minimize(initial_l_cs_value,
@@ -128,7 +126,7 @@ class TestLeftMatrixMinimization(unittest.TestCase):
             initial_component_r0_value = np.loadtxt(file, delimiter=',')
 
         left_matrix_minimization = LeftMatrixMinimization(power_signals_d,
-            rank_k, weights, tau, mu_l, solver_type=SolverType.mosek)
+            rank_k, weights, tau, mu_l, solver_type='MOSEK')
 
         try:
             actual_l_cs_value, actual_r_cs_value, actual_beta_value =\
@@ -141,9 +139,9 @@ class TestLeftMatrixMinimization(unittest.TestCase):
                 + "because default ECOS solver fails with large data. "
                 + "Unless MOSEK is installed, this test fails.")
         else:
-            np.testing.assert_array_equal(actual_l_cs_value,
+            np.testing.assert_array_almost_equal(actual_l_cs_value,
                                           expected_l_cs_value)
-            np.testing.assert_array_equal(actual_r_cs_value,
+            np.testing.assert_array_almost_equal(actual_r_cs_value,
                                           expected_r_cs_value)
-            np.testing.assert_array_equal(actual_beta_value,
+            np.testing.assert_array_almost_equal(actual_beta_value,
                                           expected_beta_value)

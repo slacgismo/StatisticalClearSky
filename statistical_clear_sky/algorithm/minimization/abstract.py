@@ -7,7 +7,6 @@ the common code is placed in the abstract base class.
 from abc import abstractmethod
 import cvxpy as cvx
 import numpy as np
-from statistical_clear_sky.solver_type import SolverType
 
 class AbstractMinimization():
     """
@@ -17,7 +16,7 @@ class AbstractMinimization():
     """
 
     def __init__(self, power_signals_d, rank_k, weights, tau,
-                 solver_type=SolverType.ecos):
+                 solver_type='ECOS'):
         self._power_signals_d = power_signals_d
         self._rank_k = rank_k
         self._weights = weights
@@ -33,7 +32,7 @@ class AbstractMinimization():
         constraints = self._constraints(l_cs_param, r_cs_param, beta_param,
                                         component_r0)
         problem = cvx.Problem(objective, constraints)
-        problem.solve(solver=self._solver_type.value)
+        problem.solve(solver=self._solver_type)
         self._handle_exception(problem)
         return self._result(l_cs_param, r_cs_param, beta_param)
 
