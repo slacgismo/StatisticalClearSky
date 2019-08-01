@@ -14,20 +14,29 @@ class LeftMatrixMinimization(AbstractMinimization):
     """
 
     def __init__(self, power_signals_d, rank_k, weights, tau, mu_l,
-                 solver_type='ECOS'):
+                 non_neg_constraints=True, solver_type='ECOS'):
 
         super().__init__(power_signals_d, rank_k, weights, tau,
-                         solver_type=solver_type)
+                         non_neg_constraints=non_neg_constraints, solver_type=solver_type)
         self._mu_l = mu_l
 
-    def _define_parameters(self, l_cs_value, r_cs_value, beta_value):
-        l_cs_param = cvx.Variable(shape=(self._power_signals_d.shape[0],
+    def _define_variables_and_parameters(self, l_cs_value, r_cs_value, beta_value, component_r0):
+        self.left_matrix = cvx.Variable(shape=(self._power_signals_d.shape[0],
                                          self._rank_k))
-        l_cs_param.value = l_cs_value
-        r_cs_param = r_cs_value
-        beta_param = cvx.Variable()
-        beta_param.value = beta_value
-        return l_cs_param, r_cs_param, beta_param
+        self.left_matrix.value = l_cs_value
+        self.right_matrix = cvx.Parameter(shape=(self._rank_k,
+                                   self._power_signals_d.shape[1]))
+        self.right_matrix.value = r_cs_value
+        self.beta = cvx.Variable()
+        self.beta.value = beta_value
+        self.r0 = cvx.Parameter(len(component_r0))
+        self.r0.value = 1. / component_r0
+        return
+
+    def _update_parameters(self, l_cs_value, r_cs_value, beta_value, component_r0):
+        self.right_matrix.value = r_cs_value
+        self.beta.value = beta_value
+        self.r0.value = 1. / component_r0
 
     def _term_f2(self, l_cs_param, r_cs_param):
         weights_w2 = np.eye(self._rank_k)
@@ -39,27 +48,20 @@ class LeftMatrixMinimization(AbstractMinimization):
         return 0
 
     def _constraints(self, l_cs_param, r_cs_param, beta_param, component_r0):
+        constraints = [cvx.sum(l_cs_param[:, 1:], axis=0) == 0]
         ixs = self._handle_bad_night_data()
         if sum(ixs) > 0:
-         return [
+            constraints.append(l_cs_param[ixs, :] == 0)
+        if self._non_neg_constraints:
+            constraints.extend([
                 l_cs_param * r_cs_param >= 0,
-                l_cs_param[ixs, :] == 0,
-                cvx.sum(l_cs_param[:, 1:], axis=0) == 0,
                 l_cs_param[:, 0] >= 0
-            ]
-        else:
-            return [
-                l_cs_param * r_cs_param >= 0,
-                cvx.sum(l_cs_param[:, 1:], axis=0) == 0,
-                l_cs_param[:, 0] >= 0
-            ]
+            ])
+        return constraints
 
     def _handle_exception(self, problem):
         if problem.status != 'optimal':
             raise ProblemStatusError('Minimize L status: ' + problem.status)
-
-    def _result(self, l_cs_param, r_cs_param, beta_param):
-        return l_cs_param.value, r_cs_param, beta_param.value
 
     def _handle_bad_night_data(self):
         '''

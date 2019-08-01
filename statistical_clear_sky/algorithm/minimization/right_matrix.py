@@ -15,24 +15,33 @@ class RightMatrixMinimization(AbstractMinimization):
     def __init__(self, power_signals_d, rank_k, weights, tau, mu_r,
                  is_degradation_calculated=True,
                  max_degradation=0., min_degradation=-0.25,
-                 solver_type='ECOS'):
+                 non_neg_constraints=True, solver_type='ECOS'):
 
         super().__init__(power_signals_d, rank_k, weights, tau,
-                         solver_type=solver_type)
+                         non_neg_constraints=non_neg_constraints, solver_type=solver_type)
         self._mu_r = mu_r
 
         self._is_degradation_calculated = is_degradation_calculated
         self._max_degradation = max_degradation
         self._min_degradation = min_degradation
 
-    def _define_parameters(self, l_cs_value, r_cs_value, beta_value):
-        l_cs_param = l_cs_value
-        r_cs_param = cvx.Variable(shape=(self._rank_k,
+    def _define_variables_and_parameters(self, l_cs_value, r_cs_value, beta_value, component_r0):
+        self.left_matrix = cvx.Parameter(shape=(self._power_signals_d.shape[0],
+                                          self._rank_k))
+        self.left_matrix.value = l_cs_value
+        self.right_matrix = cvx.Variable(shape=(self._rank_k,
                                          self._power_signals_d.shape[1]))
-        r_cs_param.value = r_cs_value
-        beta_param = cvx.Variable()
-        beta_param.value = beta_value
-        return l_cs_param, r_cs_param, beta_param
+        self.right_matrix.value = r_cs_value
+        self.beta = cvx.Variable()
+        self.beta.value = beta_value
+        self.r0 = cvx.Parameter(len(component_r0))
+        self.r0.value = 1. / component_r0
+        return
+
+    def _update_parameters(self, l_cs_value, r_cs_value, beta_value, component_r0):
+        self.left_matrix.value = l_cs_value
+        self.beta.value = beta_value
+        self.r0.value = 1. / component_r0
 
     def _term_f2(self, l_cs_param, r_cs_param):
         '''
@@ -58,17 +67,12 @@ class RightMatrixMinimization(AbstractMinimization):
         return term_f3
 
     def _constraints(self, l_cs_param, r_cs_param, beta_param, component_r0):
-        constraints = [
-            l_cs_param * r_cs_param >= 0,
-            r_cs_param[0] >= 0
-        ]
+        constraints = []
         if self._power_signals_d.shape[1] > 365:
             r = r_cs_param[0, :].T
             if self._is_degradation_calculated:
                 constraints.extend([
-                    cvx.multiply(1./ component_r0[:-365],
-                                 r[365:] - r[:-365]) == beta_param,
-                    beta_param >= -.25
+                    cvx.multiply(component_r0[:-365], r[365:] - r[:-365]) == beta_param
                 ])
                 if self._max_degradation is not None:
                     constraints.append(
@@ -77,16 +81,18 @@ class RightMatrixMinimization(AbstractMinimization):
                     constraints.append(
                         beta_param >= self._min_degradation)
             else:
-                constraints.append(cvx.multiply(1./ component_r0[:-365],
+                constraints.append(cvx.multiply(component_r0[:-365],
                                                 r[365:] - r[:-365]) == 0)
+        if self._non_neg_constraints:
+            constraints.extend([
+                l_cs_param * r_cs_param >= 0,
+                r_cs_param[0] >= 0
+            ])
         return constraints
 
     def _handle_exception(self, problem):
         if problem.status != 'optimal':
             raise ProblemStatusError('Minimize R status: ' + problem.status)
-
-    def _result(self, l_cs_param, r_cs_param, beta_param):
-        return l_cs_param, r_cs_param.value, beta_param.value
 
     def _obtain_r_tilde(self, r_cs_param):
         '''
