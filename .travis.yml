@@ -4,6 +4,11 @@ python:
 - '3.6'
 - '3.7'
 
+before_install:
+  - echo $password
+  - echo env
+  - env
+
 deploy:
   provider: script
   script: bash env
