@@ -34,7 +34,7 @@ jobs:
       - checkout
       - run:
           name: Install twine
-          command: pip install twine
+          command: sudo pip install twine
 
       - run:
           name: Create the distribution
