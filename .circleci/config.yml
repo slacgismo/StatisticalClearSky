@@ -33,8 +33,16 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Perform deploy steps!
-          command: echo I need passwords and deploy steps
+          name: Install twine
+          command: pip install twine
+
+      - run:
+          name: Create the distribution
+          command: python setup.py sdist bdist_wheel
+
+      - run:
+          name: Push to PyPI
+          command: twine upload -u $PYPI_USERNAME -p $PYPI_PASSWORD dist/*
 
 workflows:
   version: 2
