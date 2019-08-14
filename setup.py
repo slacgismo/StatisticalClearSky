@@ -29,7 +29,7 @@ git_tags.stdout.close()
 latest_version = latest_git_tag.communicate()[0]
 
 # PEP 440 won't accept the v in front, so here we remove it, strip the new line and decode the byte stream
-VERSION_FROM_GIT_TAG = out[1:].strip().decode("utf-8") 
+VERSION_FROM_GIT_TAG = latest_version[1:].strip().decode("utf-8") 
 
 setup(
     # This is the name of your project. The first time you publish this
