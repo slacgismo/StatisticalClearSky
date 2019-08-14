@@ -56,7 +56,5 @@ workflows:
           requires:
             - build
           filters:
-            branches:
-              only: master
             tags:
-              only: /^v.*/
+              only: /^v.\d+\.\d+\.\d+$/

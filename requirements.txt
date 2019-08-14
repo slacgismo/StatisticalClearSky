@@ -4,3 +4,4 @@ pandas
 matplotlib
 seaborn
 solar-data-tools
+setuptools_scm
