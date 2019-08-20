@@ -22,12 +22,11 @@ jobs:
             conda update conda
             conda install anaconda-client conda-build
             conda config --set anaconda_upload no
-      - run:
-          name: Build the Anaconda Package
-          command: |
+            echo "BUILDING THE ANACONDA PACKAGE"
             cd conda_recipe
             conda build .
             conda build . --output
+            
       # - run:
       #     name: Install Dependencies
       #     command: |
