@@ -20,7 +20,7 @@ requirements:
     - pip
     - python
     - seaborn
-    - solar-data-tools==0.1.2
+    - solar-data-tools
   run:
     - numpy
     - pandas
