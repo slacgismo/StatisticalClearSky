@@ -27,8 +27,7 @@ jobs:
           command: |
             source /home/circleci/miniconda/etc/profile.d/conda.sh
             conda activate base
-            conda install -c slacgismo solar-data-tools
-            conda build . --channel slacgismo --numpy 1.16.4
+            conda build . --numpy 1.16.4
 
 
       # - run:
