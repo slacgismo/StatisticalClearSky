@@ -1,22 +1,25 @@
 {% set name = "statistical-clear-sky" %}
-{% set version = "0.1.19" %}
 
 package:
   name: "{{ name|lower }}"
-  version: "{{ version }}"
+  version: {{ environ.get('VERSION_FROM_GIT_TAG') }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: a6efae593d2aedcb8b2712d0e0d7788b7a4c90ab052964adc5ce7b275464c2ee
+  git_url: https://github.com/slacgismo/StatisticalClearSky
 
 build:
+  noarch: python
   number: 0
   script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
 
 requirements:
-  build:
+  host:
+    - numpy
+    - pandas
     - pip
     - python
+    - seaborn
+    - solar-data-tools
   run:
     - numpy
     - pandas
