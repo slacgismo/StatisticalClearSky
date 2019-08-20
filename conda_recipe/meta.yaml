@@ -20,13 +20,13 @@ requirements:
     - pip
     - python
     - seaborn
-    - solar-data-tools
+    - solar-data-tools==0.1.2
   run:
     - numpy
     - pandas
     - python
     - seaborn
-    - solar-data-tools==0.1.2
+    - solar-data-tools
 
 test:
   imports:

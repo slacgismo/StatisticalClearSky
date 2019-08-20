@@ -24,7 +24,7 @@ jobs:
             conda config --set anaconda_upload no
             echo "BUILDING THE ANACONDA PACKAGE"
             cd conda_recipe
-            conda build .
+            conda build . --channel slacgismo --numpy 1.16.4
             conda build . --output
             
       # - run:
