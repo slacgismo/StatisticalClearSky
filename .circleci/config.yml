@@ -23,6 +23,7 @@ jobs:
             conda install anaconda-client conda-build
             conda config --set anaconda_upload no
             echo "BUILDING THE ANACONDA PACKAGE"
+            sudo pip install -r requirements.txt
             cd conda_recipe
             conda build .
             conda build . --output
