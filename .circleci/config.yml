@@ -21,18 +21,13 @@ jobs:
             # Update conda
             conda update conda
             conda install anaconda-client conda-build
-            conda config --set anaconda_upload no
-            conda update conda-build
-      - run:
-          name: Install Dependencies
-          command: |
-            sudo pip install -r requirements.txt
-            
+            conda config --set anaconda_upload no                  
       - run:
           name: Build Anaconda Package
           command: |
             source /home/circleci/miniconda/etc/profile.d/conda.sh
             conda activate base
+            conda install -c slacgismo solar-data-tools
             conda build . --channel slacgismo --numpy 1.16.4
 
 
