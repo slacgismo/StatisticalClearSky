@@ -20,12 +20,14 @@ requirements:
     - python
     - seaborn
     - solar-data-tools
+    - cvxpy
   run:
     - numpy
     - pandas
     - python
     - seaborn
     - solar-data-tools
+    - cvxpy
 
 test:
   imports:
