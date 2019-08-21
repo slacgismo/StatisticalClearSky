@@ -20,27 +20,25 @@ requirements:
     - python
     - seaborn
     - solar-data-tools
-    - cvxpy
   run:
     - numpy
     - pandas
     - python
     - seaborn
     - solar-data-tools
-    - cvxpy
 
-test:
-  imports:
-    - statistical_clear_sky
-    - statistical_clear_sky.algorithm
-    - statistical_clear_sky.algorithm.initialization
-    - statistical_clear_sky.algorithm.serialization
-    - statistical_clear_sky.algorithm.plot
-    - statistical_clear_sky.algorithm.time_shift
-    - statistical_clear_sky.algorithm.utilities
-    - statistical_clear_sky.utilities
-  commands:
-    - python -m unittest
+# test:
+#   imports:
+#     - statistical_clear_sky
+#     - statistical_clear_sky.algorithm
+#     - statistical_clear_sky.algorithm.initialization
+#     - statistical_clear_sky.algorithm.serialization
+#     - statistical_clear_sky.algorithm.plot
+#     - statistical_clear_sky.algorithm.time_shift
+#     - statistical_clear_sky.algorithm.utilities
+#     - statistical_clear_sky.utilities
+#   commands:
+#     - python -m unittest
 
 about:
   home: https://github.com/bmeyers/StatisticalClearSky
