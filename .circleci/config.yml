@@ -34,8 +34,8 @@ jobs:
           command: |
             source /home/circleci/miniconda/etc/profile.d/conda.sh
             conda activate base
-            FILE_BUILD_PATH=`conda build . --output`
-            anaconda upload -u slacgismo $FILE_BUILD_PATH
+            VERSION_FROM_GIT_TAG=`git tag --list "v*[0-9]" --sort=version:refname | tail -1 | cut -c 2-`
+            anaconda upload -u slacgismo  /home/circleci/miniconda/conda-bld/noarch/statistical-clear-sky-$VERSION_FROM_GIT_TAG-*.tar.bz2            
 
 
       # - run:
