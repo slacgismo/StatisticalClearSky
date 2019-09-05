@@ -64,6 +64,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         l_cs_value, r_cs_value, beta_value = self._obtain_initial_values()
         component_r0 = self._obtain_initial_component_r0(verbose=verbose)
         weights = self._obtain_weights(verbose=verbose)
+        self.__left_first = True
 
         self._minimize_objective(l_cs_value, r_cs_value, beta_value,
             component_r0, weights, mu_l=mu_l, mu_r=mu_r, tau=tau,
@@ -181,17 +182,28 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 self._store_minimization_state_data(mu_l, mu_r, tau,
                     l_cs_value, r_cs_value, beta_value, component_r0)
 
-                if verbose:
-                    print('Miminizing left L matrix')
-                l_cs_value, r_cs_value, beta_value\
-                    = left_matrix_minimization.minimize(
-                        l_cs_value, r_cs_value, beta_value, component_r0, tol=tol)
-
-                if verbose:
-                    print('Miminizing right R matrix')
-                l_cs_value, r_cs_value, beta_value\
-                    = right_matrix_minimization.minimize(
-                        l_cs_value, r_cs_value, beta_value, component_r0, tol=tol)
+                if self.__left_first:
+                    if verbose:
+                        print('Miminizing left L matrix')
+                    l_cs_value, r_cs_value, beta_value\
+                        = left_matrix_minimization.minimize(
+                            l_cs_value, r_cs_value, beta_value, component_r0, tol=tol)
+                    if verbose:
+                        print('Miminizing right R matrix')
+                    l_cs_value, r_cs_value, beta_value\
+                        = right_matrix_minimization.minimize(
+                            l_cs_value, r_cs_value, beta_value, component_r0, tol=tol)
+                else:
+                    if verbose:
+                        print('Miminizing right R matrix')
+                    l_cs_value, r_cs_value, beta_value\
+                        = right_matrix_minimization.minimize(
+                            l_cs_value, r_cs_value, beta_value, component_r0, tol=tol)
+                    if verbose:
+                        print('Miminizing left L matrix')
+                    l_cs_value, r_cs_value, beta_value\
+                        = left_matrix_minimization.minimize(
+                            l_cs_value, r_cs_value, beta_value, component_r0, tol=tol)
 
                 component_r0 = r_cs_value[0, :]
 
@@ -216,6 +228,18 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                         print('Caution: objective increased.')
                     self._state_data.obj_increase = True
                     improvement *= -1
+                if objective_values[3] > 1:
+                    if verbose:
+                        if self.__left_first:
+                            print('Bad trajectory detected. Starting over and reversing minimization order.')
+                            self.__left_first = False
+                            iteration = 0
+                            l_cs_value = self._decomposition.matrix_l0
+                            r_cs_value = self._decomposition.matrix_r0
+                            component_r0 = self._obtain_initial_component_r0(verbose=verbose)
+                        else:
+                            print('Algorithm Failed!')
+                            improvement = 0
                 if iteration >= max_iteration:
                     if verbose:
                         print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
