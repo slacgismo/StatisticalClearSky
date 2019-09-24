@@ -19,7 +19,8 @@ class AbstractMinimization():
                  non_neg_constraints=True, solver_type='ECOS'):
         self._power_signals_d = power_signals_d
         self._rank_k = rank_k
-        self._weights = weights
+        self._weights = cvx.Parameter(shape=len(weights), value=weights,
+                                      nonneg=True)
         self._tau = tau
         self._non_neg_constraints = non_neg_constraints
         self._solver_type = solver_type
@@ -72,7 +73,7 @@ class AbstractMinimization():
         Subclass defines which of l_cs and r_cs value is fixed.
         """
 
-        weights_w1 = np.diag(self._weights)
+        weights_w1 = cvx.diag(self._weights)
         return cvx.sum((0.5 * cvx.abs(self._power_signals_d
                         - l_cs_param * r_cs_param)
                       + (self._tau - 0.5) * (self._power_signals_d
