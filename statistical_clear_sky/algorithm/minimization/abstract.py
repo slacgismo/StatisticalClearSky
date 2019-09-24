@@ -49,6 +49,9 @@ class AbstractMinimization():
     def _define_variables_and_parameters(self):
         pass
 
+    def update_weights(self, weights):
+        self._weights.value = weights
+
     def _construct_problem(self, l_cs_value, r_cs_value, beta_value, component_r0):
         self._define_variables_and_parameters(l_cs_value, r_cs_value, beta_value, component_r0)
         objective = cvx.Minimize(self._term_f1(self.left_matrix, self.right_matrix)
