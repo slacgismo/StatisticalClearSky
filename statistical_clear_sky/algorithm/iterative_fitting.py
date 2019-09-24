@@ -45,6 +45,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
         self._matrix_l0 = self._decomposition.matrix_l0
         self._matrix_r0 = self._decomposition.matrix_r0
+        self._bootstrap_samples = None
 
         self._set_testdays(power_signals_d, reserve_test_data)
 
@@ -58,7 +59,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 exit_criterion_epsilon=1e-3,
                 max_iteration=100, is_degradation_calculated=True,
                 max_degradation=None, min_degradation=None,
-                non_neg_constraints=True, verbose=True):
+                non_neg_constraints=True, verbose=True, run_bootstrap=False):
 
         mu_l, mu_r, tau = self._obtain_hyper_parameters(mu_l, mu_r, tau)
         l_cs_value, r_cs_value, beta_value = self._obtain_initial_values()
@@ -72,7 +73,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             max_iteration=max_iteration,
             is_degradation_calculated=is_degradation_calculated,
             max_degradation=max_degradation, min_degradation=min_degradation,
-            non_neg_constraints=non_neg_constraints, verbose=verbose)
+            non_neg_constraints=non_neg_constraints, verbose=verbose,
+            run_bootstrap=run_bootstrap)
 
         self._keep_supporting_parameters_as_properties(weights)
         self._store_final_state_data(weights)
@@ -127,6 +129,10 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     def state_data(self):
         return self._state_data
 
+    @property
+    def bootstrap_samples(self):
+        return self._bootstrap_samples
+
     # Alias method for l_cs_value accessor (with property decorator):
     def left_low_rank_matrix(self):
         return self.l_cs_value
@@ -148,7 +154,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                             exit_criterion_epsilon=1e-3, max_iteration=100,
                             is_degradation_calculated=True,
                             max_degradation=None, min_degradation=None,
-                            non_neg_constraints=True, verbose=True):
+                            non_neg_constraints=True, verbose=True,
+                            run_bootstrap=False):
 
         ti = time()
         try:
@@ -244,6 +251,9 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                     if verbose:
                         print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
                     improvement = 0.
+
+                if run_bootstrap:
+                    pass
 
                 self._store_minimization_state_data(mu_l, mu_r, tau,
                     l_cs_value, r_cs_value, beta_value, component_r0)
