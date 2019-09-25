@@ -6,6 +6,7 @@ from time import time
 import numpy as np
 from numpy.linalg import norm
 import cvxpy as cvx
+from collections import defaultdict
 from statistical_clear_sky.algorithm.time_shift.clustering\
 import ClusteringTimeShift
 from\
@@ -24,34 +25,48 @@ from statistical_clear_sky.algorithm.serialization.state_data import StateData
 from statistical_clear_sky.algorithm.serialization.serialization_mixin\
  import SerializationMixin
 from statistical_clear_sky.algorithm.plot.plot_mixin import PlotMixin
+from statistical_clear_sky.utilities.data_loading import resample_index
 
 class IterativeFitting(SerializationMixin, PlotMixin):
     """
     Implementation of "Statistical Clear Sky Fitting" algorithm.
     """
 
-    def __init__(self, power_signals_d, rank_k=6, solver_type='MOSEK',
-                 reserve_test_data=False, auto_fix_time_shifts=False,
-                 time_shift=None):
-
+    def __init__(self, data_matrix=None, data_handler_obj=None, rank_k=6,
+                 solver_type='MOSEK', reserve_test_data=False,
+                 auto_fix_time_shifts=False, time_shift=None):
         self._solver_type = solver_type
-
-        self._power_signals_d = self._handle_time_shift(
-            power_signals_d, auto_fix_time_shifts, time_shift=time_shift)
         self._rank_k = rank_k
+        if data_handler_obj is None and data_matrix is None:
+            print('Please initialize class with a data set')
+        elif data_handler_obj is not None:
+            data_matrix = data_handler_obj.filled_data_matrix
+            self._power_signals_d = data_matrix
+            # Set the weighting now, to use the error flagging feature
+            weights = self._get_weight_setting().obtain_weights(data_matrix)
+            weights *= data_handler_obj.daily_flags.no_errors
+        else:
+            self._power_signals_d = self._handle_time_shift(
+                data_matrix, auto_fix_time_shifts, time_shift=time_shift)
 
         self._decomposition = SingularValueDecomposition()
-        self._decomposition.decompose(power_signals_d, rank_k=rank_k)
+        self._decomposition.decompose(data_matrix, rank_k=rank_k)
 
         self._matrix_l0 = self._decomposition.matrix_l0
         self._matrix_r0 = self._decomposition.matrix_r0
         self._bootstrap_samples = None
 
-        self._set_testdays(power_signals_d, reserve_test_data)
+        self._set_testdays(data_matrix, reserve_test_data)
+        # Handle both DataHandler objects and reserving test data
+        if data_handler_obj is not None and self._test_days is not None:
+            weights[self._test_days] = 0
 
         # Stores the current state of the object:
         self._state_data = StateData()
         self._store_initial_state_data(auto_fix_time_shifts)
+        if data_handler_obj is not None:
+            self._weights = weights
+            self._state_data.weights = weights
 
         self._set_residuals()
 
@@ -59,7 +74,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 exit_criterion_epsilon=1e-3,
                 max_iteration=10, is_degradation_calculated=True,
                 max_degradation=None, min_degradation=None,
-                non_neg_constraints=True, verbose=True, run_bootstrap=False):
+                non_neg_constraints=True, verbose=True, bootstraps=None):
 
         mu_l, mu_r, tau = self._obtain_hyper_parameters(mu_l, mu_r, tau)
         l_cs_value, r_cs_value, beta_value = self._obtain_initial_values()
@@ -74,7 +89,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             is_degradation_calculated=is_degradation_calculated,
             max_degradation=max_degradation, min_degradation=min_degradation,
             non_neg_constraints=non_neg_constraints, verbose=verbose,
-            run_bootstrap=run_bootstrap)
+            bootstraps=bootstraps)
 
         self._keep_supporting_parameters_as_properties(weights)
         self._store_final_state_data(weights)
@@ -155,15 +170,19 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                             is_degradation_calculated=True,
                             max_degradation=None, min_degradation=None,
                             non_neg_constraints=True, verbose=True,
-                            run_bootstrap=False):
-
+                            bootstraps=None):
+        left_matrix_minimization = self._get_left_matrix_minimization(
+            weights, tau, mu_l, non_neg_constraints=non_neg_constraints)
+        right_matrix_minimization = self._get_right_matrix_minimization(
+            weights, tau, mu_r, non_neg_constraints=non_neg_constraints,
+            is_degradation_calculated=is_degradation_calculated,
+            max_degradation=max_degradation,
+            min_degradation=min_degradation)
         ti = time()
         objective_values = self._calculate_objective(mu_l, mu_r, tau,
             l_cs_value, r_cs_value, beta_value, weights,
             sum_components=False)
         if verbose:
-            print('starting at {:.3f}'.format(
-                    np.sum(objective_values)), objective_values)
             ps = 'Starting at Objective: {:.3e}, f1: {:.3e}, f2: {:.3e},'
             ps += ' f3: {:.3e}, f4: {:.3e}'
             print(ps.format(
@@ -175,14 +194,6 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         old_objective_value = np.sum(objective_values)
         iteration = 0
         f1_last = objective_values[0]
-
-        left_matrix_minimization = self._get_left_matrix_minimization(
-            weights, tau, mu_l, non_neg_constraints=non_neg_constraints)
-        right_matrix_minimization = self._get_right_matrix_minimization(
-            weights, tau, mu_r, non_neg_constraints=non_neg_constraints,
-            is_degradation_calculated=is_degradation_calculated,
-            max_degradation=max_degradation,
-            min_degradation=min_degradation)
 
         tol_schedule = [] #np.logspace(-4, -8, 6)
 
@@ -299,8 +310,6 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                     print('Reached iteration limit. Previous improvement: {:.2f}%'.format(improvement * 100))
                 improvement = 0.
 
-            if run_bootstrap:
-                pass
 
             self._store_minimization_state_data(mu_l, mu_r, tau,
                 l_cs_value, r_cs_value, beta_value, component_r0)
@@ -323,6 +332,178 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._analyze_residuals(l_cs_value, r_cs_value, weights)
         self._keep_result_variables_as_properties(l_cs_value, r_cs_value,
                                                   beta_value)
+        if bootstraps is not None:
+            self._bootstrap_samples = defaultdict(dict)
+            for ix in range(bootstraps):
+                # resample the days with non-zero weights only
+                bootstrap_weights = resample_index(length=np.sum(weights > 1e-1))
+                new_weights = np.zeros_like(weights)
+                new_weights[weights > 1e-1] = bootstrap_weights
+                new_weights = np.multiply(weights, new_weights)
+                left_matrix_minimization.update_weights(new_weights)
+                right_matrix_minimization.update_weights(new_weights)
+                l_cs_value = self._l_cs_value
+                r_cs_value = self._r_cs_value
+                beta_value = self._beta_value
+                ti = time()
+                objective_values = self._calculate_objective(mu_l, mu_r, tau,
+                                                             l_cs_value,
+                                                             r_cs_value,
+                                                             beta_value,
+                                                             new_weights,
+                                                             sum_components=False)
+                if verbose:
+                    ps = 'Bootstrap Sample {}\n'.format(ix)
+                    ps += 'Starting at Objective: {:.3e}, f1: {:.3e}, f2: {:.3e},'
+                    ps += ' f3: {:.3e}, f4: {:.3e}'
+                    print(ps.format(
+                        np.sum(objective_values), objective_values[0],
+                        objective_values[1], objective_values[2],
+                        objective_values[3]
+                    ))
+                improvement = np.inf
+                old_objective_value = np.sum(objective_values)
+                iteration = 0
+                f1_last = objective_values[0]
+
+                tol_schedule = []  # np.logspace(-4, -8, 6)
+
+                while improvement >= exit_criterion_epsilon:
+                    try:
+                        tol = tol_schedule[iteration]
+                    except IndexError:
+                        tol = 1e-8
+
+                    # self._store_minimization_state_data(mu_l, mu_r, tau,
+                    #                                     l_cs_value, r_cs_value,
+                    #                                     beta_value,
+                    #                                     component_r0)
+
+                    try:
+                        if self.__left_first:
+                            if verbose:
+                                print('    Minimizing left matrix')
+                            l_cs_value, r_cs_value, beta_value \
+                                = left_matrix_minimization.minimize(
+                                l_cs_value, r_cs_value, beta_value,
+                                component_r0, tol=tol)
+                            if verbose:
+                                print('    Minimizing right matrix')
+                            l_cs_value, r_cs_value, beta_value \
+                                = right_matrix_minimization.minimize(
+                                l_cs_value, r_cs_value, beta_value,
+                                component_r0, tol=tol)
+                        else:
+                            if verbose:
+                                print('    Minimizing right matrix')
+                            l_cs_value, r_cs_value, beta_value \
+                                = right_matrix_minimization.minimize(
+                                l_cs_value, r_cs_value, beta_value,
+                                component_r0, tol=tol)
+                            if verbose:
+                                print('    Minimizing left matrix')
+                            l_cs_value, r_cs_value, beta_value \
+                                = left_matrix_minimization.minimize(
+                                l_cs_value, r_cs_value, beta_value,
+                                component_r0, tol=tol)
+                    except cvx.SolverError:
+                        if self.__left_first:
+                            if verbose:
+                                print(
+                                    'Solver failed! Starting over and reversing minimization order.')
+                            self.__left_first = False
+                            iteration = 0
+                            l_cs_value = self._decomposition.matrix_l0
+                            r_cs_value = self._decomposition.matrix_r0
+                            component_r0 = self._obtain_initial_component_r0(
+                                verbose=verbose)
+                            continue
+                        else:
+                            if verbose:
+                                print('Solver failing again! Exiting...')
+                            self._state_data.is_solver_error = True
+                            break
+                    except ProblemStatusError as e:
+                        if verbose:
+                            print(e)
+                        if self.__left_first:
+                            if verbose:
+                                print(
+                                    'Starting over and reversing minimization order.')
+                            self.__left_first = False
+                            iteration = 0
+                            l_cs_value = self._decomposition.matrix_l0
+                            r_cs_value = self._decomposition.matrix_r0
+                            component_r0 = self._obtain_initial_component_r0(
+                                verbose=verbose)
+                            continue
+                        else:
+                            if verbose:
+                                print('Exiting...')
+                            self._state_data.is_problem_status_error = True
+                            break
+
+                    component_r0 = r_cs_value[0, :]
+
+                    objective_values = self._calculate_objective(mu_l, mu_r,
+                                                                 tau,
+                                                                 l_cs_value,
+                                                                 r_cs_value,
+                                                                 beta_value,
+                                                                 new_weights,
+                                                                 sum_components=False)
+                    new_objective_value = np.sum(objective_values)
+                    improvement = ((old_objective_value - new_objective_value)
+                                   * 1. / old_objective_value)
+                    old_objective_value = new_objective_value
+                    iteration += 1
+                    if verbose:
+                        ps = '{} - Objective: {:.3e}, f1: {:.3e}, f2: {:.3e},'
+                        ps += ' f3: {:.3e}, f4: {:.3e}'
+                        print(ps.format(
+                            iteration, new_objective_value,
+                            objective_values[0],
+                            objective_values[1], objective_values[2],
+                            objective_values[3]
+                        ))
+                    if objective_values[0] > f1_last:
+                        self._state_data.f1_increase = True
+                        if verbose:
+                            print('Caution: residuals increased')
+                    if improvement < 0:
+                        if verbose:
+                            print('Caution: objective increased.')
+                        self._state_data.obj_increase = True
+                        improvement *= -1
+                    if objective_values[3] > 1:
+                        if self.__left_first:
+                            if verbose:
+                                print(
+                                    'Bad trajectory detected. Starting over and reversing minimization order.')
+                            self.__left_first = False
+                            iteration = 0
+                            l_cs_value = self._decomposition.matrix_l0
+                            r_cs_value = self._decomposition.matrix_r0
+                            component_r0 = self._obtain_initial_component_r0(
+                                verbose=verbose)
+                        else:
+                            if verbose:
+                                print('Algorithm Failed!')
+                            improvement = 0
+                    if iteration >= max_iteration:
+                        if verbose:
+                            print(
+                                'Reached iteration limit. Previous improvement: {:.2f}%'.format(
+                                    improvement * 100))
+                        improvement = 0.
+                tf = time()
+                if verbose:
+                    print('Bootstrap {} complete in {:.2f} minutes'.format(
+                          ix, (tf - ti) / 60.))
+                self._bootstrap_samples[ix]['L'] = l_cs_value
+                self._bootstrap_samples[ix]['R'] = r_cs_value
+                self._bootstrap_samples[ix]['beta'] = beta_value
+
 
     def _calculate_objective(self, mu_l, mu_r, tau, l_cs_value, r_cs_value,
                              beta_value, weights, sum_components=True):
