@@ -26,6 +26,7 @@ from statistical_clear_sky.algorithm.serialization.serialization_mixin\
  import SerializationMixin
 from statistical_clear_sky.algorithm.plot.plot_mixin import PlotMixin
 from statistical_clear_sky.utilities.data_loading import resample_index
+from solardatatools.utilities import progress
 
 class IterativeFitting(SerializationMixin, PlotMixin):
     """
@@ -74,7 +75,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 exit_criterion_epsilon=1e-3,
                 max_iteration=10, is_degradation_calculated=True,
                 max_degradation=None, min_degradation=None,
-                non_neg_constraints=True, verbose=True, bootstraps=None):
+                non_neg_constraints=False, verbose=True, bootstraps=None):
 
         mu_l, mu_r, tau = self._obtain_hyper_parameters(mu_l, mu_r, tau)
         l_cs_value, r_cs_value, beta_value = self._obtain_initial_values()
@@ -333,6 +334,9 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._keep_result_variables_as_properties(l_cs_value, r_cs_value,
                                                   beta_value)
         if bootstraps is not None:
+            if verbose:
+                print('Running bootstrap analysis...')
+            ti = time()
             self._bootstrap_samples = defaultdict(dict)
             for ix in range(bootstraps):
                 # resample the days with non-zero weights only
@@ -345,7 +349,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 l_cs_value = self._l_cs_value
                 r_cs_value = self._r_cs_value
                 beta_value = self._beta_value
-                ti = time()
+                # ti = time()
                 objective_values = self._calculate_objective(mu_l, mu_r, tau,
                                                              l_cs_value,
                                                              r_cs_value,
@@ -353,14 +357,17 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                                                              new_weights,
                                                              sum_components=False)
                 if verbose:
-                    ps = 'Bootstrap Sample {}\n'.format(ix)
-                    ps += 'Starting at Objective: {:.3e}, f1: {:.3e}, f2: {:.3e},'
-                    ps += ' f3: {:.3e}, f4: {:.3e}'
-                    print(ps.format(
-                        np.sum(objective_values), objective_values[0],
-                        objective_values[1], objective_values[2],
-                        objective_values[3]
+                    progress(ix, bootstraps, status=' {:.2f} minutes'.format(
+                        (time() - ti) / 60
                     ))
+                    # ps = 'Bootstrap Sample {}\n'.format(ix)
+                    # ps += 'Starting at Objective: {:.3e}, f1: {:.3e}, f2: {:.3e},'
+                    # ps += ' f3: {:.3e}, f4: {:.3e}'
+                    # print(ps.format(
+                    #     np.sum(objective_values), objective_values[0],
+                    #     objective_values[1], objective_values[2],
+                    #     objective_values[3]
+                    # ))
                 improvement = np.inf
                 old_objective_value = np.sum(objective_values)
                 iteration = 0
@@ -381,27 +388,27 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
                     try:
                         if self.__left_first:
-                            if verbose:
-                                print('    Minimizing left matrix')
+                            # if verbose:
+                                # print('    Minimizing left matrix')
                             l_cs_value, r_cs_value, beta_value \
                                 = left_matrix_minimization.minimize(
                                 l_cs_value, r_cs_value, beta_value,
                                 component_r0, tol=tol)
-                            if verbose:
-                                print('    Minimizing right matrix')
+                            # if verbose:
+                                # print('    Minimizing right matrix')
                             l_cs_value, r_cs_value, beta_value \
                                 = right_matrix_minimization.minimize(
                                 l_cs_value, r_cs_value, beta_value,
                                 component_r0, tol=tol)
                         else:
-                            if verbose:
-                                print('    Minimizing right matrix')
+                            # if verbose:
+                                # print('    Minimizing right matrix')
                             l_cs_value, r_cs_value, beta_value \
                                 = right_matrix_minimization.minimize(
                                 l_cs_value, r_cs_value, beta_value,
                                 component_r0, tol=tol)
-                            if verbose:
-                                print('    Minimizing left matrix')
+                            # if verbose:
+                                # print('    Minimizing left matrix')
                             l_cs_value, r_cs_value, beta_value \
                                 = left_matrix_minimization.minimize(
                                 l_cs_value, r_cs_value, beta_value,
@@ -457,15 +464,15 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                                    * 1. / old_objective_value)
                     old_objective_value = new_objective_value
                     iteration += 1
-                    if verbose:
-                        ps = '{} - Objective: {:.3e}, f1: {:.3e}, f2: {:.3e},'
-                        ps += ' f3: {:.3e}, f4: {:.3e}'
-                        print(ps.format(
-                            iteration, new_objective_value,
-                            objective_values[0],
-                            objective_values[1], objective_values[2],
-                            objective_values[3]
-                        ))
+                    # if verbose:
+                        # ps = '{} - Objective: {:.3e}, f1: {:.3e}, f2: {:.3e},'
+                        # ps += ' f3: {:.3e}, f4: {:.3e}'
+                        # print(ps.format(
+                        #     iteration, new_objective_value,
+                        #     objective_values[0],
+                        #     objective_values[1], objective_values[2],
+                        #     objective_values[3]
+                        # ))
                     if objective_values[0] > f1_last:
                         self._state_data.f1_increase = True
                         if verbose:
@@ -496,13 +503,17 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                                 'Reached iteration limit. Previous improvement: {:.2f}%'.format(
                                     improvement * 100))
                         improvement = 0.
-                tf = time()
-                if verbose:
-                    print('Bootstrap {} complete in {:.2f} minutes'.format(
-                          ix, (tf - ti) / 60.))
+                # tf = time()
+                # if verbose:
+                #     print('Bootstrap {} complete in {:.2f} minutes'.format(
+                #           ix, (tf - ti) / 60.))
                 self._bootstrap_samples[ix]['L'] = l_cs_value
                 self._bootstrap_samples[ix]['R'] = r_cs_value
                 self._bootstrap_samples[ix]['beta'] = beta_value
+            if verbose:
+                progress(bootstraps, bootstraps, status=' {:.2f} minutes'.format(
+                    (time() - ti) / 60
+                ))
 
 
     def _calculate_objective(self, mu_l, mu_r, tau, l_cs_value, r_cs_value,
