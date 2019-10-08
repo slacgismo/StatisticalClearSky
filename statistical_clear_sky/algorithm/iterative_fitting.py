@@ -79,8 +79,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
         mu_l, mu_r, tau = self._obtain_hyper_parameters(mu_l, mu_r, tau)
         l_cs_value, r_cs_value, beta_value = self._obtain_initial_values()
-        component_r0 = self._obtain_initial_component_r0(verbose=verbose)
         weights = self._obtain_weights(verbose=verbose)
+        component_r0 = self._obtain_initial_component_r0(verbose=verbose)
         self.__left_first = True
 
         self._minimize_objective(l_cs_value, r_cs_value, beta_value,
@@ -599,7 +599,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             component_r0 = self._state_data.component_r0
         else:
             component_r0 = self._get_linearization_helper().obtain_component_r0(
-                self._decomposition.matrix_r0)
+                self._decomposition.matrix_r0, index_set=self.weights > 1e-3)
         return component_r0
 
     def _obtain_weights(self, verbose=True):
