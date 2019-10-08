@@ -293,7 +293,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                     print('Caution: objective increased.')
                 self._state_data.obj_increase = True
                 improvement *= -1
-            if objective_values[3] > 1:
+            if objective_values[3] > 1e2:
                 if self.__left_first:
                     if verbose:
                         print('Bad trajectory detected. Starting over and reversing minimization order.')
@@ -482,7 +482,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                             print('Caution: objective increased.')
                         self._state_data.obj_increase = True
                         improvement *= -1
-                    if objective_values[3] > 1:
+                    if objective_values[3] > 1e2:
                         if self.__left_first:
                             if verbose:
                                 print(
