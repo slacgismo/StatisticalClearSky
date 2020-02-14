@@ -22,13 +22,13 @@ class TestClusteringTimeShift(unittest.TestCase):
         input_power_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
                      "../../fixtures/time_shifts",
-                     "one_year_power_signals_d_1.csv"))
+                     "data_input.csv"))
         with open(input_power_signals_file_path) as file:
             power_signals_d = np.loadtxt(file, delimiter=',')
 
         output_power_signals_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),
-            "../../fixtures/time_shifts/power_signals_d_fix_clustering_1.csv"))
+            "../../fixtures/time_shifts/expected.csv"))
         with open(output_power_signals_file_path) as file:
             expected_power_signals_d_fix = np.loadtxt(file, delimiter=',')
 

@@ -23,7 +23,7 @@ class LinearizationHelper(object):
         """
         self._solver_type = solver_type
 
-    def obtain_component_r0(self, initial_r_cs_value):
+    def obtain_component_r0(self, initial_r_cs_value, index_set=None):
         """
         Obtains the initial r0 values that are used in place of variables
         denominator of degradation equation.
@@ -42,10 +42,12 @@ class LinearizationHelper(object):
         """
 
         component_r0 = initial_r_cs_value[0]
+        if index_set is None:
+            index_set = component_r0 > 1e-3 * np.percentile(component_r0, 95)
         x = cvx.Variable(initial_r_cs_value.shape[1])
         objective = cvx.Minimize(
-            cvx.sum(0.5 * cvx.abs(component_r0 - x) + (.9 - 0.5) *
-                    (component_r0 - x)) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
+            cvx.sum(0.5 * cvx.abs(component_r0[index_set] - x[index_set]) + (.9 - 0.5) *
+                    (component_r0[index_set] - x[index_set])) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
         problem = cvx.Problem(objective)
         problem.solve(solver=self._solver_type)
         result_component_r0 = x.value

@@ -41,7 +41,7 @@ class SerializationMixin(object):
         with open(filepath, 'r') as file:
             load_dict = json.load(file)
 
-        power_signals_d = load_dict['power_signals_d']
+        power_signals_d = np.array(load_dict['power_signals_d'])
         rank_k = load_dict['rank_k']
         auto_fix_time_shifts = load_dict['auto_fix_time_shifts']
 

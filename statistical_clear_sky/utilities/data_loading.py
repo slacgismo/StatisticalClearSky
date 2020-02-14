@@ -59,3 +59,11 @@ def load_sys(n=None, idnum=None, local=True, meta=None):
     df = df.reindex(index=time_index, fill_value=0)
     print(n, idnum)
     return df
+
+def resample_index(length=365*5):
+    indices = np.arange(length)
+    resampled = np.random.choice(indices, size=length, replace=True)
+    weights = np.zeros(length)
+    for index in resampled:
+        weights[index] += 1
+    return weights
