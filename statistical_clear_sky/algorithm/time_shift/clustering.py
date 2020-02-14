@@ -30,7 +30,7 @@ class ClusteringTimeShift(AbstractTimeShift):
         super().__init__(power_signals_d)
         self._return_ixs = return_ixs
 
-    def fix_time_shifts(self, verbose=False):
+    def fix_time_shifts(self, verbose=False, c1=2., c2=200.):
         """
         Adaptor (wrapper) method to eliminate the need to modify the code
         in IterativeFitting when underlying algorithm for time shift fix is
@@ -51,4 +51,4 @@ class ClusteringTimeShift(AbstractTimeShift):
             containing power signals with fixed time shift.
         """
         return fix_time_shifts(self._power_signals_d,
-            return_ixs=self._return_ixs, verbose=False)
+            return_ixs=self._return_ixs, verbose=False, c1=c1, c2=c2)
