@@ -36,6 +36,16 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     def __init__(self, data_matrix=None, data_handler_obj=None, rank_k=6,
                  solver_type='MOSEK', reserve_test_data=False,
                  auto_fix_time_shifts=False, time_shift=None):
+        """
+
+        :param data_matrix:
+        :param data_handler_obj:
+        :param rank_k:
+        :param solver_type:
+        :param reserve_test_data:
+        :param auto_fix_time_shifts:
+        :param time_shift:
+        """
         self._solver_type = solver_type
         self._rank_k = rank_k
         if data_handler_obj is None and data_matrix is None:
@@ -612,6 +622,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 self._power_signals_d)
             if self._test_days is not None:
                 weights[self._test_days] = 0
+        self._weights = weights
         return weights
 
     def _set_testdays(self, power_signals_d, reserve_test_data):
