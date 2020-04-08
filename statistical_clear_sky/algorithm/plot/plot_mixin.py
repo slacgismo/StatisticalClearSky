@@ -36,16 +36,19 @@ class PlotMixin(object):
             c = 1.
         plt.figure(figsize=figsize)
         plt.plot(np.sum(self._power_signals_d, axis=0) * 24 * c / self._power_signals_d.shape[0],
-                 linewidth=1, alpha=0.7)
+                 linewidth=1, alpha=0.7, label='measured daily energy')
         if show_clear:
             plt.plot((self._r_cs_value[0] * np.sum(self._l_cs_value[:, 0])) *
-                24 * c / self._power_signals_d.shape[0], linewidth=1)
+                24 * c / self._power_signals_d.shape[0], linewidth=1,
+                     label='estimated clear sky model')
         if show_days:
             use_day = self._obtain_weights_for_plotting() > 1e-1
             days = np.arange(self._power_signals_d.shape[1])
             plt.scatter(days[use_day], np.sum(self._power_signals_d,
                 axis=0)[use_day] * 24 * c / self._power_signals_d.shape[0],
-                color='orange', alpha=0.7)
+                color='orange', alpha=0.7, label='detected clear days')
+        plt.legend()
+        plt.title('Daily Energy Signal')
         fig = plt.gcf()
         return fig
 
@@ -68,7 +71,7 @@ class PlotMixin(object):
         plt.tight_layout()
         return fig
 
-    def plot_power_signals_d(self, figsize=(12, 6), show_days=False):
+    def plot_data_matrix(self, figsize=(12, 6), show_days=False):
         with sns.axes_style("white"):
             fig, ax = plt.subplots(nrows=1, figsize=figsize, sharex=True)
             foo = ax.imshow(self._power_signals_d, cmap='hot', interpolation='none', aspect='auto')
@@ -89,7 +92,7 @@ class PlotMixin(object):
                 ax.set_ylim(*ylim)
         return fig
 
-    def plot_measured_clear(self, figsize=(12, 10), show_days=False):
+    def plot_measured_clear_matrices(self, figsize=(12, 10), show_days=False):
         with sns.axes_style("white"):
             fig, ax = plt.subplots(nrows=2, figsize=figsize, sharex=True)
             foo = ax[0].imshow(self._power_signals_d, cmap='hot', interpolation='none', aspect='auto')
@@ -117,7 +120,7 @@ class PlotMixin(object):
             plt.tight_layout()
         return fig
 
-    def ts_plot(self, start_day=0, num_days=2, figsize=(8, 4), loc=(.35, .7)):
+    def plot_time_series(self, start_day=0, num_days=2, figsize=(8, 4), loc=(.35, .7)):
         d1 = start_day
         d2 = d1 + num_days
         actual = self._power_signals_d[:, d1:d2].ravel(order='F')
@@ -134,7 +137,7 @@ class PlotMixin(object):
         ax.set_xlabel('Hour of Day')
         plt.show()
 
-    def ts_plot_with_weights(self, fig_title=None, start_day=0, num_days=5,
+    def plot_time_series_with_weights(self, fig_title=None, start_day=0, num_days=5,
                              figsize=(16, 8)):
         n = self._power_signals_d.shape[0]
         d1 = start_day
