@@ -112,8 +112,15 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             sum_components=sum_components)
 
     @property
-    def power_signals_d(self):
+    def measured_power_matrix(self):
         return self._power_signals_d
+
+    @property
+    def estimated_power_matrix(self):
+        left = self._l_cs_value
+        right = self._r_cs_value
+        mat = left.dot(right)
+        return mat
 
     @property
     def l_cs_value(self):
