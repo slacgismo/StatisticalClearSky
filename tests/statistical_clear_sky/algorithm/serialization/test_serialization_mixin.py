@@ -27,7 +27,7 @@ class TestSerializationMixin(unittest.TestCase):
         rank_k = 4
 
         original_iterative_fitting = IterativeFitting(power_signals_d,
-                                   rank_k=rank_k, auto_fix_time_shifts=False)
+                                                      rank_k=rank_k)
 
         original_iterative_fitting.save_instance(self._filepath)
 

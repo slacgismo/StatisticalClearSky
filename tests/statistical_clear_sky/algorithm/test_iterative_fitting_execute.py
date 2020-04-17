@@ -4,8 +4,6 @@ import os
 import numpy as np
 import cvxpy as cvx
 from statistical_clear_sky.algorithm.iterative_fitting import IterativeFitting
-from statistical_clear_sky.algorithm.time_shift.clustering\
-import AbstractTimeShift
 from statistical_clear_sky.algorithm.initialization.linearization_helper\
  import LinearizationHelper
 from statistical_clear_sky.algorithm.initialization.weight_setting\
@@ -24,10 +22,6 @@ class TestIterativeFittingExecute(unittest.TestCase):
             "../fixtures/for_mock/three_years_power_signals_d_1.csv"))
         with open(fixed_power_signals_d_file_path) as file:
             fixed_power_signals_d = np.loadtxt(file, delimiter=',')
-
-        self.mock_time_shift = Mock(spec=AbstractTimeShift)
-        self.mock_time_shift.fix_time_shifts.return_value =\
-            fixed_power_signals_d
 
         initial_r0_value_file_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__),

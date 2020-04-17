@@ -47,8 +47,7 @@ class TestIterativeFitting(unittest.TestCase):
         expected_objective_values = np.array([117277.71151791142,
             478.8539994379723, 23800125.708200675, 228653.22102385858])
 
-        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
-                                             auto_fix_time_shifts=False)
+        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k)
 
         actual_objective_values = iterative_fitting._calculate_objective(
             mu_l, mu_r, tau, l_cs_value, r_cs_value,
