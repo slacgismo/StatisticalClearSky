@@ -46,7 +46,6 @@ class SerializationMixin(object):
 
         instance = cls(np.array(power_signals_d), rank_k=rank_k)
 
-        instance.state_data.auto_fix_time_shifts = auto_fix_time_shifts
         instance.state_data.power_signals_d = power_signals_d
         instance.state_data.rank_k = rank_k
         instance.state_data.matrix_l0 = np.array(load_dict['matrix_l0'])
