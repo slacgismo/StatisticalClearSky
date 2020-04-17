@@ -128,10 +128,7 @@ class TestIterativeFittingExecute(unittest.TestCase):
             expected_clear_sky_signals = np.loadtxt(file, delimiter=',')
         expected_degradation_rate = np.array(-0.04069624)
 
-        # Since TimeShift is used in constructor, its mock is injected
-        # through constructor:
-        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k,
-            time_shift=self.mock_time_shift)
+        iterative_fitting = IterativeFitting(power_signals_d, rank_k=rank_k)
 
         # Inject mock objects by dependency injection:
         iterative_fitting.set_linearization_helper(
