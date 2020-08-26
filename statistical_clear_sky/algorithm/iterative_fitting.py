@@ -7,8 +7,6 @@ import numpy as np
 from numpy.linalg import norm
 import cvxpy as cvx
 from collections import defaultdict
-from statistical_clear_sky.algorithm.time_shift.clustering\
-import ClusteringTimeShift
 from\
  statistical_clear_sky.algorithm.initialization.singular_value_decomposition\
  import SingularValueDecomposition
@@ -26,7 +24,7 @@ from statistical_clear_sky.algorithm.serialization.serialization_mixin\
  import SerializationMixin
 from statistical_clear_sky.algorithm.plot.plot_mixin import PlotMixin
 from statistical_clear_sky.utilities.data_loading import resample_index
-from solardatatools.utilities import progress
+from statistical_clear_sky.utilities.progress import progress
 
 class IterativeFitting(SerializationMixin, PlotMixin):
     """
@@ -34,8 +32,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     """
 
     def __init__(self, data_matrix=None, data_handler_obj=None, rank_k=6,
-                 solver_type='MOSEK', reserve_test_data=False,
-                 auto_fix_time_shifts=False, time_shift=None):
+                 solver_type='MOSEK', reserve_test_data=False):
         """
 
         :param data_matrix:
@@ -43,8 +40,6 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         :param rank_k:
         :param solver_type:
         :param reserve_test_data:
-        :param auto_fix_time_shifts:
-        :param time_shift:
         """
         self._solver_type = solver_type
         self._rank_k = rank_k
@@ -57,8 +52,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             weights = self._get_weight_setting().obtain_weights(data_matrix)
             weights *= data_handler_obj.daily_flags.no_errors
         else:
-            self._power_signals_d = self._handle_time_shift(
-                data_matrix, auto_fix_time_shifts, time_shift=time_shift)
+            self._power_signals_d = data_matrix
 
         self._decomposition = SingularValueDecomposition()
         self._decomposition.decompose(data_matrix, rank_k=rank_k)
@@ -74,7 +68,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
         # Stores the current state of the object:
         self._state_data = StateData()
-        self._store_initial_state_data(auto_fix_time_shifts)
+        self._store_initial_state_data()
         if data_handler_obj is not None:
             self._weights = weights
             self._state_data.weights = weights
@@ -112,8 +106,15 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             sum_components=sum_components)
 
     @property
-    def power_signals_d(self):
+    def measured_power_matrix(self):
         return self._power_signals_d
+
+    @property
+    def estimated_power_matrix(self):
+        left = self._l_cs_value
+        right = self._r_cs_value
+        mat = left.dot(right)
+        return mat
 
     @property
     def l_cs_value(self):
@@ -563,19 +564,6 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         else:
             return components
 
-    def _handle_time_shift(self, power_signals_d, auto_fix_time_shifts,
-                           time_shift=None):
-        self._fixed_time_stamps = False
-        if auto_fix_time_shifts:
-            power_signals_d_fix = self._get_time_shift(
-                power_signals_d, time_shift=time_shift).fix_time_shifts()
-            if np.alltrue(np.isclose(power_signals_d, power_signals_d_fix)):
-                del power_signals_d_fix
-            else:
-                power_signals_d = power_signals_d_fix
-                self._fixed_time_stamps = True
-        return power_signals_d
-
     def _obtain_hyper_parameters(self, mu_l, mu_r, tau):
         if mu_l is None and self._state_data.mu_l is not None:
             mu_l = self._state_data.mu_l
@@ -664,20 +652,6 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         self._residual_l0_norm = np.linalg.norm(
                 self._matrix_l0[:, 0] - l_cs_value[:, 0])
 
-    def _get_time_shift(self, power_signals_d, time_shift=None):
-        """
-        Method in order to define which TimeShift to use.
-
-        This also works for dependency injection for testing,
-        i.e. for injecting mock.
-        Since it's used in constructor,
-        TimeShift is injected through constructor.
-        """
-        if time_shift is None:
-            return ClusteringTimeShift(power_signals_d)
-        else:
-            return time_shift
-
     def _get_linearization_helper(self):
         """
         For dependency injection for testing, i.e. for injecting mock.
@@ -762,8 +736,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
     def _keep_supporting_parameters_as_properties(self, weights):
         self._weights = weights
 
-    def _store_initial_state_data(self, auto_fix_time_shifts):
-        self._state_data.auto_fix_time_shifts = auto_fix_time_shifts
+    def _store_initial_state_data(self):
         self._state_data.power_signals_d = self._power_signals_d
         self._state_data.rank_k = self._rank_k
         self._state_data.matrix_l0 = self._matrix_l0

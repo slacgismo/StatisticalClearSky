@@ -2,7 +2,7 @@
 This module defines a class for Weight Setting Algorithm.
 """
 
-from solardatatools import find_clear_days
+import numpy as np
 
 class WeightSetting(object):
     """
@@ -19,5 +19,12 @@ class WeightSetting(object):
         self._solver_type = solver_type
 
     def obtain_weights(self, power_signals_d):
-        weights = find_clear_days(power_signals_d, boolean_out=False)
+        try:
+            from solardatatools.clear_day_detection import find_clear_days
+        except ImportError:
+            print('Weights not set!')
+            print('Please make sure you have solar-data-tools installed')
+            weights = np.ones(power_signals_d.shape[1])
+        else:
+            weights = find_clear_days(power_signals_d, boolean_out=False)
         return weights
