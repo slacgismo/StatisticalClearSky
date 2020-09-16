@@ -5,11 +5,23 @@
 [![Build Status](https://travis-ci.com/tadatoshi/StatisticalClearSky.svg?branch=development)](https://travis-ci.com/tadatoshi/StatisticalClearSky)
 [![codecov](https://codecov.io/gh/tadatoshi/StatisticalClearSky/branch/development/graph/badge.svg)](https://codecov.io/gh/tadatoshi/StatisticalClearSky)
 
-Statistical estimation of a clear sky signal from PV system power data
+_Statistical estimation of a clear sky signal from PV system power data_
+
+This project implements an algorithm based on [Generalized Low Rank Models](https://stanford.edu/~boyd/papers/glrm.html) for estimating the output of a solar PV system under clear sky or "cloudless" conditions, given only measured power as an input. Noteably, no system configuration information, modeling parameters, or correlated environmental data are required. You can read more about this work in these two papers [[1](https://arxiv.org/abs/1907.08279), [2](https://ieeexplore.ieee.org/abstract/document/8939335)]. 
+
+We actually recommend that users generally not invoke this software directly. Instead, we recommend using the API provided by [Solar Data Tools](https://github.com/slacgismo/solar-data-tools).
 
 ## Getting Started
 
 You can install pip package or Anaconda package for this project.
+
+### Recommended: Set up `conda` environment with provided `.yml` file
+
+_Updated September 2020_
+
+We recommend seting up a fresh Python virutal environment in which to use `solar-data-tools`. We recommend using the [Conda](https://docs.conda.io/projects/conda/en/latest/index.html) package management system, and creating an environment with the environment configuration file named `pvi-user.yml`, provided in the top level of this repository. This will install the `solar-data-tools` package as well.
+
+Please see the Conda documentation page, "[Creating an environment from an environment.yml file](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file)" for more information.
 
 ### Installation
 
