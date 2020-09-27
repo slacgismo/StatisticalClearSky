@@ -48,6 +48,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         elif data_handler_obj is not None:
             data_matrix = data_handler_obj.filled_data_matrix
             self._power_signals_d = data_matrix
+            self._capacity = data_handler_obj.capacity_estimate
             # Set the weighting now, to use the error flagging feature
             weights = self._get_weight_setting().obtain_weights(data_matrix)
             weights *= data_handler_obj.daily_flags.no_errors
@@ -195,6 +196,41 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             l_cs_value, r_cs_value, beta_value, weights,
             sum_components=False)
         if verbose:
+            print('----------------------\nSCSF Problem Setup\n----------------------')
+            msg1 = 'Matrix Size: {} x {} = {} power measurements'.format(
+                self._power_signals_d.shape[0],
+                self._power_signals_d.shape[1],
+                self._power_signals_d.size
+            )
+            print(msg1)
+            reduced_mat = self._power_signals_d[:, self._weights > 0]
+            try:
+                real_meas = reduced_mat > 0.005 * self._capacity
+            except:
+                real_meas = reduced_mat > 0.005 * np.nanquantile(self._power_signals_d, 0.95)
+            msg = 'Sparsity: {:.2f}%'.format(
+                100 * (1 - np.sum(real_meas) / self._power_signals_d.size)
+            )
+            print(msg)
+            msg = '{} non-zero measurements under clear conditions'.format(
+                np.sum(real_meas)
+            )
+            print(msg)
+            msg2 = 'Model size: {} x {} + {} x {} = {} parameters'.format(
+                l_cs_value.shape[0],
+                l_cs_value.shape[1],
+                r_cs_value.shape[0],
+                r_cs_value.shape[1],
+                np.sum([
+                    l_cs_value.shape[0],
+                    l_cs_value.shape[1],
+                    r_cs_value.shape[0],
+                    r_cs_value.shape[1]
+                ])
+            )
+            print(msg2)
+            print('\n')
+            print('----------------------\nAlgorithm Iterations\n----------------------')
             ps = 'Starting at Objective: {:.3e}, f1: {:.3e}, f2: {:.3e},'
             ps += ' f3: {:.3e}, f4: {:.3e}'
             print(ps.format(
@@ -592,7 +628,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
     def _obtain_initial_component_r0(self, verbose=True):
         if verbose:
-            print('obtaining initial value of component r0')
+            # print('obtaining initial value of component r0')
+            pass
         if self._state_data.component_r0.size > 0:
             component_r0 = self._state_data.component_r0
         else:
@@ -602,7 +639,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
 
     def _obtain_weights(self, verbose=True):
         if verbose:
-            print('obtaining weights')
+            # print('obtaining weights')
+            pass
         if self._state_data.weights.size > 0:
             weights = self._state_data.weights
         else:
