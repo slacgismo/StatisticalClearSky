@@ -222,10 +222,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
                 r_cs_value.shape[0],
                 r_cs_value.shape[1],
                 np.sum([
-                    l_cs_value.shape[0],
-                    l_cs_value.shape[1],
-                    r_cs_value.shape[0],
-                    r_cs_value.shape[1]
+                    l_cs_value.shape[0] * l_cs_value.shape[1],
+                    r_cs_value.shape[0] * r_cs_value.shape[1]
                 ])
             )
             print(msg2)
