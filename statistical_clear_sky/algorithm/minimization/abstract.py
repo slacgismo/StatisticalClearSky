@@ -35,13 +35,13 @@ class AbstractMinimization():
             self._construct_problem(l_cs_value, r_cs_value, beta_value, component_r0)
         else:
             self._update_parameters(l_cs_value, r_cs_value, beta_value, component_r0)
-        # self._problem.solve(solver=self._solver_type)
-        self._problem.solve(solver='MOSEK', mosek_params={
-            'MSK_DPAR_INTPNT_CO_TOL_PFEAS': tol,
-            'MSK_DPAR_INTPNT_CO_TOL_DFEAS': tol,
-            'MSK_DPAR_INTPNT_CO_TOL_REL_GAP': tol,
-            'MSK_DPAR_INTPNT_CO_TOL_INFEAS': tol
-        })
+        self._problem.solve(solver=self._solver_type)
+        # self._problem.solve(solver='MOSEK', mosek_params={
+        #     'MSK_DPAR_INTPNT_CO_TOL_PFEAS': tol,
+        #     'MSK_DPAR_INTPNT_CO_TOL_DFEAS': tol,
+        #     'MSK_DPAR_INTPNT_CO_TOL_REL_GAP': tol,
+        #     'MSK_DPAR_INTPNT_CO_TOL_INFEAS': tol
+        # })
         self._handle_exception(self._problem)
         return self._result()
 
