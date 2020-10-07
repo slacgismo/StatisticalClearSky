@@ -48,7 +48,11 @@ class LinearizationHelper(object):
         objective = cvx.Minimize(
             cvx.sum(0.5 * cvx.abs(component_r0[index_set] - x[index_set]) + (.9 - 0.5) *
                     (component_r0[index_set] - x[index_set])) + 1e3 * cvx.norm(cvx.diff(x, k=2)))
-        problem = cvx.Problem(objective)
+        if initial_r_cs_value.shape[1] > 365:
+            constraints = [cvx.abs(x[365:] - x[:-365]) <= 1e-2 * np.percentile(component_r0, 95)]
+        else:
+            constraints = []
+        problem = cvx.Problem(objective, constraints)
         problem.solve(solver=self._solver_type)
         result_component_r0 = x.value
  
