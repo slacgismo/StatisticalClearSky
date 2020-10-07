@@ -629,10 +629,12 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             # print('obtaining initial value of component r0')
             pass
         if self._state_data.component_r0.size > 0:
-            component_r0 = self._state_data.component_r0
+            # component_r0 = self._state_data.component_r0
+            component_r0 = np.ones(self._decomposition.matrix_r0.shape[1])
         else:
-            component_r0 = self._get_linearization_helper().obtain_component_r0(
-                self._decomposition.matrix_r0, index_set=self.weights > 1e-3)
+            # component_r0 = self._get_linearization_helper().obtain_component_r0(
+            #     self._decomposition.matrix_r0, index_set=self.weights > 1e-3)
+            component_r0 = np.ones(self._decomposition.matrix_r0.shape[1])
         return component_r0
 
     def _obtain_weights(self, verbose=True):
