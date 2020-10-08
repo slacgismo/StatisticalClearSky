@@ -54,7 +54,7 @@ class LeftMatrixMinimization(AbstractMinimization):
             constraints.append(l_cs_param[ixs, :] == 0)
         if self._non_neg_constraints:
             constraints.extend([
-                l_cs_param * r_cs_param >= 0,
+                l_cs_param @ r_cs_param >= 0,
                 l_cs_param[:, 0] >= 0
             ])
         return constraints

@@ -78,10 +78,10 @@ class AbstractMinimization():
 
         weights_w1 = cvx.diag(self._weights)
         return cvx.sum((0.5 * cvx.abs(self._power_signals_d
-                        - l_cs_param * r_cs_param)
+                        - l_cs_param @ r_cs_param)
                       + (self._tau - 0.5) * (self._power_signals_d
-                        - l_cs_param * r_cs_param))
-                     * weights_w1)
+                        - l_cs_param @ r_cs_param))
+                     @ weights_w1)
 
     @abstractmethod
     def _term_f2(self, l_cs_param, r_cs_param):
