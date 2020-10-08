@@ -85,7 +85,7 @@ class RightMatrixMinimization(AbstractMinimization):
                                                 r[365:] - r[:-365]) == 0)
         if self._non_neg_constraints:
             constraints.extend([
-                l_cs_param * r_cs_param >= 0,
+                l_cs_param @ r_cs_param >= 0,
                 r_cs_param[0] >= 0
             ])
         return constraints
