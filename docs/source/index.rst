@@ -1,5 +1,5 @@
-StatisticalClearSky
-===================
+Statistical Clear Sky
+=====================
 
 |PyPI release| |Anaconda Cloud release| |Build Status| |codecov|
 
