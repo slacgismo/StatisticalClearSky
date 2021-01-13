@@ -28,13 +28,13 @@ Contents
    usage
    jupyter_notebook
    tests
+   modules
    contributing
    versioning
    authors
    license
    references
    acknowledgments
-
 
 
 
