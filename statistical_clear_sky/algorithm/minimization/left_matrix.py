@@ -41,7 +41,7 @@ class LeftMatrixMinimization(AbstractMinimization):
     def _term_f2(self, l_cs_param, r_cs_param):
         weights_w2 = np.eye(self._rank_k)
         term_f2 = self._mu_l * cvx.norm((l_cs_param[:-2, :] - 2
-                * l_cs_param[1:-1, :] + l_cs_param[2:, :]) * weights_w2, 'fro')
+                * l_cs_param[1:-1, :] + l_cs_param[2:, :]) @ weights_w2, 'fro')
         return term_f2
 
     def _term_f3(self, l_cs_param, r_cs_param):

@@ -576,7 +576,7 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         term_f1 = (cvx.sum((0.5 * cvx.abs(
                     self._power_signals_d - l_cs_value.dot(r_cs_value))
                     + (tau - 0.5) * (self._power_signals_d - l_cs_value.dot(
-                        r_cs_value))) * weights_w1)).value
+                        r_cs_value))) @ weights_w1) ).value
         weights_w2 = np.eye(self._rank_k)
         term_f2 = mu_l * norm((l_cs_value[:-2, :] - 2 * l_cs_value[1:-1, :] +
                                l_cs_value[2:, :]).dot(weights_w2), 'fro')
