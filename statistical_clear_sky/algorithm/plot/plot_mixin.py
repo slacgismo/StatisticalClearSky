@@ -29,7 +29,7 @@ class PlotMixin(object):
         plt.tight_layout()
         return fig
 
-    def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=False,
+    def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=True,
                     scale_power=False):
         if scale_power:
             c = 1./ 1000
