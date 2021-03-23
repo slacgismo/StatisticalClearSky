@@ -118,6 +118,30 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         return mat
 
     @property
+    def estimated_clear_sky(self):
+        return self._l_cs_value @ self._r_cs_value
+
+    @property
+    def deg_rate(self):
+        return self._beta_value.item()
+
+    @property
+    def left_matrix(self):
+        return self._l_cs_value
+
+    @property
+    def right_matrix(self):
+        return self._r_cs_value
+
+    @property
+    def left_problem(self):
+        return self._l_problem
+
+    @property
+    def right_problem(self):
+        return self._r_problem
+
+    @property
     def l_cs_value(self):
         return self._l_cs_value
 
@@ -191,6 +215,9 @@ class IterativeFitting(SerializationMixin, PlotMixin):
             is_degradation_calculated=is_degradation_calculated,
             max_degradation=max_degradation,
             min_degradation=min_degradation)
+
+        self._l_problem = left_matrix_minimization
+        self._r_problem = right_matrix_minimization
         ti = time()
         objective_values = self._calculate_objective(mu_l, mu_r, tau,
             l_cs_value, r_cs_value, beta_value, weights,
