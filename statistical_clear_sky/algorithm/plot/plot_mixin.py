@@ -5,6 +5,7 @@ This module defines Mixin for plot for IterativeClearSky.
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from solardatatools import plot_2d
 
 class PlotMixin(object):
 
@@ -28,7 +29,7 @@ class PlotMixin(object):
         plt.tight_layout()
         return fig
 
-    def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=False,
+    def plot_energy(self, figsize=(12, 6), show_days=True, show_clear=True,
                     scale_power=False):
         if scale_power:
             c = 1./ 1000
@@ -72,52 +73,45 @@ class PlotMixin(object):
         return fig
 
     def plot_data_matrix(self, figsize=(12, 6), show_days=False, units='kW'):
-        with sns.axes_style("white"):
-            fig, ax = plt.subplots(nrows=1, figsize=figsize, sharex=True)
-            foo = ax.imshow(self._power_signals_d, cmap='hot', interpolation='none', aspect='auto')
-            ax.set_title('Measured power')
-            plt.colorbar(foo, ax=ax, label=units)
-            ax.set_xlabel('Day number')
-            ax.set_yticks([])
-            ax.set_ylabel('(sunset)        Time of day        (sunrise)')
-            if show_days:
-                xlim = ax.get_xlim()
-                ylim = ax.get_ylim()
-                use_day = self._obtain_weights_for_plotting() > 1e-1
-                days = np.arange(self._power_signals_d.shape[1])
-                y1 = np.ones_like(days[use_day]) * self._power_signals_d.shape[0] * .99
-                ax.scatter(days[use_day], y1, marker='|', color='yellow', s=2)
-                ax.scatter(days[use_day], .995*y1, marker='|', color='yellow', s=2)
-                ax.set_xlim(*xlim)
-                ax.set_ylim(*ylim)
+        if show_days:
+            use_day = self._obtain_weights_for_plotting() > 1e-1
+        else:
+            use_day = None
+        fig = plot_2d(self._power_signals_d, figsize=figsize, units=units,
+                      clear_days=use_day)
         return fig
 
-    def plot_measured_clear_matrices(self, figsize=(12, 10), show_days=False,
+    def plot_measured_clear_matrices(self, figsize=(10, 10), show_days=False,
                                      units='kW'):
         with sns.axes_style("white"):
             fig, ax = plt.subplots(nrows=2, figsize=figsize, sharex=True)
-            foo = ax[0].imshow(self._power_signals_d, cmap='hot', interpolation='none', aspect='auto')
-            ax[0].set_title('Measured power')
-            bar = ax[1].imshow(self.clear_sky_signals(), cmap='hot',
-                               vmin=0, vmax=np.max(self._power_signals_d), interpolation='none', aspect='auto')
-            ax[1].set_title('Estimated clear sky power')
-            plt.colorbar(foo, ax=ax[0], label=units)
-            plt.colorbar(bar, ax=ax[1], label=units)
-            ax[1].set_xlabel('Day number')
-            ax[0].set_yticks([])
-            ax[0].set_ylabel('(sunset)   Time of day   (sunrise)')
-            ax[1].set_yticks([])
-            ax[1].set_ylabel('(sunset)   Time of day   (sunrise)')
             if show_days:
-                xlim = ax[0].get_xlim()
-                ylim = ax[0].get_ylim()
                 use_day = self._obtain_weights_for_plotting() > 1e-1
-                days = np.arange(self._power_signals_d.shape[1])
-                y1 = np.ones_like(days[use_day]) * self._power_signals_d.shape[0] * .99
-                ax[0].scatter(days[use_day], y1, marker='|', color='yellow', s=2)
-                ax[0].scatter(days[use_day], .995 * y1, marker='|', color='yellow', s=2)
-                ax[0].set_xlim(*xlim)
-                ax[0].set_ylim(*ylim)
+            else:
+                use_day = None
+            plot_2d(self._power_signals_d, ax=ax[0], clear_days=use_day,
+                    units=units)
+            plot_2d(self.clear_sky_signals(), ax=ax[1], clear_days=use_day,
+                    units=units)
+            ax[0].set_xlabel('')
+            ax[1].set_title('Estimated clear sky power')
+            # ax[0].set_title('Measured power')
+            # ax[1].set_title('Estimated clear sky power')
+            # ax[1].set_xlabel('Day number')
+            # ax[0].set_yticks([])
+            # ax[0].set_ylabel('(sunset)   Time of day   (sunrise)')
+            # ax[1].set_yticks([])
+            # ax[1].set_ylabel('(sunset)   Time of day   (sunrise)')
+            # if show_days:
+            #     xlim = ax[0].get_xlim()
+            #     ylim = ax[0].get_ylim()
+            #     use_day = self._obtain_weights_for_plotting() > 1e-1
+            #     days = np.arange(self._power_signals_d.shape[1])
+            #     y1 = np.ones_like(days[use_day]) * self._power_signals_d.shape[0] * .99
+            #     ax[0].scatter(days[use_day], y1, marker='|', color='yellow', s=2)
+            #     ax[0].scatter(days[use_day], .995 * y1, marker='|', color='yellow', s=2)
+            #     ax[0].set_xlim(*xlim)
+            #     ax[0].set_ylim(*ylim)
             plt.tight_layout()
         return fig
 
@@ -136,7 +130,8 @@ class PlotMixin(object):
         ax.set_xticks(np.arange(0, n * num_days, 4 * 12))
         ax.set_xticklabels(np.tile(np.arange(0, 24, 4), num_days))
         ax.set_xlabel('Hour of Day')
-        plt.show()
+        fig = ax.get_figure()
+        return fig
 
     def plot_time_series_with_weights(self, fig_title=None, start_day=0, num_days=5,
                              figsize=(16, 8)):

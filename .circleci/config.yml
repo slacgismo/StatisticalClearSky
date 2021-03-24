@@ -12,6 +12,7 @@ jobs:
       - run:
           name: Install Dependencies
           command: |
+            sudo pip install --upgrade setuptools
             sudo pip install -r requirements.txt
             sudo pip install awscli coverage
             sudo pip install -f https://download.mosek.com/stable/wheel/index.html Mosek==8.1.63
@@ -23,11 +24,11 @@ jobs:
             mkdir $HOME/mosek
             aws s3 cp s3://slac.gismo.ci.artifacts/mosek.license/mosek.lic $HOME/mosek/mosek.lic
             sudo cp $HOME/mosek/mosek.lic /root/mosek/mosek.lic
-      
+
       - run:
           name: Run Unit Tests
           command: sudo coverage run -m unittest
-  
+
   deploy-pypi:
     <<: *368_config
     steps:
@@ -58,7 +59,7 @@ jobs:
             conda config --set always_yes yes --set auto_update_conda false
             conda update conda
             conda install conda-build
-                              
+
       - run:
           name: Build the Anaconda Package
           command: |
@@ -75,7 +76,7 @@ jobs:
             source /home/circleci/miniconda/etc/profile.d/conda.sh
             conda activate base
             VERSION_FROM_GIT_TAG=`git tag --list "v*[0-9]" --sort=version:refname | tail -1 | cut -c 2-`
-            anaconda upload -u slacgismo  /home/circleci/miniconda/conda-bld/noarch/statistical-clear-sky-$VERSION_FROM_GIT_TAG-*.tar.bz2            
+            anaconda upload -u slacgismo  /home/circleci/miniconda/conda-bld/noarch/statistical-clear-sky-$VERSION_FROM_GIT_TAG-*.tar.bz2
 
 
 workflows:
@@ -83,7 +84,7 @@ workflows:
   build-and-deploy:
     jobs:
       - build:
-          filters:  
+          filters:
             tags:
               only: /.*/
       - deploy-pypi:
