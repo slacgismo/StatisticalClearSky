@@ -29,7 +29,7 @@ git_tags.stdout.close()
 latest_version = latest_git_tag.communicate()[0]
 
 # PEP 440 won't accept the v in front, so here we remove it, strip the new line and decode the byte stream
-VERSION_FROM_GIT_TAG = latest_version[1:].strip().decode("utf-8") 
+VERSION_FROM_GIT_TAG = latest_version[1:].strip().decode("utf-8")
 
 setup(
     # This is the name of your project. The first time you publish this
@@ -147,7 +147,7 @@ setup(
     # do not support Python 2, you can simplify this to '>=3.5' or similar, see
     # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
     #python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4',
-    python_requires='>=3.6, <4',
+    python_requires='>=3.7, <4',
 
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
