@@ -61,11 +61,6 @@
 </tr>
 </table>
 
-[![PyPI release](https://img.shields.io/pypi/v/statistical-clear-sky.svg)](https://pypi.org/project/statistical-clear-sky/)
-[![Anaconda Cloud release](https://anaconda.org/slacgismo/statistical-clear-sky/badges/version.svg)](https://anaconda.org/slacgismo/statistical-clear-sky)
-[![Build Status](https://travis-ci.com/tadatoshi/StatisticalClearSky.svg?branch=development)](https://travis-ci.com/tadatoshi/StatisticalClearSky)
-[![codecov](https://codecov.io/gh/tadatoshi/StatisticalClearSky/branch/development/graph/badge.svg)](https://codecov.io/gh/tadatoshi/StatisticalClearSky)
-
 _Statistical estimation of a clear sky signal from PV system power data_
 
 This project implements an algorithm based on [Generalized Low Rank Models](https://stanford.edu/~boyd/papers/glrm.html) for estimating the output of a solar PV system under clear sky or "cloudless" conditions, given only measured power as an input. Noteably, no system configuration information, modeling parameters, or correlated environmental data are required. You can read more about this work in these two papers [[1](https://arxiv.org/abs/1907.08279), [2](https://ieeexplore.ieee.org/abstract/document/8939335)].
