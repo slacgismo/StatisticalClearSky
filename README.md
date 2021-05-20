@@ -1,13 +1,70 @@
 # StatisticalClearSky
 
-[![PyPI release](https://img.shields.io/pypi/v/statistical-clear-sky.svg)](https://pypi.org/project/statistical-clear-sky/)
-[![Anaconda Cloud release](https://anaconda.org/slacgismo/statistical-clear-sky/badges/version.svg)](https://anaconda.org/slacgismo/statistical-clear-sky)
-[![Build Status](https://travis-ci.com/tadatoshi/StatisticalClearSky.svg?branch=development)](https://travis-ci.com/tadatoshi/StatisticalClearSky)
-[![codecov](https://codecov.io/gh/tadatoshi/StatisticalClearSky/branch/development/graph/badge.svg)](https://codecov.io/gh/tadatoshi/StatisticalClearSky)
+<table>
+<tr>
+  <td>Latest Release</td>
+  <td>
+    <a href="https://pypi.org/project/statistical-clear-sky/">
+        <img src="https://img.shields.io/pypi/v/statistical-clear-sky.svg" alt="latest release" />
+    </a>
+    <a href="https://anaconda.org/slacgismo/statistical-clear-sky">
+        <img src="https://anaconda.org/slacgismo/statistical-clear-sky/badges/version.svg" />
+    </a>
+    <a href="https://anaconda.org/slacgismo/statistical-clear-sky">
+        <img src="https://anaconda.org/slacgismo/statistical-clear-sky/badges/latest_release_date.svg" />
+    </a>
+</tr>
+<tr>
+  <td>License</td>
+  <td>
+    <a href="https://github.com/slacgismo/statisticalclearsky/blob/master/LICENSE">
+        <img src="https://img.shields.io/pypi/l/statistical-clear-sky.svg" alt="license" />
+    </a>
+</td>
+</tr>
+<tr>
+  <td>Build Status</td>
+  <td>
+    <a href="https://statistical-clea-rsky.readthedocs.io/en/stable/">
+        <img src="https://readthedocs.org/projects/statistical-clear-sky/badge/?version=stable" alt="documentation build status" />
+    </a>
+    <a href="https://app.circleci.com/pipelines/github/slacgismo/statisticalclearsky">
+        <img src="https://circleci.com/gh/slacgismo/StatisticalClearSky.svg?style=svg" alt="CircleCi build status" />
+    </a>
+    <!-- move to gismo account -->
+    <a href="https://travis-ci.com/tadatoshi/StatisticalClearSky.svg?branch=development">
+        <img src="https://travis-ci.com/tadatoshi/StatisticalClearSky.svg?branch=development">
+    </a>
+  </td>
+</tr>
+<tr>
+    <td>Code Quality</td>
+    <td>
+        <a href="https://lgtm.com/projects/g/slacgismo/StatisticalClearSky/context:python">
+            <img alt="Language grade: Python" src="https://img.shields.io/lgtm/grade/python/g/slacgismo/StatisticalClearSky.svg?logo=lgtm&logoWidth=18"/>
+        </a>
+        <a href="https://lgtm.com/projects/g/slacgismo/StatisticalClearSky/alerts/">
+            <img alt="Total alerts" src="https://img.shields.io/lgtm/alerts/g/slacgismo/StatisticalClearSky.svg?logo=lgtm&logoWidth=18"/>
+        </a>
+    </td>
+</tr>
+<!-- add Publications here -->
+<tr>
+  <td>Downloads</td>
+  <td>
+    <a href="https://pypi.org/project/statistical-clear-sky/">
+        <img src="https://img.shields.io/pypi/dm/statistical-clear-sky" alt="PyPI downloads" />
+    </a>
+    <a href="https://anaconda.org/conda-forge/statistical-clear-sky">
+        <img src="https://anaconda.org/slacgismo/statistical-clear-sky/badges/downloads.svg" alt="conda-forge downloads" />
+    </a>
+  </td>
+</tr>
+</table>
 
 _Statistical estimation of a clear sky signal from PV system power data_
 
-This project implements an algorithm based on [Generalized Low Rank Models](https://stanford.edu/~boyd/papers/glrm.html) for estimating the output of a solar PV system under clear sky or "cloudless" conditions, given only measured power as an input. Noteably, no system configuration information, modeling parameters, or correlated environmental data are required. You can read more about this work in these two papers [[1](https://arxiv.org/abs/1907.08279), [2](https://ieeexplore.ieee.org/abstract/document/8939335)]. 
+This project implements an algorithm based on [Generalized Low Rank Models](https://stanford.edu/~boyd/papers/glrm.html) for estimating the output of a solar PV system under clear sky or "cloudless" conditions, given only measured power as an input. Noteably, no system configuration information, modeling parameters, or correlated environmental data are required. You can read more about this work in these two papers [[1](https://arxiv.org/abs/1907.08279), [2](https://ieeexplore.ieee.org/abstract/document/8939335)].
 
 We actually recommend that users generally not invoke this software directly. Instead, we recommend using the API provided by [Solar Data Tools](https://github.com/slacgismo/solar-data-tools).
 
