@@ -50,15 +50,20 @@
 </tr>
 <!-- add Publications here -->
 <tr>
-  <td>Downloads</td>
-  <td>
-    <a href="https://pypi.org/project/statistical-clear-sky/">
-        <img src="https://img.shields.io/pypi/dm/statistical-clear-sky" alt="PyPI downloads" />
-    </a>
-    <a href="https://anaconda.org/conda-forge/statistical-clear-sky">
-        <img src="https://anaconda.org/slacgismo/statistical-clear-sky/badges/downloads.svg" alt="conda-forge downloads" />
-    </a>
-  </td>
+    <td>PyPI Downloads</td>
+    <td>
+        <a href="https://pepy.tech/project/statistical-clear-sky">
+            <img src="https://static.pepy.tech/badge/statistical-clear-sky" alt="PyPI downloads" />
+        </a>
+    </td>
+</tr>
+<tr>
+    <td>Conda Downloads</td>
+    <td>
+        <a href="https://anaconda.org/slacgismo/statistical-clear-sky">
+            <img src="https://anaconda.org/slacgismo/statistical-clear-sky/badges/downloads.svg" alt="conda-forge downloads" />
+        </a>
+    </td>
 </tr>
 </table>
 
