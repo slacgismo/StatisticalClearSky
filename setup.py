@@ -31,6 +31,11 @@ latest_version = latest_git_tag.communicate()[0]
 # PEP 440 won't accept the v in front, so here we remove it, strip the new line and decode the byte stream
 VERSION_FROM_GIT_TAG = latest_version[1:].strip().decode("utf-8")
 
+with open((here / "requirements.txt"), encoding="utf-8") as f:
+    install_requires = f.read().splitlines()
+# removes comments in the requirements file
+dependencies = [dependency for dependency in install_requires if (dependency[0] != "#")]
+
 setup(
     # This is the name of your project. The first time you publish this
     # package, this name will be registered for you. It will determine how
@@ -155,8 +160,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy>=1.16', 'pandas', 'seaborn', 'cvxpy>=1.0', 'solar-data-tools'],  # Optional
-
+    install_requires=dependencies,
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
     # syntax, for example:
