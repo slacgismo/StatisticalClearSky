@@ -48,7 +48,14 @@
         </a>
     </td>
 </tr>
-<!-- add Publications here -->
+<tr>
+    <td>Publications</td>
+    <td>
+        <a href="https://zenodo.org/badge/latestdoi/117483201">
+            <img src="https://zenodo.org/badge/117483201.svg" alt="DOI">
+        </a>
+    </td>
+</tr>
 <tr>
     <td>PyPI Downloads</td>
     <td>
@@ -63,6 +70,12 @@
         <a href="https://anaconda.org/slacgismo/statistical-clear-sky">
             <img src="https://anaconda.org/slacgismo/statistical-clear-sky/badges/downloads.svg" alt="conda-forge downloads" />
         </a>
+    </td>
+</tr>
+<tr>
+    <td>Test-Coverage</td>
+    <td>
+        <img src="https://img.shields.io/badge/test--coverage-39%25-yellowgreen" alt="test-coverage" />
     </td>
 </tr>
 </table>
