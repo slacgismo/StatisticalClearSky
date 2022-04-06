@@ -60,8 +60,6 @@ jobs:
               conda install anaconda-client
               conda install anaconda-client
               conda config --set anaconda_upload no
-              conda config --add channels conda-forge
-              conda config --get channels
               echo yes | anaconda login --username ${{ secrets.ANACONDA_CLOUD_USERNAME }} --password ${{ secrets.ANACONDA_CLOUD_PASSWORD }}
               git fetch --prune --unshallow --tags
               VERSION_FROM_GIT_TAG=$(git tag --list "v*[0-9]" --sort=version:refname | tail -1 | cut -c 2-) conda build . -c slacgismo --numpy 1.16.4
