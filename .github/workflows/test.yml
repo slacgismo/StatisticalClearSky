@@ -19,7 +19,7 @@ jobs:
           - name: Install Python
             uses: actions/setup-python@v3
             with:
-              python-version: '3.7'
+              python-version: '3.7.6'
 
           - name: Install Dependencies
             run: | 
@@ -27,7 +27,7 @@ jobs:
               sudo pip install --upgrade setuptools
               sudo pip install -r requirements.txt
               sudo pip install awscli coverage
-              sudo pip install https://download.mosek.com/stable/wheel/Mosek-8.1.63-cp37-cp37m-linux_x86_64.whl#md5=52baabf776b829d0853591d38199a58a
+              sudo pip install Mosek
 
           - name: Setup Mosek License File
             run: |
