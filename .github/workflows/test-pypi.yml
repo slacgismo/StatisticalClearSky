@@ -1,8 +1,9 @@
 name: Test Deployment
 on: 
-  pull-request:
+  pull_request:
     branches:
       - master
+    types: [opened]
 jobs:
     deploy-pypi-test:
         runs-on: ubuntu-latest
