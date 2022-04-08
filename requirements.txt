@@ -4,3 +4,4 @@ numpy==1.19.2
 pandas
 matplotlib
 seaborn
+solar-data-tools
