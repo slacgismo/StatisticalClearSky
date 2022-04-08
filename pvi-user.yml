@@ -19,7 +19,6 @@ dependencies:
   - scikit-learn
   - s3fs
   - solar-data-tools
-  - statistical-clear-sky
   - cassandra-driver
   - openblas
   - mosek
