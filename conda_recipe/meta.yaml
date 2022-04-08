@@ -19,13 +19,11 @@ requirements:
     - pip
     - python 3.7.6
     - seaborn
-    - solar-data-tools
   run:
     - numpy
     - pandas
     - python 3.7.6
     - seaborn
-    - solar-data-tools
 
 # test:
 #   imports:
