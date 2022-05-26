@@ -28,7 +28,7 @@
     <a href="https://statistical-clea-rsky.readthedocs.io/en/stable/">
         <img src="https://readthedocs.org/projects/statistical-clear-sky/badge/?version=stable" alt="documentation build status" />
     </a>
-    <a href="https://github.com/slacgismo/StatisticalClearSky/actions/workflows/main-test.yml/badge.svg?branch=master&event=workflow_run">
+    <a href="https://github.com/slacgismo/StatisticalClearSky/actions/workflows/main-test.yml/badge.svg">
         <img src="https://github.com/slacgismo/StatisticalClearSky/actions/workflows/main-test.yml" alt="Actions build status" />
     </a>
     <!-- move to gismo account -->
