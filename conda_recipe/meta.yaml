@@ -17,13 +17,13 @@ requirements:
     - numpy >=1.22
     - pandas
     - pip
-    - python 3.7.6
+    - python
     - seaborn
     - solar-data-tools
   run:
     - numpy >=1.22
     - pandas
-    - python 3.7.6
+    - python
     - seaborn
     - solar-data-tools
 
