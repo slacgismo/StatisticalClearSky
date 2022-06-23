@@ -14,14 +14,14 @@ build:
 
 requirements:
   host:
-    - numpy
+    - numpy >=1.22
     - pandas
     - pip
     - python 3.7.6
     - seaborn
     - solar-data-tools
   run:
-    - numpy
+    - numpy >=1.22
     - pandas
     - python 3.7.6
     - seaborn
