@@ -20,12 +20,15 @@ jobs:
             uses: actions/setup-python@v3
 
           - name: Install Dependencies
-            run: | 
+            run: |
+              pwd 
               python3 -m pip install --upgrade pip
               sudo pip3 install --upgrade setuptools
               sudo pip3 install -r requirements.txt
               sudo pip3 install awscli coverage
               sudo pip3 install Mosek
+              pip list
+              pip3 list
 
           - name: Setup Mosek License File
             run: |
@@ -36,7 +39,10 @@ jobs:
 
 # Current unit test is not consistent. Occasionally fails despite usually passing. Needs to be fixed.
           - name: Run Unit Tests
-            run: sudo coverage run -m unittest
+            run: |
+              pwd
+              ls
+              sudo coverage run -m unittest
 
     build-pypi:
         runs-on: ubuntu-latest
