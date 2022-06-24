@@ -21,11 +21,11 @@ jobs:
 
           - name: Install Dependencies
             run: | 
-              python -m pip install --upgrade pip
-              sudo pip install --upgrade setuptools
-              sudo pip install -r requirements.txt
-              sudo pip install awscli coverage
-              sudo pip install Mosek
+              python3 -m pip install --upgrade pip
+              sudo pip3 install --upgrade setuptools
+              sudo pip3 install -r requirements.txt
+              sudo pip3 install awscli coverage
+              sudo pip3 install Mosek
 
           - name: Setup Mosek License File
             run: |
@@ -49,12 +49,12 @@ jobs:
             uses: actions/setup-python@v3
 
           - name: Install Twine
-            run: sudo pip install twine
+            run: sudo pip3 install twine
 
           - name: Create the distribution
             run: |
               git fetch --prune --unshallow --tags
-              sudo python setup.py sdist bdist_wheel
+              sudo python3 setup.py sdist bdist_wheel
 
     build-conda:
         runs-on: ubuntu-latest
