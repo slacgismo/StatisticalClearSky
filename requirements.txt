@@ -1,6 +1,6 @@
 cmake
 cvxpy>=1.0
-numpy>=1.16
+numpy==1.22.0
 pandas
 matplotlib
 seaborn
