@@ -24,8 +24,6 @@ jobs:
           - name: Install Dependencies
             run: |
               pwd 
-              python3 -m pip install --upgrade pip
-              sudo pip3 install --upgrade setuptools
               sudo pip3 install -r requirements.txt
               sudo pip3 install awscli coverage
               sudo pip3 install Mosek
