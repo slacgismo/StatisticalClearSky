@@ -46,7 +46,8 @@ class IterativeFitting(SerializationMixin, PlotMixin):
         if data_handler_obj is None and data_matrix is None:
             print('Please initialize class with a data set')
         elif data_handler_obj is not None:
-            data_matrix = data_handler_obj.filled_data_matrix
+            if data_matrix is None:
+                data_matrix = data_handler_obj.filled_data_matrix
             self._power_signals_d = data_matrix
             self._capacity = data_handler_obj.capacity_estimate
             # Set the weighting now, to use the error flagging feature
