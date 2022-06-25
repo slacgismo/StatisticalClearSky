@@ -23,13 +23,10 @@ jobs:
 
           - name: Install Dependencies
             run: |
-              which python
-              which python3
-              which -a python
-              pwd 
-              sudo pip3 install -r requirements.txt
-              sudo pip3 install awscli coverage
-              sudo pip3 install Mosek
+              sudo pip3 install --upgrade pip
+              sudo pip3 install -r requirements.txt --ignore-installed
+              sudo pip3 install awscli coverage --ignore-installed
+              sudo pip3 install Mosek --ignore-installed
               pip list
               pip3 list
 
