@@ -23,10 +23,9 @@ jobs:
 
           - name: Install Dependencies
             run: |
-              sudo pip3 install --upgrade pip
-              sudo pip3 install -r requirements.txt --ignore-installed
-              sudo pip3 install awscli coverage --ignore-installed
-              sudo pip3 install Mosek --ignore-installed
+              sudo python3 -m pip install -r requirements.txt --ignore-installed
+              sudo python3 -m pip install awscli coverage --ignore-installed
+              sudo python3 -m pip install Mosek --ignore-installed
               pip list
               pip3 list
 
@@ -42,7 +41,7 @@ jobs:
             run: |
               pwd
               ls
-              sudo coverage run -m unittest
+              sudo python3 -m unittest
 
     build-pypi:
         runs-on: ubuntu-latest
